@@ -54,13 +54,48 @@ function formatDate(d) {
     return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function approveBooking(booking) {
-    useForm({}).post(`/admin/bookings/${booking.id}/approve`, { preserveScroll: true })
+const showApproveModal = ref(false)
+const showRejectModal = ref(false)
+const selectedBooking = ref(null)
+
+const rejectForm = useForm({
+    catatan_admin: ''
+})
+
+const approveForm = useForm({})
+
+function confirmApprove(booking) {
+    selectedBooking.value = booking
+    showApproveModal.value = true
 }
 
-function rejectBooking(booking) {
-    if (!confirm(`Tolak booking "${booking.nama_training}"?`)) return
-    useForm({}).post(`/admin/bookings/${booking.id}/reject`, { preserveScroll: true })
+function confirmReject(booking) {
+    selectedBooking.value = booking
+    rejectForm.reset()
+    showRejectModal.value = true
+}
+
+function submitApprove() {
+    if (!selectedBooking.value) return
+    approveForm.post(`/admin/bookings/${selectedBooking.value.id}/approve`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showApproveModal.value = false
+            selectedBooking.value = null
+        }
+    })
+}
+
+function submitReject() {
+    if (!selectedBooking.value) return
+    rejectForm.post(`/admin/bookings/${selectedBooking.value.id}/reject`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showRejectModal.value = false
+            selectedBooking.value = null
+            rejectForm.reset()
+        }
+    })
 }
 </script>
 
@@ -140,11 +175,11 @@ function rejectBooking(booking) {
                         </td>
                         <td class="px-4 py-3">
                             <div v-if="b.status === 'waiting_confirmation'" class="flex gap-2">
-                                <button @click="approveBooking(b)"
+                                <button @click="confirmApprove(b)"
                                     class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium py-1 px-3 rounded transition">
                                     ✓ Setujui
                                 </button>
-                                <button @click="rejectBooking(b)"
+                                <button @click="confirmReject(b)"
                                     class="bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium py-1 px-3 rounded transition">
                                     ✕ Tolak
                                 </button>
@@ -155,5 +190,81 @@ function rejectBooking(booking) {
                 </tbody>
             </table>
         </div>
+
+
+        <!-- ── Modal: Konfirmasi Approve ─────────────────────────────── -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition-all duration-200 ease-out"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition-all duration-150 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div v-if="showApproveModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h2 class="text-base font-bold text-gray-900">Konfirmasi Persetujuan</h2>
+                            <p class="text-xs text-gray-500 mt-1">Pastikan data berikut sudah sesuai sebelum mengunci ruangan.</p>
+                        </div>
+                        <div class="px-6 py-4 space-y-3 bg-gray-50">
+                            <div><span class="text-xs text-gray-500 block">Nama Training</span><span class="text-sm font-semibold text-gray-800">{{ selectedBooking?.nama_training }}</span></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><span class="text-xs text-gray-500 block">Pemohon</span><span class="text-sm text-gray-800">{{ selectedBooking?.pemohon }} ({{ selectedBooking?.divisi }})</span></div>
+                                <div><span class="text-xs text-gray-500 block">Ruangan</span><span class="text-sm text-gray-800">{{ selectedBooking?.ruangan }}</span></div>
+                            </div>
+                            <div><span class="text-xs text-gray-500 block">Jadwal</span><span class="text-sm text-gray-800">{{ formatDate(selectedBooking?.tgl_mulai) }} - {{ formatDate(selectedBooking?.tgl_selesai) }}</span></div>
+                        </div>
+                        <div class="px-6 py-4 flex gap-3">
+                            <button @click="showApproveModal = false" class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
+                            <button @click="submitApprove" :disabled="approveForm.processing" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium">
+                                {{ approveForm.processing ? 'Menyimpan...' : '✓ Setujui Booking' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- ── Modal: Konfirmasi Tolak ─────────────────────────────── -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition-all duration-200 ease-out"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition-all duration-150 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div v-if="showRejectModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h2 class="text-base font-bold text-gray-900">Penolakan Booking</h2>
+                            <p class="text-xs text-gray-500 mt-1">Booking <span class="font-semibold">{{ selectedBooking?.nama_training }}</span> akan dibatalkan.</p>
+                        </div>
+                        <form @submit.prevent="submitReject" class="px-6 py-5">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
+                            <textarea
+                                v-model="rejectForm.catatan_admin"
+                                required
+                                rows="3"
+                                placeholder="Contoh: Jadwal bentrok, ruangan sedang direnovasi..."
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                            ></textarea>
+                            <p v-if="rejectForm.errors.catatan_admin" class="text-xs text-red-500 mt-1">{{ rejectForm.errors.catatan_admin }}</p>
+                            
+                            <div class="mt-5 flex gap-3">
+                                <button type="button" @click="showRejectModal = false" class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
+                                <button type="submit" :disabled="rejectForm.processing || !rejectForm.catatan_admin" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">
+                                    {{ rejectForm.processing ? 'Menyimpan...' : '✕ Tolak Booking' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
     </AdminLayout>
 </template>

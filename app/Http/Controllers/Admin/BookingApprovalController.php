@@ -36,9 +36,21 @@ class BookingApprovalController extends Controller
             default                => null, // 'all' — tanpa filter
         };
 
+        // Pengurutan: jika melihat tab antrean (menunggu, urgent, overdue), urutkan dari yang TERLAMA (asc).
+        // Jika melihat tab lain (semua, disetujui, ditolak), urutkan dari yang TERBARU (desc).
+        if (in_array($filter, ['waiting_confirmation', 'urgent', 'overdue'])) {
+            $query->orderBy('created_at', 'asc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
         $bookings = $query
-            ->orderByRaw("FIELD(status, 'waiting_confirmation', 'confirmed', 'cancelled', 'plotting')")
-            ->orderBy('created_at', 'desc')
+            ->orderByRaw("CASE status 
+                WHEN 'waiting_confirmation' THEN 1 
+                WHEN 'confirmed' THEN 2 
+                WHEN 'cancelled' THEN 3 
+                WHEN 'plotting' THEN 4 
+                ELSE 5 END")
             ->get()
             ->map(function (Booking $b) {
                 return [
@@ -84,7 +96,16 @@ class BookingApprovalController extends Controller
      */
     public function reject(Request $request, Booking $booking)
     {
-        $booking->update(['status' => 'cancelled']);
+        $request->validate([
+            'catatan_admin' => 'required|string|max:500',
+        ], [
+            'catatan_admin.required' => 'Alasan penolakan wajib diisi.',
+        ]);
+
+        $booking->update([
+            'status' => 'cancelled',
+            'catatan_admin' => $request->catatan_admin,
+        ]);
 
         return back()->with('success', "Booking #{$booking->id} telah ditolak.");
     }

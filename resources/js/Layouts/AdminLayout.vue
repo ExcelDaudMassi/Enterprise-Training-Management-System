@@ -4,12 +4,13 @@ import { computed, ref } from 'vue'
 
 const props = defineProps({
     auth: Object,
-    bookingWindow: { type: Object, default: null },
-    notifications: { type: Array, default: () => [] },
 })
 
 const page = usePage()
 const currentUrl = computed(() => page.url)
+
+const bookingWindow = computed(() => page.props.bookingWindow)
+const notifications = computed(() => page.props.notifications ?? [])
 
 function isActive(path) {
     return currentUrl.value.startsWith(path)
@@ -31,7 +32,7 @@ function goToBooking(filter) {
     router.get('/admin/bookings', { filter })
 }
 
-const notifCount = computed(() => props.notifications?.length ?? 0)
+const notifCount = computed(() => notifications.value.length)
 
 const notifTypeStyle = {
     new:     { dot: 'bg-blue-500',   text: 'text-blue-700',  bg: 'hover:bg-blue-50' },
@@ -56,9 +57,11 @@ function submitOpenWindow() {
     })
 }
 
+const closeForm = useForm({})
+
 function closeWindow() {
     if (!confirm('Apakah Anda yakin ingin menutup window booking? User tidak akan bisa melakukan pemesanan baru setelah ini.')) return
-    useForm({}).post('/admin/booking-window/close')
+    closeForm.post('/admin/booking-window/close')
 }
 </script>
 
@@ -154,24 +157,21 @@ function closeWindow() {
                 <div class="flex items-center gap-3">
 
                     <!-- ── Booking Window Indicator ── -->
-                    <template v-if="bookingWindow">
+                    <template v-if="bookingWindow && bookingWindow.is_active">
                         <!-- ACTIVE window -->
-                        <div v-if="bookingWindow.is_active"
-                             class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full">
+                        <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span class="text-xs font-semibold text-emerald-700">Window Booking Aktif</span>
-                            <span class="text-[10px] text-emerald-600 border-l border-emerald-200 pl-2">
-                                Tutup: {{ new Date(bookingWindow.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) }}
-                            </span>
                             <button
                                 @click="closeWindow"
                                 class="ml-1 text-[10px] text-emerald-700 hover:text-red-600 font-medium transition-colors"
                                 title="Tutup window booking"
                             >✕</button>
                         </div>
-
-                        <!-- INACTIVE window -->
-                        <div v-else class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-full">
+                    </template>
+                    <template v-else>
+                        <!-- INACTIVE window (including null) -->
+                        <div class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-full">
                             <span class="w-2 h-2 rounded-full bg-gray-400"></span>
                             <span class="text-xs font-semibold text-gray-500">Window Booking Tutup</span>
                             <button
@@ -209,7 +209,7 @@ function closeWindow() {
                         >
                             <div v-if="showNotif"
                                  class="absolute right-0 top-11 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden"
-                                 @click.stop
+                                  @click.stop
                             >
                                 <!-- Header -->
                                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -267,6 +267,16 @@ function closeWindow() {
 
             <!-- Page Slot -->
             <main class="flex-1 p-6 overflow-auto">
+                <!-- Flash Alert Messages -->
+                <div v-if="$page.props.flash?.error" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800 flex items-start justify-between">
+                    <span>{{ $page.props.flash.error }}</span>
+                    <button @click="$page.props.flash.error = null" class="text-red-500 hover:text-red-700 font-semibold ml-2">✕</button>
+                </div>
+                <div v-if="$page.props.flash?.success" class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 flex items-start justify-between">
+                    <span>{{ $page.props.flash.success }}</span>
+                    <button @click="$page.props.flash.success = null" class="text-emerald-500 hover:text-emerald-700 font-semibold ml-2">✕</button>
+                </div>
+
                 <slot />
             </main>
         </div>
