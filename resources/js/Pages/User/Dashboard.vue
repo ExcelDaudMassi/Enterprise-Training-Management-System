@@ -319,44 +319,46 @@ function statusLabel(status) {
         <!-- ============================================================ -->
         <!-- Modal: Detail Booking pada Tanggal -->
         <!-- ============================================================ -->
-        <div
-            v-if="modalOpen"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-            @click.self="closeModal"
-        >
-            <div class="bg-white rounded shadow-lg w-full max-w-md p-5">
+        <Teleport to="body">
+            <div
+                v-if="modalOpen"
+                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
+                @click.self="closeModal"
+            >
+                <div class="bg-white rounded shadow-lg w-full max-w-md p-5">
 
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="font-semibold text-gray-800">Booking – {{ modalDate }}</h4>
-                    <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-lg leading-none">&times;</button>
-                </div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-gray-800">Booking – {{ modalDate }}</h4>
+                        <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-lg leading-none">&times;</button>
+                    </div>
 
-                <div class="space-y-3">
-                    <div
-                        v-for="b in modalBookings"
-                        :key="b.id"
-                        class="border rounded p-3 text-sm"
-                    >
-                        <div class="flex items-center gap-2 mb-1">
-                            <span
-                                class="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
-                                :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"
-                            ></span>
-                            <span class="font-medium text-gray-800">{{ b.nama_ruang }}</span>
-                        </div>
-                        <div class="text-gray-700 pl-4">{{ b.nama_training }}</div>
-                        <div class="text-gray-500 pl-4 text-xs">Divisi: {{ b.divisi }}</div>
-                        <div class="text-gray-400 pl-4 text-xs">
-                            {{ b.tgl_mulai }} s/d {{ b.tgl_selesai }}
+                    <div class="space-y-3">
+                        <div
+                            v-for="b in modalBookings"
+                            :key="b.id"
+                            class="border rounded p-3 text-sm"
+                        >
+                            <div class="flex items-center gap-2 mb-1">
+                                <span
+                                    class="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
+                                    :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"
+                                ></span>
+                                <span class="font-medium text-gray-800">{{ b.nama_ruang }}</span>
+                            </div>
+                            <div class="text-gray-700 pl-4">{{ b.nama_training }}</div>
+                            <div class="text-gray-500 pl-4 text-xs">Divisi: {{ b.divisi }}</div>
+                            <div class="text-gray-400 pl-4 text-xs">
+                                {{ b.tgl_mulai }} s/d {{ b.tgl_selesai }}
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <button @click="closeModal" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 rounded">
-                    Tutup
+                    <button @click="closeModal" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 rounded">
+                        Tutup
 </button>
+                </div>
             </div>
-        </div>
+        </Teleport>
 
     </UserLayout>
 </template>

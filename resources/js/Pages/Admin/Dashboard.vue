@@ -455,49 +455,51 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <!-- ============================================================ -->
         <!-- Modal: Detail Booking pada Tanggal -->
         <!-- ============================================================ -->
-        <div
-            v-if="modalOpen"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-            @click.self="closeModal"
-        >
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-5 border border-gray-150">
+        <Teleport to="body">
+            <div
+                v-if="modalOpen"
+                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
+                @click.self="closeModal"
+            >
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-5 border border-gray-150">
 
-                <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
-                    <h4 class="font-bold text-gray-800 flex items-center gap-1.5">
-                        <span>📅</span> Detail Booking · {{ modalDate }}
-                    </h4>
-                    <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-2xl leading-none cursor-pointer">&times;</button>
-                </div>
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+                        <h4 class="font-bold text-gray-800 flex items-center gap-1.5">
+                            <span>📅</span> Detail Booking · {{ modalDate }}
+                        </h4>
+                        <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-2xl leading-none cursor-pointer">&times;</button>
+                    </div>
 
-                <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
-                    <div
-                        v-for="b in modalBookings"
-                        :key="b.id"
-                        class="border border-gray-100 rounded p-3 bg-gray-50/50 hover:bg-gray-50 transition"
-                    >
-                        <div class="flex items-center gap-2 mb-1.5">
-                            <span
-                                class="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
-                                :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"
-                            ></span>
-                            <span class="font-bold text-gray-800 text-sm">{{ b.nama_ruang }}</span>
-                            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase" :class="STATUS_STYLE[b.status]">
-                                {{ statusLabel(b.status) }}
-                            </span>
-                        </div>
-                        <div class="text-gray-850 font-semibold text-sm pl-4 mb-0.5">{{ b.nama_training }}</div>
-                        <div class="text-gray-500 pl-4 text-xs">Divisi Pemohon: {{ b.divisi }}</div>
-                        <div class="text-gray-400 pl-4 text-[10px] mt-1 font-medium">
-                            🗓️ {{ b.tgl_mulai }} s/d {{ b.tgl_selesai }}
+                    <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                        <div
+                            v-for="b in modalBookings"
+                            :key="b.id"
+                            class="border border-gray-100 rounded p-3 bg-gray-50/50 hover:bg-gray-50 transition"
+                        >
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span
+                                    class="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
+                                    :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"
+                                ></span>
+                                <span class="font-bold text-gray-800 text-sm">{{ b.nama_ruang }}</span>
+                                <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase" :class="STATUS_STYLE[b.status]">
+                                    {{ statusLabel(b.status) }}
+                                </span>
+                            </div>
+                            <div class="text-gray-850 font-semibold text-sm pl-4 mb-0.5">{{ b.nama_training }}</div>
+                            <div class="text-gray-500 pl-4 text-xs">Divisi Pemohon: {{ b.divisi }}</div>
+                            <div class="text-gray-400 pl-4 text-[10px] mt-1 font-medium">
+                                🗓️ {{ b.tgl_mulai }} s/d {{ b.tgl_selesai }}
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <button @click="closeModal" class="mt-5 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 rounded-lg font-semibold transition cursor-pointer">
-                    Tutup
-                </button>
+                    <button @click="closeModal" class="mt-5 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 rounded-lg font-semibold transition cursor-pointer">
+                        Tutup
+                    </button>
+                </div>
             </div>
-        </div>
+        </Teleport>
 
     </AdminLayout>
 </template>
