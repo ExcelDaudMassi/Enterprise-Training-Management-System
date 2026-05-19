@@ -93,6 +93,21 @@ function getDateHighlightClass(year, month, day) {
     }
 }
 
+function getMonthOriginClass(index) {
+    let classes = ''
+    const colXl = index % 4
+    if (colXl === 0) classes += ' xl:origin-left'
+    else if (colXl === 3) classes += ' xl:origin-right'
+    else classes += ' xl:origin-center'
+    
+    const colMd = index % 2
+    if (colMd === 0) classes += ' md:origin-left'
+    else classes += ' md:origin-right'
+    
+    classes += ' origin-center'
+    return classes
+}
+
 // ============================================================
 // Modal state
 // ============================================================
@@ -331,6 +346,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     v-for="(monthName, monthIdx) in MONTH_NAMES" 
                     :key="monthIdx" 
                     class="group/month relative border border-gray-100 rounded-xl p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
+                    :class="getMonthOriginClass(monthIdx)"
                 >
 
                     <!-- Nama Bulan -->
