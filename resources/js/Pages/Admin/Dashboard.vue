@@ -188,43 +188,67 @@ function openModal(year, monthIdx) {
         const startDateStr = weekDays[0].ymd
         const endDateStr = weekDays[6].ymd
         
-        // Group bookings by room for this week
-        const bookingsByRoom = {}
-        props.ruanganList.forEach(room => {
-            bookingsByRoom[room.id] = []
-        })
-        
+        // Find bookings overlapping with this week
+        const weekBookings = []
         props.bookings.forEach(b => {
             if (b.tgl_mulai <= endDateStr && b.tgl_selesai >= startDateStr) {
-                // Calculate starting and ending day relative to this week
                 let startIndex = 0
                 while (startIndex < 7 && weekDays[startIndex].ymd < b.tgl_mulai) { startIndex++ }
                 
                 let endIndex = 6
                 while (endIndex >= 0 && weekDays[endIndex].ymd > b.tgl_selesai) { endIndex-- }
                 
-                const span = endIndex - startIndex + 1
-                if (span > 0) {
-                    bookingsByRoom[b.ruangan_id].push({
+                if (endIndex >= startIndex) {
+                    weekBookings.push({
                         ...b,
                         startIndex,
                         endIndex,
-                        span
+                        span: endIndex - startIndex + 1
                     })
                 }
             }
         })
         
-        // Check if this week has any bookings across any room
-        const hasBookings = Object.values(bookingsByRoom).some(arr => arr.length > 0)
+        // Sort: earlier start first, then longer span first
+        weekBookings.sort((a, b) => {
+            if (a.startIndex !== b.startIndex) return a.startIndex - b.startIndex
+            return b.span - a.span
+        })
+        
+        // Assign tracks
+        const tracks = []
+        weekBookings.forEach(booking => {
+            let assignedTrack = -1
+            for (let t = 0; t < tracks.length; t++) {
+                let overlap = false
+                for (let col = booking.startIndex; col <= booking.endIndex; col++) {
+                    if (tracks[t][col]) {
+                        overlap = true
+                        break
+                    }
+                }
+                if (!overlap) {
+                    assignedTrack = t
+                    break
+                }
+            }
+            if (assignedTrack === -1) {
+                assignedTrack = tracks.length
+                tracks.push(new Array(7).fill(false))
+            }
+            for (let col = booking.startIndex; col <= booking.endIndex; col++) {
+                tracks[assignedTrack][col] = true
+            }
+            booking.track = assignedTrack
+        })
         
         weeks.push({
             weekIndex: weeks.length + 1,
             startDateStr,
             endDateStr,
             weekDays,
-            bookingsByRoom,
-            hasBookings
+            bookings: weekBookings,
+            trackCount: Math.max(tracks.length, 1)
         })
     }
     
@@ -566,91 +590,85 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
                 @click.self="closeModal"
             >
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col border border-gray-150 max-h-[85vh]">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl overflow-hidden flex flex-col border border-gray-150 max-h-[90vh]">
 
                     <!-- Header -->
-                    <div class="px-6 py-4 border-b border-gray-150 flex items-center justify-between bg-gray-50/50">
+                    <div class="px-6 py-4 border-b border-gray-150 flex items-center justify-between bg-gray-50/50 shrink-0">
                         <h4 class="font-bold text-gray-800 text-base flex items-center gap-2">
                             <span class="text-xl">📅</span> {{ modalDate }}
                         </h4>
                         <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer">&times;</button>
                     </div>
 
-                    <!-- Body (Weeks & Timeline Grid) -->
-                    <div class="p-6 overflow-y-auto space-y-6 bg-gray-50/30 flex-1">
-                        <div v-for="w in selectedMonthWeeks" :key="w.weekIndex" class="bg-white rounded-xl border border-gray-150 shadow-xs overflow-hidden">
-                            <!-- Week Header -->
-                            <div class="bg-gray-50/75 border-b border-gray-150 px-4 py-3 flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-xs">
-                                        Minggu {{ w.weekIndex }}
-                                    </span>
-                                    <span class="text-xs font-bold text-gray-500">
-                                        ({{ formatIndoDateShort(w.startDateStr) }} - {{ formatIndoDateShort(w.endDateStr) }})
-                                    </span>
+                    <!-- Body (Full Monthly Calendar Grid View) -->
+                    <div class="p-6 overflow-y-auto bg-gray-50/30 flex-1 flex flex-col">
+                        <!-- Calendar Container -->
+                        <div class="bg-white rounded-xl border border-gray-150 shadow-sm overflow-hidden flex flex-col flex-1">
+                            
+                            <!-- Day names header row -->
+                            <div class="grid grid-cols-7 border-b border-gray-150 bg-gray-50/75 text-center py-3 select-none animate-fade-in">
+                                <div v-for="dayName in ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']" :key="dayName" class="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    {{ dayName }}
                                 </div>
-                                <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Timeline Jadwal</span>
                             </div>
                             
-                            <!-- Timeline Grid Table -->
-                            <div class="overflow-x-auto">
-                                <div class="min-w-[600px] p-4">
-                                    <!-- Timeline Header Row -->
-                                    <div class="flex items-center mb-2">
-                                        <div class="w-28 sm:w-32 shrink-0 text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-2">Ruangan</div>
-                                        <div class="grid grid-cols-7 flex-1 border-l border-transparent">
-                                            <div v-for="d in w.weekDays" :key="d.ymd" class="flex flex-col items-center justify-center text-center">
-                                                <span class="text-[9px] font-bold uppercase tracking-wider" :class="d.isToday ? 'text-blue-600' : 'text-gray-400'">
-                                                    {{ d.dayName }}
-                                                </span>
-                                                <span 
-                                                    class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mt-1 transition-all"
-                                                    :class="[
-                                                        d.isToday ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-700 hover:bg-gray-100',
-                                                        d.date.getMonth() !== selectedMonthIdx ? 'opacity-30' : ''
-                                                    ]"
-                                                >
-                                                    {{ d.dayNum }}
-                                                </span>
-                                            </div>
+                            <!-- Weeks rows -->
+                            <div class="divide-y divide-gray-150 flex-1 flex flex-col min-h-0">
+                                <div 
+                                    v-for="w in selectedMonthWeeks" 
+                                    :key="w.weekIndex" 
+                                    class="relative flex flex-col min-h-[110px]"
+                                >
+                                    <!-- Day Numbers (top of week row) -->
+                                    <div class="grid grid-cols-7 text-right p-1.5 pointer-events-none select-none z-10">
+                                        <div 
+                                            v-for="d in w.weekDays" 
+                                            :key="d.ymd" 
+                                            class="text-[11px] font-bold pr-2 flex justify-end"
+                                        >
+                                            <span 
+                                                class="w-5 h-5 rounded-full flex items-center justify-center transition-all"
+                                                :class="[
+                                                    d.isToday ? 'bg-blue-600 text-white shadow-xs font-black' : 'text-gray-700',
+                                                    d.date.getMonth() !== selectedMonthIdx ? 'opacity-30' : ''
+                                                ]"
+                                            >
+                                                {{ d.dayNum }}
+                                            </span>
                                         </div>
                                     </div>
                                     
-                                    <!-- Timeline Room Rows -->
-                                    <div class="space-y-1">
-                                        <div v-for="room in ruanganList" :key="room.id" class="flex items-center group/row">
-                                            <!-- Room Label -->
-                                            <div class="w-28 sm:w-32 shrink-0 pr-2 flex items-center gap-1.5 select-none">
-                                                <span 
-                                                    class="w-2.5 h-2.5 rounded-full inline-block shrink-0"
-                                                    :style="{ backgroundColor: getRoomColor(room.id).bg }"
-                                                ></span>
-                                                <span class="text-xs font-bold text-gray-700 truncate group-hover/row:text-blue-600 transition">{{ room.nama_ruang }}</span>
+                                    <!-- Bookings Area (spans across columns) -->
+                                    <div 
+                                        class="relative flex-1 pb-2"
+                                        :style="{ minHeight: `${w.trackCount * 28 + 10}px` }"
+                                    >
+                                        <!-- Vertical separator lines in background -->
+                                        <div class="absolute inset-0 grid grid-cols-7 pointer-events-none">
+                                            <div v-for="i in 7" :key="i" class="border-r border-gray-100 last:border-r-0 h-full"></div>
+                                        </div>
+                                        
+                                        <!-- Booking pills overlay -->
+                                        <div
+                                            v-for="b in w.bookings"
+                                            :key="b.id"
+                                            class="absolute h-6 rounded px-2.5 flex items-center justify-between text-[11px] font-semibold border shadow-2xs transition-all hover:scale-[1.01] hover:shadow-xs group cursor-pointer"
+                                            :style="{
+                                                left: `calc(${(b.startIndex / 7) * 100}% + 4px)`,
+                                                width: `calc(${(b.span / 7) * 100}% - 8px)`,
+                                                top: `${b.track * 28 + 4}px`,
+                                                backgroundColor: getRoomColor(b.ruangan_id).light,
+                                                color: getRoomColor(b.ruangan_id).text,
+                                                borderColor: getRoomColor(b.ruangan_id).bg
+                                            }"
+                                            :title="`${b.nama_ruang} — ${b.nama_training} (${b.divisi}) — ${formatDateRange(b.tgl_mulai, b.tgl_selesai)}`"
+                                        >
+                                            <div class="flex items-center gap-1.5 truncate">
+                                                <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"></span>
+                                                <span class="font-bold shrink-0 text-[10px]">{{ b.nama_ruang }}:</span>
+                                                <span class="truncate">{{ b.nama_training }}</span>
                                             </div>
-                                            
-                                            <!-- 7-Day Timeline Bar Container -->
-                                            <div class="grid grid-cols-7 flex-1 h-9 bg-gray-50/50 rounded-lg relative overflow-hidden border border-gray-100/80">
-                                                <!-- Background columns -->
-                                                <div v-for="i in 7" :key="i" class="border-r border-gray-100/50 h-full col-span-1 last:border-r-0"></div>
-                                                
-                                                <!-- Booking Pills absolute overlay -->
-                                                <div
-                                                    v-for="b in w.bookingsByRoom[room.id]"
-                                                    :key="b.id"
-                                                    class="absolute top-1 bottom-1 rounded-md px-2.5 py-0.5 flex items-center justify-between text-xs font-semibold shadow-2xs border transition-all hover:scale-[1.01] hover:shadow-xs group cursor-pointer"
-                                                    :style="{
-                                                        left: `calc(${(b.startIndex / 7) * 100}% + 2px)`,
-                                                        width: `calc(${(b.span / 7) * 100}% - 4px)`,
-                                                        backgroundColor: getRoomColor(room.id).light,
-                                                        color: getRoomColor(room.id).text,
-                                                        borderColor: getRoomColor(room.id).bg
-                                                    }"
-                                                    :title="`${b.nama_training} (${b.divisi}) — ${formatDateRange(b.tgl_mulai, b.tgl_selesai)}`"
-                                                >
-                                                    <span class="truncate text-[10px] leading-none">{{ b.nama_training }}</span>
-                                                    <span class="text-[9px] font-bold uppercase tracking-wider scale-90 opacity-80 shrink-0 hidden sm:inline-block pl-1">{{ statusLabel(b.status) }}</span>
-                                                </div>
-                                            </div>
+                                            <span class="text-[9px] font-bold uppercase tracking-wider scale-90 opacity-80 shrink-0 hidden sm:inline-block pl-1">{{ statusLabel(b.status) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -659,7 +677,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     </div>
 
                     <!-- Footer -->
-                    <div class="px-6 py-4 border-t border-gray-150 bg-gray-50 flex justify-end">
+                    <div class="px-6 py-4 border-t border-gray-150 bg-gray-50 flex justify-end shrink-0">
                         <button 
                             @click="closeModal" 
                             class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
