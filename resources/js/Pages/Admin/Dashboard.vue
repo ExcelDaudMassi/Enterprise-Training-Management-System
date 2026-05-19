@@ -330,7 +330,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 <div 
                     v-for="(monthName, monthIdx) in MONTH_NAMES" 
                     :key="monthIdx" 
-                    class="group/month relative border border-gray-100 rounded-xl p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:bg-white hover:z-20 hover:border-blue-200"
+                    class="group/month relative border border-gray-100 rounded-xl p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:bg-white hover:z-20 hover:border-blue-200"
                 >
 
                     <!-- Nama Bulan -->
@@ -364,7 +364,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 >{{ day }}</span>
 
                                 <!-- Titik warna booking -->
-                                <div class="flex flex-wrap gap-0.5 max-w-[16px] mx-auto mt-0.5 justify-center transition-all duration-300 opacity-0 scale-75 max-h-0 overflow-hidden group-hover/month:opacity-100 group-hover/month:scale-100 group-hover/month:max-h-8">
+                                <div class="flex gap-0.5 px-0.5 mt-0.5 justify-center transition-all duration-300 opacity-0 scale-75 max-h-0 overflow-hidden group-hover/month:opacity-100 group-hover/month:scale-100 group-hover/month:max-h-8">
                                     <span
                                         v-for="b in getBookingsOnDate(filterYear, monthIdx, day)"
                                         :key="b.id"
