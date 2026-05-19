@@ -127,14 +127,25 @@ function getMonthOriginClass(index) {
 // ============================================================
 const modalOpen      = ref(false)
 const modalDate      = ref('')
-const selectedMonthIdx = ref(0)
-const selectedYear   = ref(2026)
+const modalMonthIdx  = ref(0)
+const modalYear      = ref(2026)
 const selectedMonthDaysCount = ref(30)
 const selectedMonthDays = ref([])
 
+function safeParseDate(dateStr) {
+    if (!dateStr) return null
+    const parts = dateStr.split('-')
+    if (parts.length < 3) return null
+    const y = parseInt(parts[0], 10)
+    const m = parseInt(parts[1], 10) - 1
+    const d = parseInt(parts[2], 10)
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return null
+    return new Date(y, m, d)
+}
+
 const roomGanttData = computed(() => {
-    const year = selectedYear.value
-    const monthIdx = selectedMonthIdx.value
+    const year = modalYear.value
+    const monthIdx = modalMonthIdx.value
     const daysInMonth = selectedMonthDaysCount.value
     
     // Month boundaries
@@ -150,8 +161,9 @@ const roomGanttData = computed(() => {
             if (b.ruangan_id !== room.id) return false
             return b.tgl_mulai <= mEndStr && b.tgl_selesai >= mStartStr
         }).map(b => {
-            const bStart = new Date(b.tgl_mulai)
-            const bEnd = new Date(b.tgl_selesai)
+            const bStart = safeParseDate(b.tgl_mulai)
+            const bEnd = safeParseDate(b.tgl_selesai)
+            if (!bStart || !bEnd) return null
             
             const startDay = bStart < mStart ? 1 : bStart.getDate()
             const endDay = bEnd > mEnd ? daysInMonth : bEnd.getDate()
@@ -166,7 +178,7 @@ const roomGanttData = computed(() => {
                 startPct,
                 widthPct
             }
-        })
+        }).filter(Boolean)
         
         return {
             ...room,
@@ -207,8 +219,8 @@ function formatDateRange(startStr, endStr) {
 function openModal(year, monthIdx) {
     const monthName = MONTH_NAMES[monthIdx]
     modalDate.value = `Diagram Jadwal Training — ${monthName} ${year}`
-    selectedMonthIdx.value = monthIdx
-    selectedYear.value = year
+    modalMonthIdx.value = monthIdx
+    modalYear.value = year
     
     const daysInMonth = new Date(year, monthIdx + 1, 0).getDate()
     selectedMonthDaysCount.value = daysInMonth
