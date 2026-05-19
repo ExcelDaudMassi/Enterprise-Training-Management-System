@@ -482,19 +482,18 @@ function statusLabel(status) {
                                         <div class="w-48 p-4 shrink-0 font-extrabold text-[11px] text-gray-400 uppercase tracking-wider border-r border-gray-100 flex items-center bg-gray-50/20">
                                             Nama Ruangan
                                         </div>
-                                        
-                                        <!-- Days Column Headers -->
+                                                                     <!-- Days Column Headers -->
                                         <div class="flex-1 grid" :style="{ gridTemplateColumns: `repeat(${selectedMonthDaysCount}, minmax(0, 1fr))` }">
                                             <div 
                                                 v-for="d in selectedMonthDays" 
                                                 :key="d.dayNum"
-                                                class="text-center py-2 flex flex-col items-center justify-center border-r border-gray-100/50 last:border-r-0"
+                                                class="text-center py-2 flex flex-col items-center justify-center border-r border-gray-200/70 last:border-r-0"
                                                 :class="[
-                                                    d.isWeekend ? 'bg-red-50/15 text-red-500' : 'text-gray-600',
-                                                    d.isToday ? 'bg-blue-50/40 text-blue-600 font-bold' : ''
+                                                    d.isWeekend ? 'bg-red-50/30 text-red-500' : 'text-gray-600',
+                                                    d.isToday ? 'bg-blue-50/50 text-blue-600 font-bold' : ''
                                                 ]"
                                             >
-                                                <span class="text-[8.5px] uppercase font-black tracking-tighter opacity-60">{{ d.dayName }}</span>
+                                                <span class="text-[8.5px] uppercase font-black tracking-tighter opacity-70">{{ d.dayName }}</span>
                                                 <span class="text-[11px] font-extrabold mt-0.5" :class="d.isToday ? 'w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-black shadow-2xs' : ''">
                                                     {{ d.dayNum }}
                                                 </span>
@@ -520,13 +519,13 @@ function statusLabel(status) {
                                             
                                             <!-- Gantt Track Area (Absolute Bars Overlay) -->
                                             <div class="flex-1 relative min-h-[64px]">
-                                                <!-- Vertical background grid lines for days (Ultra Faint) -->
+                                                <!-- Vertical background grid lines for days (Clearly Visible) -->
                                                 <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: `repeat(${selectedMonthDaysCount}, minmax(0, 1fr))` }">
                                                     <div 
                                                         v-for="d in selectedMonthDays" 
                                                         :key="d.dayNum" 
-                                                        class="border-r border-gray-100/40 last:border-r-0 h-full"
-                                                        :class="d.isWeekend ? 'bg-red-50/5' : ''"
+                                                        class="border-r border-gray-200/60 last:border-r-0 h-full"
+                                                        :class="d.isWeekend ? 'bg-red-50/15' : ''"
                                                     ></div>
                                                 </div>
                                                 
