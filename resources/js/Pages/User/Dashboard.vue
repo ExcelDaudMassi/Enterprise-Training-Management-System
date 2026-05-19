@@ -127,12 +127,64 @@ function getMonthOriginClass(index) {
 // ============================================================
 const modalOpen      = ref(false)
 const modalDate      = ref('')
-const modalBookings  = ref([])
+const selectedMonthIdx = ref(0)
+const selectedMonthWeeks = ref([])
 
-function openModal(year, month, day, bookingsOnDate) {
-    if (!bookingsOnDate.length) return
-    modalDate.value = `${day} ${MONTH_NAMES[month]} ${year}`
-    modalBookings.value = bookingsOnDate
+function formatIndoDateShort(dateStr) {
+    if (!dateStr) return ''
+    const parts = dateStr.split('-')
+    if (parts.length < 3) return dateStr
+    const day = parseInt(parts[2], 10)
+    const monthIdx = parseInt(parts[1], 10) - 1
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+    return `${day} ${months[monthIdx]}`
+}
+
+function formatDateRange(startStr, endStr) {
+    const start = formatIndoDateShort(startStr)
+    const end = formatIndoDateShort(endStr)
+    const startYear = startStr.split('-')[0]
+    const endYear = endStr.split('-')[0]
+    
+    if (startYear === endYear) {
+        return `${start} s/d ${end} ${startYear}`
+    }
+    return `${start} ${startYear} s/d ${end} ${endYear}`
+}
+
+function openModal(year, monthIdx) {
+    const monthName = MONTH_NAMES[monthIdx]
+    modalDate.value = `Jadwal Training — ${monthName} ${year}`
+    selectedMonthIdx.value = monthIdx
+    
+    const grid = getMonthGrid(year, monthIdx)
+    const weeks = []
+    
+    for (let i = 0; i < grid.length; i += 7) {
+        const weekDays = grid.slice(i, i + 7).filter(d => d !== null)
+        if (weekDays.length > 0) {
+            const startDay = weekDays[0]
+            const endDay = weekDays[weekDays.length - 1]
+            
+            const startDateStr = `${year}-${String(monthIdx + 1).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`
+            const endDateStr = `${year}-${String(monthIdx + 1).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`
+            
+            const weekBookings = props.bookings.filter(b => {
+                return b.tgl_mulai <= endDateStr && b.tgl_selesai >= startDateStr
+            })
+            
+            weeks.push({
+                weekIndex: weeks.length + 1,
+                startDay,
+                endDay,
+                startDateStr,
+                endDateStr,
+                bookings: weekBookings
+            })
+        }
+    }
+    
+    selectedMonthWeeks.value = weeks
     modalOpen.value = true
 }
 
@@ -231,7 +283,7 @@ function statusLabel(status) {
                 >
 
                     <!-- Nama Bulan -->
-                    <div class="text-xs font-bold text-center text-gray-700 mb-1">{{ monthName }}</div>
+                    <div @click="openModal(selectedYear, monthIdx)" class="text-xs font-bold text-center text-gray-700 mb-1 cursor-pointer hover:text-blue-600 transition">{{ monthName }}</div>
 
                     <!-- Header hari -->
                     <div class="grid grid-cols-7 text-center mb-1">
@@ -252,7 +304,7 @@ function statusLabel(status) {
                                     isToday(selectedYear, monthIdx, day) ? 'ring-1 ring-blue-500 font-bold bg-white' : '',
                                     getDateHighlightClass(selectedYear, monthIdx, day) || 'hover:bg-gray-50'
                                 ]"
-                                @click="openModal(selectedYear, monthIdx, day, getBookingsOnDate(selectedYear, monthIdx, day))"
+                                @click="openModal(selectedYear, monthIdx)"
                             >
                                 <!-- Angka tanggal -->
                                 <span 
@@ -327,40 +379,90 @@ function statusLabel(status) {
         <Teleport to="body">
             <div
                 v-if="modalOpen"
-                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
+                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
                 @click.self="closeModal"
             >
-                <div class="bg-white rounded shadow-lg w-full max-w-md p-5">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col border border-gray-150 max-h-[85vh]">
 
-                    <div class="flex items-center justify-between mb-3">
-                        <h4 class="font-semibold text-gray-800">Booking – {{ modalDate }}</h4>
-                        <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-lg leading-none">&times;</button>
+                    <!-- Header -->
+                    <div class="px-6 py-4 border-b border-gray-150 flex items-center justify-between bg-gray-50/50">
+                        <h4 class="font-bold text-gray-800 text-base flex items-center gap-2">
+                            <span class="text-xl">📅</span> {{ modalDate }}
+                        </h4>
+                        <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer">&times;</button>
                     </div>
 
-                    <div class="space-y-3">
-                        <div
-                            v-for="b in modalBookings"
-                            :key="b.id"
-                            class="border rounded p-3 text-sm"
-                        >
-                            <div class="flex items-center gap-2 mb-1">
-                                <span
-                                    class="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
-                                    :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"
-                                ></span>
-                                <span class="font-medium text-gray-800">{{ b.nama_ruang }}</span>
+                    <!-- Body (Weeks & Bookings) -->
+                    <div class="p-6 overflow-y-auto space-y-6 bg-gray-50/30 flex-1">
+                        <div v-for="w in selectedMonthWeeks" :key="w.weekIndex" class="border-b border-gray-100 last:border-0 pb-5 last:pb-0">
+                            <!-- Week Header -->
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
+                                    Minggu {{ w.weekIndex }}
+                                </span>
+                                <span class="text-xs font-semibold text-gray-500">
+                                    ({{ w.startDay }} - {{ w.endDay }} {{ MONTH_NAMES[selectedMonthIdx] }})
+                                </span>
+                                <div class="h-[1px] bg-gray-200 flex-1"></div>
                             </div>
-                            <div class="text-gray-700 pl-4">{{ b.nama_training }}</div>
-                            <div class="text-gray-500 pl-4 text-xs">Divisi: {{ b.divisi }}</div>
-                            <div class="text-gray-400 pl-4 text-xs">
-                                {{ b.tgl_mulai }} s/d {{ b.tgl_selesai }}
+                            
+                            <!-- Bookings List -->
+                            <div class="space-y-3 pl-1">
+                                <div v-if="w.bookings.length === 0" class="text-xs italic text-gray-400 py-2.5 pl-4 border-l-2 border-dashed border-gray-200 bg-white/50 rounded-r-lg">
+                                    Tidak ada jadwal training pada minggu ini.
+                                </div>
+                                
+                                <div
+                                    v-else
+                                    v-for="b in w.bookings"
+                                    :key="b.id"
+                                    class="bg-white rounded-xl border border-gray-150 p-4 shadow-sm relative overflow-hidden transition-all hover:shadow-md hover:border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                                >
+                                    <!-- Left colored accent bar -->
+                                    <div 
+                                        class="absolute left-0 top-0 bottom-0 w-1.5" 
+                                        :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"
+                                    ></div>
+                                    
+                                    <!-- Left Side: Room, Division, Title -->
+                                    <div class="pl-2">
+                                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                                            <span 
+                                                class="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                                                :style="{ backgroundColor: getRoomColor(b.ruangan_id).light, color: getRoomColor(b.ruangan_id).text }"
+                                            >
+                                                {{ b.nama_ruang }}
+                                            </span>
+                                            <span class="text-[11px] font-semibold text-gray-400">Divisi: {{ b.divisi }}</span>
+                                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" :class="STATUS_STYLE[b.status]">
+                                                {{ statusLabel(b.status) }}
+                                            </span>
+                                        </div>
+                                        <h4 class="font-bold text-gray-800 text-sm leading-snug">{{ b.nama_training }}</h4>
+                                    </div>
+                                    
+                                    <!-- Right Side: Beautiful date duration -->
+                                    <div class="sm:text-right shrink-0 pl-2 sm:pl-0">
+                                        <span class="text-xs text-gray-600 font-medium bg-gray-50 border border-gray-150 rounded-lg px-3 py-1.5 inline-flex items-center gap-1.5 shadow-2xs">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                            {{ formatDateRange(b.tgl_mulai, b.tgl_selesai) }}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <button @click="closeModal" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 rounded">
-                        Tutup
-</button>
+                    <!-- Footer -->
+                    <div class="px-6 py-4 border-t border-gray-150 bg-gray-50 flex justify-end">
+                        <button 
+                            @click="closeModal" 
+                            class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </Teleport>
