@@ -330,7 +330,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 <div 
                     v-for="(monthName, monthIdx) in MONTH_NAMES" 
                     :key="monthIdx" 
-                    class="group/month relative border border-gray-100 rounded-xl p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:bg-white hover:z-20 hover:border-blue-200"
+                    class="group/month relative border border-gray-100 rounded-xl p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
                 >
 
                     <!-- Nama Bulan -->
@@ -368,7 +368,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                     <span
                                         v-for="b in getBookingsOnDate(filterYear, monthIdx, day)"
                                         :key="b.id"
-                                        class="w-1.5 h-1.5 rounded-full"
+                                        class="w-1 h-1 rounded-full"
                                         :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"
                                         :title="`${b.nama_training} – ${b.divisi}`"
                                     ></span>
