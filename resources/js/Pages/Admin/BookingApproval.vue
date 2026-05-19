@@ -203,7 +203,7 @@ function submitReject() {
                 leave-to-class="opacity-0"
             >
                 <div v-if="showApproveModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+                    <div class="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-100">
                             <h2 class="text-base font-bold text-gray-900">Konfirmasi Persetujuan</h2>
                             <p class="text-xs text-gray-500 mt-1">Pastikan data berikut sudah sesuai sebelum mengunci ruangan.</p>
@@ -238,7 +238,7 @@ function submitReject() {
                 leave-to-class="opacity-0"
             >
                 <div v-if="showRejectModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+                    <div class="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-100">
                             <h2 class="text-base font-bold text-gray-900">Penolakan Booking</h2>
                             <p class="text-xs text-gray-500 mt-1">Booking <span class="font-semibold">{{ selectedBooking?.nama_training }}</span> akan dibatalkan.</p>

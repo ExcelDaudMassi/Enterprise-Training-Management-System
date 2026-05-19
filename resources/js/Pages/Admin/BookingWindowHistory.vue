@@ -19,7 +19,7 @@ function formatDate(d) {
             <p class="text-sm text-gray-500 mt-1">Daftar semua periode pembukaan window booking beserta rekapitulasi datanya.</p>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
             <table class="min-w-full divide-y divide-gray-100">
                 <thead class="bg-gray-50">
                     <tr>

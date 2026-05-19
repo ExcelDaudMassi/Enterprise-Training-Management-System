@@ -241,12 +241,12 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 v-for="card in cards"
                 :key="card.key"
                 @click="goToFilter(card.filter)"
-                class="text-left border rounded-xl p-5 transition-all duration-200 shadow-sm hover:shadow-md group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                class="text-left border rounded-lg p-5 transition-all duration-200 shadow-sm hover:shadow-md group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
                 :class="[card.theme.bg, card.theme.border, card.theme.hover]"
             >
                 <!-- Icon + number row -->
                 <div class="flex items-start justify-between mb-3">
-                    <span class="w-10 h-10 flex items-center justify-center rounded-xl text-lg"
+                    <span class="w-10 h-10 flex items-center justify-center rounded-lg text-lg"
                           :class="card.theme.icon">{{ card.icon }}</span>
                     <span class="text-[10px] font-semibold uppercase px-2 py-1 rounded-full tracking-wider"
                           :class="card.theme.badge">Lihat →</span>
@@ -267,7 +267,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <!-- ── Quick Info: Booking Window status ─────────────────────── -->
         <div v-if="bookingWindow" class="mb-6">
             <div
-                class="flex items-center gap-3 rounded-xl border px-5 py-3.5"
+                class="flex items-center gap-3 rounded-lg border px-5 py-3.5"
                 :class="bookingWindow.is_active
                     ? 'bg-emerald-50 border-emerald-200'
                     : 'bg-gray-50 border-gray-200'"
@@ -296,7 +296,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <!-- ============================================================ -->
         <!-- Filter Area & Kalender (Sama seperti User Dashboard) -->
         <!-- ============================================================ -->
-        <div class="mb-6 flex flex-wrap gap-4 items-end bg-white rounded-xl border border-gray-150 shadow-sm p-4">
+        <div class="mb-6 flex flex-wrap gap-4 items-end bg-white rounded-lg border border-gray-150 shadow-sm p-4">
             <!-- Year -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Tahun Kalender</label>
@@ -336,7 +336,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         </div>
 
         <!-- Kalender Grid -->
-        <div class="bg-white rounded-xl border border-gray-150 shadow-sm p-5 mb-6">
+        <div class="bg-white rounded-lg border border-gray-150 shadow-sm p-5 mb-6">
             <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-1.5">
                 <span>📅</span> Kalender Pemesanan Ruangan — {{ filterYear }}
             </h3>
@@ -345,7 +345,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 <div 
                     v-for="(monthName, monthIdx) in MONTH_NAMES" 
                     :key="monthIdx" 
-                    class="group/month relative border border-gray-100 rounded-xl p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
+                    class="group/month relative border border-gray-100 rounded p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
                     :class="getMonthOriginClass(monthIdx)"
                 >
 
@@ -366,7 +366,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             <!-- Tanggal berisi -->
                             <div
                                 v-else
-                                class="h-8 flex flex-col items-center justify-start cursor-pointer rounded-lg relative group transition-all duration-200"
+                                class="h-8 flex flex-col items-center justify-start cursor-pointer rounded relative group transition-all duration-200"
                                 :class="[
                                     isToday(filterYear, monthIdx, day) ? 'ring-1 ring-blue-500 font-bold bg-white shadow-sm' : '',
                                     getDateHighlightClass(filterYear, monthIdx, day) || 'bg-white/40 hover:bg-white hover:shadow-sm'
@@ -399,7 +399,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
         <!-- ── Notification Summary ──────────────────────────────────── -->
         <div v-if="notifications && notifications.length > 0"
-             class="bg-white rounded-xl border border-gray-150 shadow-sm overflow-hidden mb-6">
+             class="bg-white rounded-lg border border-gray-150 shadow-sm overflow-hidden mb-6">
             <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
                 <h2 class="text-sm font-semibold text-gray-800">Notifikasi Terbaru</h2>
                 <span class="text-xs bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full">
@@ -446,7 +446,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         </div>
 
         <!-- Empty state kalau tidak ada notifikasi -->
-        <div v-else class="bg-white rounded-xl border border-gray-150 shadow-sm px-5 py-8 text-center text-gray-400 text-sm mb-6">
+        <div v-else class="bg-white rounded-lg border border-gray-150 shadow-sm px-5 py-8 text-center text-gray-400 text-sm mb-6">
             <p class="text-2xl mb-2">🎉</p>
             <p class="font-medium text-gray-600">Semua aman!</p>
             <p class="text-xs mt-1">Tidak ada booking yang menunggu perhatian saat ini.</p>
@@ -460,7 +460,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
             @click.self="closeModal"
         >
-            <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-5 border border-gray-150">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-5 border border-gray-150">
 
                 <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
                     <h4 class="font-bold text-gray-800 flex items-center gap-1.5">
@@ -473,7 +473,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     <div
                         v-for="b in modalBookings"
                         :key="b.id"
-                        class="border border-gray-100 rounded-xl p-3 bg-gray-50/50 hover:bg-gray-50 transition"
+                        class="border border-gray-100 rounded p-3 bg-gray-50/50 hover:bg-gray-50 transition"
                     >
                         <div class="flex items-center gap-2 mb-1.5">
                             <span
