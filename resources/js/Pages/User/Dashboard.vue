@@ -431,55 +431,55 @@ function statusLabel(status) {
         <Teleport to="body">
             <div
                 v-if="modalOpen"
-                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in"
+                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
                 @click.self="closeModal"
             >
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl overflow-hidden flex flex-col border border-gray-150 h-[80vh] min-h-[500px] transition-all">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-100 h-[85vh] min-h-[550px] transition-all">
 
                     <!-- Header -->
-                    <div class="px-6 py-4 border-b border-gray-150 flex items-center justify-between bg-gray-50/50 shrink-0">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
                         <div class="flex items-center gap-3">
                             <span class="text-xl">📊</span>
                             <div>
-                                <h4 class="font-bold text-gray-800 text-sm sm:text-base leading-none">{{ modalDate }}</h4>
-                                <p class="text-[10.5px] text-gray-500 font-semibold mt-1">Diagram Gantt Jadwal Penggunaan Ruangan</p>
+                                <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">{{ modalDate }}</h4>
+                                <p class="text-[10px] text-gray-400 font-semibold mt-1.5 uppercase tracking-wider">Diagram Gantt Jadwal Penggunaan Ruangan</p>
                             </div>
                         </div>
-                        <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer">&times;</button>
+                        <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer focus:outline-none">&times;</button>
                     </div>
 
                     <!-- Gantt Body -->
-                    <div class="flex-1 overflow-hidden bg-gray-50/30 p-6 flex flex-col min-h-0">
+                    <div class="flex-1 overflow-hidden bg-gray-50/20 p-6 flex flex-col min-h-0">
                         
-                        <!-- Diagram Legend -->
-                        <div class="mb-4 flex flex-wrap gap-4 items-center bg-white p-3.5 rounded-xl border border-gray-150 shadow-3xs select-none shrink-0">
-                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status Booking:</div>
-                            <div class="flex items-center gap-1.5 text-xs font-bold">
-                                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
-                                <span class="text-gray-700">Plotting</span>
+                        <!-- Diagram Legend (Modern Compact Ribbon) -->
+                        <div class="mb-4 flex flex-wrap gap-4 items-center bg-white p-2.5 rounded-full border border-gray-100 shadow-3xs select-none shrink-0 px-5">
+                            <div class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest">Status Booking:</div>
+                            <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-amber-50/80 text-amber-800 px-3 py-1 rounded-full border border-amber-100/70">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                <span>Plotting</span>
                             </div>
-                            <div class="flex items-center gap-1.5 text-xs font-bold">
-                                <span class="w-3 h-3 rounded-full bg-blue-500"></span>
-                                <span class="text-gray-700">Menunggu Persetujuan</span>
+                            <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-blue-50/80 text-blue-800 px-3 py-1 rounded-full border border-blue-100/70">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                <span>Menunggu Persetujuan</span>
                             </div>
-                            <div class="flex items-center gap-1.5 text-xs font-bold">
-                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-                                <span class="text-gray-700">Disetujui</span>
+                            <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-emerald-50/80 text-emerald-800 px-3 py-1 rounded-full border border-emerald-100/70">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                <span>Disetujui</span>
                             </div>
-                            <div class="ml-auto text-[10px] text-gray-400 font-bold hidden sm:block">
+                            <div class="ml-auto text-[10px] text-gray-400 font-bold hidden md:block">
                                 💡 Arahkan kursor (hover) pada bar diagram untuk melihat detail lengkap.
                             </div>
                         </div>
                         
                         <!-- Gantt Board Scroll Container -->
-                        <div class="bg-white rounded-2xl border border-gray-150 shadow-sm overflow-hidden flex flex-col flex-1 min-h-0">
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden flex flex-col flex-1 min-h-0">
                             <div class="overflow-x-auto flex-1 min-w-0">
                                 <div class="min-w-[1000px] flex flex-col h-full">
                                     
                                     <!-- Timeline Header Row -->
-                                    <div class="flex border-b border-gray-150 bg-gray-50 select-none shrink-0">
+                                    <div class="flex border-b border-gray-100 bg-gray-50/50 select-none shrink-0">
                                         <!-- Room Name Column Header -->
-                                        <div class="w-48 p-4 shrink-0 font-extrabold text-xs text-gray-500 uppercase tracking-wider border-r border-gray-150 flex items-center">
+                                        <div class="w-48 p-4 shrink-0 font-extrabold text-[11px] text-gray-400 uppercase tracking-wider border-r border-gray-100 flex items-center bg-gray-50/20">
                                             Nama Ruangan
                                         </div>
                                         
@@ -488,14 +488,14 @@ function statusLabel(status) {
                                             <div 
                                                 v-for="d in selectedMonthDays" 
                                                 :key="d.dayNum"
-                                                class="text-center py-2.5 flex flex-col items-center justify-center border-r border-gray-100 last:border-r-0"
+                                                class="text-center py-2 flex flex-col items-center justify-center border-r border-gray-100/50 last:border-r-0"
                                                 :class="[
-                                                    d.isWeekend ? 'bg-red-50/50 text-red-650' : 'text-gray-700',
-                                                    d.isToday ? 'bg-blue-50 text-blue-600 font-bold' : ''
+                                                    d.isWeekend ? 'bg-red-50/15 text-red-500' : 'text-gray-600',
+                                                    d.isToday ? 'bg-blue-50/40 text-blue-600 font-bold' : ''
                                                 ]"
                                             >
-                                                <span class="text-[9px] uppercase font-extrabold tracking-tight opacity-75">{{ d.dayName }}</span>
-                                                <span class="text-xs font-extrabold mt-0.5" :class="d.isToday ? 'w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-black shadow-2xs' : ''">
+                                                <span class="text-[8.5px] uppercase font-black tracking-tighter opacity-60">{{ d.dayName }}</span>
+                                                <span class="text-[11px] font-extrabold mt-0.5" :class="d.isToday ? 'w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-black shadow-2xs' : ''">
                                                     {{ d.dayNum }}
                                                 </span>
                                             </div>
@@ -503,30 +503,30 @@ function statusLabel(status) {
                                     </div>
                                     
                                     <!-- Rows (One per Room) -->
-                                    <div class="divide-y divide-gray-150 flex-1 overflow-y-auto min-h-0">
+                                    <div class="divide-y divide-gray-100 flex-1 overflow-y-auto min-h-0">
                                         <div 
                                             v-for="room in roomGanttData" 
                                             :key="room.id"
-                                            class="flex min-h-[68px] hover:bg-gray-50/40 transition relative group"
+                                            class="flex min-h-[64px] hover:bg-gray-50/20 transition relative group"
                                         >
                                             <!-- Room Info Label -->
-                                            <div class="w-48 p-4 shrink-0 border-r border-gray-150 flex flex-col justify-center bg-gray-50/20 select-none">
+                                            <div class="w-48 p-4 shrink-0 border-r border-gray-100 flex flex-col justify-center bg-gray-50/5 select-none">
                                                 <div class="flex items-center gap-2">
                                                     <span class="w-2.5 h-2.5 rounded-full shrink-0 animate-pulse" :style="{ backgroundColor: getRoomColor(room.id).bg }"></span>
-                                                    <span class="font-extrabold text-gray-800 text-xs truncate leading-snug">{{ room.nama_ruang }}</span>
+                                                    <span class="font-extrabold text-gray-800 text-[11.5px] truncate leading-snug">{{ room.nama_ruang }}</span>
                                                 </div>
-                                                <span class="text-[9.5px] text-gray-400 font-semibold mt-1">Kapasitas: {{ room.kapasitas }} pax</span>
+                                                <span class="text-[9px] text-gray-400 font-semibold mt-1">Kapasitas: {{ room.kapasitas }} pax</span>
                                             </div>
                                             
                                             <!-- Gantt Track Area (Absolute Bars Overlay) -->
-                                            <div class="flex-1 relative min-h-[68px]">
-                                                <!-- Vertical background grid lines for days -->
+                                            <div class="flex-1 relative min-h-[64px]">
+                                                <!-- Vertical background grid lines for days (Ultra Faint) -->
                                                 <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: `repeat(${selectedMonthDaysCount}, minmax(0, 1fr))` }">
                                                     <div 
                                                         v-for="d in selectedMonthDays" 
                                                         :key="d.dayNum" 
-                                                        class="border-r border-gray-100 last:border-r-0 h-full"
-                                                        :class="d.isWeekend ? 'bg-red-50/10' : ''"
+                                                        class="border-r border-gray-100/40 last:border-r-0 h-full"
+                                                        :class="d.isWeekend ? 'bg-red-50/5' : ''"
                                                     ></div>
                                                 </div>
                                                 
@@ -534,10 +534,10 @@ function statusLabel(status) {
                                                 <div
                                                     v-for="b in room.bookings"
                                                     :key="b.id"
-                                                    class="absolute h-9 rounded-xl px-3 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] transition-all cursor-pointer group"
+                                                    class="absolute h-8 rounded-lg px-2.5 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] transition-all cursor-pointer group"
                                                     :style="{
-                                                        left: `calc(${b.startPct}% + 4px)`,
-                                                        width: `calc(${b.widthPct}% - 8px)`,
+                                                        left: `calc(${b.startPct}% + 3px)`,
+                                                        width: `calc(${b.widthPct}% - 6px)`,
                                                         top: '16px',
                                                         backgroundColor: getRoomColor(b.ruangan_id).light,
                                                         color: getRoomColor(b.ruangan_id).text,
@@ -546,8 +546,8 @@ function statusLabel(status) {
                                                     :title="`${b.nama_ruang} — ${b.nama_training} (${b.divisi}) — ${formatDateRange(b.tgl_mulai, b.tgl_selesai)}`"
                                                 >
                                                     <div class="flex items-center gap-1.5 min-w-0 w-full">
-                                                        <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"></span>
-                                                        <span class="font-extrabold text-[11px] truncate">{{ b.nama_training }}</span>
+                                                        <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"></span>
+                                                        <span class="font-extrabold text-[10px] truncate leading-none mt-0.5">{{ b.nama_training }}</span>
                                                         
                                                         <!-- Status indicator dot at the end -->
                                                         <span class="w-1.5 h-1.5 rounded-full shrink-0 ml-auto" :class="[
@@ -573,7 +573,7 @@ function statusLabel(status) {
                     </div>
 
                     <!-- Footer -->
-                    <div class="px-6 py-4 border-t border-gray-150 bg-gray-50 flex justify-end shrink-0">
+                    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
                         <button 
                             @click="closeModal" 
                             class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
