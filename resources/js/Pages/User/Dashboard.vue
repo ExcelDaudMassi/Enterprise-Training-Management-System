@@ -83,6 +83,20 @@ function isToday(year, month, day) {
         && day === today.getDate()
 }
 
+function getDateHighlightClass(year, month, day) {
+    const dayBookings = getBookingsOnDate(year, month, day)
+    if (dayBookings.length === 0) return ''
+    
+    const bookedRoomIds = new Set(dayBookings.map(b => b.ruangan_id))
+    const totalRooms = props.ruanganList?.length || 0
+    
+    if (totalRooms > 0 && bookedRoomIds.size >= totalRooms) {
+        return 'bg-red-100 text-red-800 font-semibold'
+    } else {
+        return 'bg-yellow-50 text-yellow-850 font-semibold'
+    }
+}
+
 // ============================================================
 // Modal state
 // ============================================================
@@ -189,7 +203,11 @@ function statusLabel(status) {
             <h3 class="text-sm font-semibold text-gray-700 mb-3">Kalender {{ filterYear }}</h3>
 
             <div class="grid grid-cols-4 gap-4">
-                <div v-for="(monthName, monthIdx) in MONTH_NAMES" :key="monthIdx" class="border border-gray-200 rounded p-2">
+                <div 
+                    v-for="(monthName, monthIdx) in MONTH_NAMES" 
+                    :key="monthIdx" 
+                    class="group/month relative border border-gray-200 rounded p-2 bg-white transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:z-20 hover:border-blue-200"
+                >
 
                     <!-- Nama Bulan -->
                     <div class="text-xs font-bold text-center text-gray-700 mb-1">{{ monthName }}</div>
@@ -208,18 +226,21 @@ function statusLabel(status) {
                             <!-- Tanggal berisi -->
                             <div
                                 v-else
-                                class="h-6 flex flex-col items-center justify-start cursor-pointer rounded relative group"
-                                :class="{
-                                    'ring-1 ring-blue-500 font-bold': isToday(filterYear, monthIdx, day),
-                                    'hover:bg-gray-50': true,
-                                }"
+                                class="h-6 flex flex-col items-center justify-start cursor-pointer rounded relative group transition-all duration-200"
+                                :class="[
+                                    isToday(filterYear, monthIdx, day) ? 'ring-1 ring-blue-500 font-bold bg-white' : '',
+                                    getDateHighlightClass(filterYear, monthIdx, day) || 'hover:bg-gray-50'
+                                ]"
                                 @click="openModal(filterYear, monthIdx, day, getBookingsOnDate(filterYear, monthIdx, day))"
                             >
                                 <!-- Angka tanggal -->
-                                <span class="text-[10px] leading-none text-gray-600 mt-0.5">{{ day }}</span>
+                                <span 
+                                    class="text-[10px] leading-none mt-0.5"
+                                    :class="getBookingsOnDate(filterYear, monthIdx, day).length > 0 ? '' : 'text-gray-600'"
+                                >{{ day }}</span>
 
                                 <!-- Titik warna booking -->
-                                <div class="flex flex-wrap gap-0.5 max-w-[16px] mx-auto mt-0.5 justify-center">
+                                <div class="flex flex-wrap gap-0.5 max-w-[16px] mx-auto mt-0.5 justify-center transition-all duration-300 opacity-0 scale-75 max-h-0 overflow-hidden group-hover/month:opacity-100 group-hover/month:scale-100 group-hover/month:max-h-8">
                                     <span
                                         v-for="b in getBookingsOnDate(filterYear, monthIdx, day)"
                                         :key="b.id"

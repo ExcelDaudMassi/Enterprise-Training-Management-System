@@ -79,6 +79,20 @@ function isToday(year, month, day) {
         && day === todayDate.getDate()
 }
 
+function getDateHighlightClass(year, month, day) {
+    const dayBookings = getBookingsOnDate(year, month, day)
+    if (dayBookings.length === 0) return ''
+    
+    const bookedRoomIds = new Set(dayBookings.map(b => b.ruangan_id))
+    const totalRooms = props.ruanganList?.length || 0
+    
+    if (totalRooms > 0 && bookedRoomIds.size >= totalRooms) {
+        return 'bg-red-100 text-red-800 font-semibold'
+    } else {
+        return 'bg-yellow-50 text-yellow-800 font-semibold'
+    }
+}
+
 // ============================================================
 // Modal state
 // ============================================================
@@ -313,7 +327,11 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                <div v-for="(monthName, monthIdx) in MONTH_NAMES" :key="monthIdx" class="border border-gray-100 rounded-xl p-3 bg-gray-50/50">
+                <div 
+                    v-for="(monthName, monthIdx) in MONTH_NAMES" 
+                    :key="monthIdx" 
+                    class="group/month relative border border-gray-100 rounded-xl p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:bg-white hover:z-20 hover:border-blue-200"
+                >
 
                     <!-- Nama Bulan -->
                     <div class="text-xs font-bold text-center text-gray-800 mb-2 border-b border-gray-100 pb-1">{{ monthName }}</div>
@@ -332,19 +350,21 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             <!-- Tanggal berisi -->
                             <div
                                 v-else
-                                class="h-8 flex flex-col items-center justify-start cursor-pointer rounded-lg relative group transition-colors"
-                                :class="{
-                                    'ring-1 ring-blue-500 font-bold bg-white shadow-sm': isToday(filterYear, monthIdx, day),
-                                    'hover:bg-white hover:shadow-sm': true,
-                                    'bg-white/40': !isToday(filterYear, monthIdx, day),
-                                }"
+                                class="h-8 flex flex-col items-center justify-start cursor-pointer rounded-lg relative group transition-all duration-200"
+                                :class="[
+                                    isToday(filterYear, monthIdx, day) ? 'ring-1 ring-blue-500 font-bold bg-white shadow-sm' : '',
+                                    getDateHighlightClass(filterYear, monthIdx, day) || 'bg-white/40 hover:bg-white hover:shadow-sm'
+                                ]"
                                 @click="openModal(filterYear, monthIdx, day, getBookingsOnDate(filterYear, monthIdx, day))"
                             >
                                 <!-- Angka tanggal -->
-                                <span class="text-[10px] leading-none text-gray-700 mt-1 font-medium">{{ day }}</span>
+                                <span 
+                                    class="text-[10px] leading-none mt-1 font-medium"
+                                    :class="getBookingsOnDate(filterYear, monthIdx, day).length > 0 ? '' : 'text-gray-700'"
+                                >{{ day }}</span>
 
                                 <!-- Titik warna booking -->
-                                <div class="flex flex-wrap gap-0.5 max-w-[16px] mx-auto mt-0.5 justify-center">
+                                <div class="flex flex-wrap gap-0.5 max-w-[16px] mx-auto mt-0.5 justify-center transition-all duration-300 opacity-0 scale-75 max-h-0 overflow-hidden group-hover/month:opacity-100 group-hover/month:scale-100 group-hover/month:max-h-8">
                                     <span
                                         v-for="b in getBookingsOnDate(filterYear, monthIdx, day)"
                                         :key="b.id"
