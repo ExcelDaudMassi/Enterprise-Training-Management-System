@@ -22,6 +22,9 @@ class BookingWizardController extends Controller
      */
     public function create()
     {
+        if (!BookingWindow::active()->exists()) {
+            return redirect()->route('user.dashboard')->with('error', 'Pemesanan baru tidak dapat diakses karena window booking sedang ditutup.');
+        }
         return Inertia::render('User/BookingWizard');
     }
 
@@ -355,6 +358,13 @@ class BookingWizardController extends Controller
     // ============================================================
     public function submitBooking(Request $request)
     {
+        if (!BookingWindow::active()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pemesanan gagal diajukan. Window booking telah ditutup oleh Admin.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'ruangan_id' => 'required',
             'tgl_mulai'  => 'required|date',

@@ -1,14 +1,15 @@
 <script setup>
 import UserLayout from '@/Layouts/UserLayout.vue'
-import { Link } from '@inertiajs/vue3'
-import { inject } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
 defineProps({
     auth: Object,
     bookings: Array
 })
 
-const isWindowActive = inject('isWindowActive')
+const page = usePage()
+const isWindowActive = computed(() => page.props.bookingWindow?.is_active ?? true)
 
 function formatStatus(status) {
     if (status === 'waiting_confirmation') return { label: 'Menunggu Persetujuan', class: 'bg-yellow-100 text-yellow-800' }

@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingWindow;
+use App\Models\Ruangan;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $today     = Carbon::today();
         $now       = Carbon::now();
@@ -107,8 +109,6 @@ class DashboardController extends Controller
             ]);
 
         // Gabung semua notifikasi, urutkan: overdue → urgent → new
-        // Gunakan collect() sebagai base untuk menghindari Eloquent Collection
-        // yang akan memanggil getKey() pada array items hasil map()
         $notifications = collect()
             ->merge($overdueBookings)
             ->merge($urgentBookings)
@@ -116,11 +116,45 @@ class DashboardController extends Controller
             ->unique('booking_id')
             ->values();
 
+        // ── DATA KALENDER (Sama seperti User Dashboard) ─────────────────
+        $year = (int) $request->get('year', $activeWindow->tahun ?? 2027);
+        $ruanganFilter = $request->get('ruangan_id');
+
+        $ruanganList = Ruangan::all(['id', 'nama_ruang', 'lokasi_gedung', 'kapasitas_max']);
+
+        $bookingQuery = Booking::with(['ruangan:id,nama_ruang', 'user:id,name,divisi'])
+            ->where(function ($query) use ($year) {
+                $query->whereYear('tgl_mulai', $year)
+                      ->orWhereYear('tgl_selesai', $year);
+            })
+            ->whereNotIn('status', ['cancelled']);
+
+        if ($ruanganFilter) {
+            $bookingQuery->where('ruangan_id', $ruanganFilter);
+        }
+
+        $bookings = $bookingQuery->get()->map(function ($booking) {
+            return [
+                'id'           => $booking->id,
+                'ruangan_id'   => $booking->ruangan_id,
+                'nama_ruang'   => $booking->ruangan?->nama_ruang,
+                'nama_training'=> $booking->nama_training,
+                'divisi'       => $booking->user?->divisi,
+                'tgl_mulai'    => $booking->tgl_mulai->toDateString(),
+                'tgl_selesai'  => $booking->tgl_selesai->toDateString(),
+                'status'       => $booking->status,
+            ];
+        });
+
         return Inertia::render('Admin/Dashboard', [
             'auth'           => ['user' => ['name' => Auth::user()->name, 'email' => Auth::user()->email, 'role' => Auth::user()->role]],
             'stats'          => $stats,
             'bookingWindow'  => $bookingWindow,
             'notifications'  => $notifications,
+            'ruanganList'    => $ruanganList,
+            'bookings'       => $bookings,
+            'selectedYear'   => $year,
+            'selectedRuangan'=> $ruanganFilter ? (int) $ruanganFilter : null,
         ]);
     }
 }

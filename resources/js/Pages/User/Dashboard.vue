@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed, inject } from 'vue'
-import { router, useForm, Link } from '@inertiajs/vue3'
+import { ref, computed } from 'vue'
+import { router, useForm, Link, usePage } from '@inertiajs/vue3'
 import UserLayout from '@/Layouts/UserLayout.vue'
 
 // ============================================================
@@ -15,7 +15,8 @@ const props = defineProps({
     selectedRuangan: [Number, null],
 })
 
-const isWindowActive = inject('isWindowActive')
+const page = usePage()
+const isWindowActive = computed(() => page.props.bookingWindow?.is_active ?? true)
 
 // ============================================================
 // Warna per ruangan (index-based, statis)

@@ -1,6 +1,6 @@
 <script setup>
 import { Link, useForm, usePage } from '@inertiajs/vue3'
-import { computed, ref, onMounted, onUnmounted, provide } from 'vue'
+import { computed, ref, onMounted, onUnmounted, provide, watch } from 'vue'
 
 defineProps({
     auth: Object,
@@ -25,8 +25,14 @@ function switchRole() {
 }
 
 // ── Realtime Booking Window Polling ──────────────────────────────────
-const isWindowActive = ref(true) // Default true, akan di-update oleh polling
+const isWindowActive = ref(page.props.bookingWindow?.is_active ?? true)
 let pollingInterval = null
+
+watch(() => page.props.bookingWindow, (newVal) => {
+    if (newVal) {
+        isWindowActive.value = newVal.is_active
+    }
+}, { deep: true })
 
 async function checkWindowStatus() {
     try {
@@ -42,26 +48,62 @@ async function checkWindowStatus() {
     }
 }
 
+// ── Responsive Sidebar Toggle ────────────────────────────────────
+const isSidebarOpen = ref(true)
+
+function handleResize() {
+    if (window.innerWidth < 1024 && isSidebarOpen.value) {
+        isSidebarOpen.value = false
+    } else if (window.innerWidth >= 1024 && !isSidebarOpen.value && localStorage.getItem('user_sidebar_open') === null) {
+        isSidebarOpen.value = true
+    }
+}
+
 onMounted(() => {
+    const saved = localStorage.getItem('user_sidebar_open')
+    if (saved !== null) {
+        isSidebarOpen.value = saved === 'true'
+    } else {
+        isSidebarOpen.value = window.innerWidth >= 1024
+    }
+    window.addEventListener('resize', handleResize)
     checkWindowStatus() // Cek saat pertama kali load
     pollingInterval = setInterval(checkWindowStatus, 10000) // Polling setiap 10 detik
 })
 
 onUnmounted(() => {
+    window.removeEventListener('resize', handleResize)
     if (pollingInterval) clearInterval(pollingInterval)
 })
+
+function toggleSidebar() {
+    isSidebarOpen.value = !isSidebarOpen.value
+    if (window.innerWidth >= 1024) {
+        localStorage.setItem('user_sidebar_open', isSidebarOpen.value)
+    }
+}
 
 // Sediakan state ini untuk halaman-halaman anak
 provide('isWindowActive', isWindowActive)
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-100 flex">
+    <div class="h-screen bg-gray-100 flex overflow-hidden">
+
+        <!-- Sidebar Backdrop (Mobile only) -->
+        <div 
+            v-if="isSidebarOpen" 
+            @click="isSidebarOpen = false" 
+            class="fixed inset-0 bg-black/40 z-30 lg:hidden transition-opacity duration-300"
+        ></div>
 
         <!-- ======================================================= -->
         <!-- Sidebar -->
         <!-- ======================================================= -->
-        <aside class="w-56 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 min-h-screen">
+        <aside 
+            class="fixed inset-y-0 left-0 z-40 w-56 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out lg:static lg:translate-x-0 h-screen"
+            :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-56'"
+        >
 
             <!-- Logo / Brand -->
             <div class="px-4 py-4 border-b border-gray-100">
@@ -138,16 +180,28 @@ provide('isWindowActive', isWindowActive)
         <!-- ======================================================= -->
         <!-- Main Content Area -->
         <!-- ======================================================= -->
-        <div class="flex-1 flex flex-col min-w-0">
+        <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden transition-all duration-300 ease-in-out">
             <!-- Top bar -->
-            <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
-                <h1 class="text-sm font-semibold text-gray-700">
-                    <span class="text-gray-400">User /</span>
-                    <span class="ml-1 text-gray-800">
-                        {{ isActive('/user/booking') ? 'Booking Ruangan' : 'Dashboard' }}
-                    </span>
-                </h1>
-                <span class="text-xs text-gray-400">{{ auth.user.email }}</span>
+            <header class="bg-white border-b border-gray-200 px-4 lg:px-6 py-3 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <button 
+                        @click="toggleSidebar" 
+                        class="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                        title="Toggle Sidebar"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+
+                    <h1 class="text-sm font-semibold text-gray-700">
+                        <span class="text-gray-400">User /</span>
+                        <span class="ml-1 text-gray-800">
+                            {{ isActive('/user/booking') ? 'Booking Ruangan' : 'Dashboard' }}
+                        </span>
+                    </h1>
+                </div>
+                <span class="text-xs text-gray-400 hidden sm:inline">{{ auth.user.email }}</span>
             </header>
 
             <!-- Page Slot -->
