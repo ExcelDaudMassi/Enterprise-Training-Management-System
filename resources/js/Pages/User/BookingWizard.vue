@@ -11,9 +11,11 @@ const props = defineProps({ auth: Object })
 const currentStage = ref(1)
 
 // Stage 1 (Excel Upload & Kapasitas)
-const participants        = ref([])
-const participantCount    = ref(0)
-const uploadedFileName    = ref('')
+const participants        = ref([
+    { nama: '', jabatan: '', site: '', gender: 'L' }
+])
+const isManualInput       = ref(true)
+const uploadedFileName    = ref('Input Manual')
 const isUploadingExcel    = ref(false)
 const excelSuccessMessage = ref('')
 const eligibleRooms        = ref([])
@@ -86,12 +88,25 @@ const bookingId = ref(null)
 // ============================================================
 // COMPUTED
 // ============================================================
+const participantCount = computed(() => participants.value.length)
+
 const totalOrangComputed = computed(() =>
     participantCount.value + panitiaCount.value
 )
 
+const participantsValid = computed(() =>
+    participants.value.length > 0 &&
+    participants.value.every(p => 
+        p.nama.trim() !== '' && 
+        p.jabatan.trim() !== '' && 
+        p.site.trim() !== '' && 
+        (p.gender === 'L' || p.gender === 'P')
+    )
+)
+
 const isStage1Valid = computed(() =>
     participantCount.value > 0 &&
+    participantsValid.value &&
     panitiaCount.value > 0 &&
     panitiaValid.value
 )
@@ -101,7 +116,7 @@ const isRangeSelected = computed(() => startDate.value && endDate.value)
 const isRoomSelected = computed(() => selectedRoom.value !== null)
 
 // ============================================================
-// STAGE 1: EXCEL ACTIONS
+// STAGE 1: EXCEL & MANUAL ACTIONS
 // ============================================================
 async function handleExcelUpload(event) {
     const file = event.target.files[0]
@@ -129,17 +144,15 @@ async function handleExcelUpload(event) {
         
         if (res.data.success) {
             participants.value        = res.data.peserta
-            participantCount.value    = res.data.total_peserta
             uploadedFileName.value    = file.name
+            isManualInput.value       = false
             excelSuccessMessage.value = `✓ Berhasil memuat ${res.data.total_peserta} peserta dari ${file.name}`
         }
     } catch (err) {
         // Ambil error custom dari backend: error.response.data.error
         stage1Error.value = err.response?.data?.error || 'Gagal membaca atau memvalidasi file Excel.'
         // Reset state jika error
-        participants.value     = []
-        participantCount.value = 0
-        uploadedFileName.value = ''
+        resetExcel()
     } finally {
         isUploadingExcel.value = false
         // Reset input file agar bisa upload file yang sama kembali
@@ -147,12 +160,35 @@ async function handleExcelUpload(event) {
     }
 }
 
+function startManualInput() {
+    isManualInput.value    = true
+    uploadedFileName.value = 'Input Manual'
+    participants.value     = [
+        { nama: '', jabatan: '', site: '', gender: 'L' }
+    ]
+    stage1Error.value      = ''
+}
+
+function addParticipant() {
+    participants.value.push({ nama: '', jabatan: '', site: '', gender: 'L' })
+}
+
+function removeParticipant(index) {
+    if (participants.value.length > 1) {
+        participants.value.splice(index, 1)
+    } else {
+        resetExcel()
+    }
+}
+
 function resetExcel() {
-    participants.value        = []
-    participantCount.value    = 0
-    uploadedFileName.value    = ''
+    participants.value        = [
+        { nama: '', jabatan: '', site: '', gender: 'L' }
+    ]
+    uploadedFileName.value    = 'Input Manual'
     excelSuccessMessage.value = ''
     stage1Error.value         = ''
+    isManualInput.value       = true
 }
 
 async function checkEligibility() {
@@ -490,76 +526,71 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                     </template>
                 </div>
             </div>
-
             <!-- ======================================================= -->
             <!-- STAGE 1: Upload Excel & Roster Panitia -->
             <!-- ======================================================= -->
-            <div v-if="currentStage === 1" class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-base font-semibold text-gray-800 mb-1">Tahap 1: Daftar Peserta & Panitia</h2>
-                <p class="text-sm text-gray-500 mb-4">
-                    Unggah manifest peserta dari template <code class="text-xs bg-gray-100 px-1 rounded">.xlsx</code>, lalu lengkapi roster panitia secara manual.
+            <div v-if="currentStage === 1" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6">
+                <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 1: Daftar Peserta & Panitia</h2>
+                <p class="text-xs text-gray-500 mb-6 leading-relaxed">
+                    Pilih metode pengisian daftar peserta (via Unggah Excel atau Ketik Manual), lalu lengkapi roster panitia penyelenggara.
                 </p>
 
-                <!-- ─── BELUM UPLOAD: compact centered ─── -->
-                <div v-if="!uploadedFileName" class="max-w-lg mx-auto">
-                    <div class="border-2 border-dashed border-gray-200 rounded-lg p-10 bg-gray-50 text-center">
-                        <span class="text-4xl block mb-3">📊</span>
-                        <p class="text-sm font-semibold text-gray-700 mb-1">Unggah berkas manifest peserta</p>
-                        <p class="text-xs text-gray-400 mb-5">Wajib format Excel Asli (.xlsx) — Maks. 2MB</p>
-                        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-                            <input type="file" id="excel-upload" class="hidden" accept=".xlsx"
-                                @change="handleExcelUpload" :disabled="isUploadingExcel" />
-                            <label for="excel-upload"
-                                class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 px-6 rounded cursor-pointer transition">
-                                {{ isUploadingExcel ? '⏳ Memproses...' : '📂 Pilih Berkas Excel' }}
-                            </label>
-                            <a href="/user/booking/download-template"
-                                class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-semibold py-2.5 px-5 rounded transition inline-flex items-center gap-2">
-                                📥 Download Template
-                            </a>
-                        </div>
-                    </div>
-                    <div v-if="stage1Error" class="mt-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded p-3">
-                        ⚠️ {{ stage1Error }}
-                    </div>
-                </div>
-
-                <!-- ─── SUDAH UPLOAD: Full layout ─── -->
-                <div v-else class="space-y-4">
+                <div class="space-y-6">
 
                     <!-- Top bar: status + total + aksi -->
-                    <div class="flex flex-wrap items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-                        <!-- File confirmed -->
-                        <div class="flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm flex-shrink-0">✓</span>
-                            <div>
-                                <span class="text-xs font-semibold text-green-800">Manifest dimuat:</span>
-                                <span class="text-xs text-gray-600 ml-1">{{ uploadedFileName }}</span>
+                    <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4">
+                        
+                        <!-- Left side: Metode Input indicator & Excel options -->
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- Status Indicator -->
+                            <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                                <span class="w-5 h-5 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-[10px] font-bold">✓</span>
+                                <span class="text-xs font-bold text-gray-700">Metode Input:</span>
+                                <span class="text-xs text-gray-500 font-semibold px-2 py-0.5 rounded bg-gray-50 border border-gray-150">{{ uploadedFileName }}</span>
+                            </div>
+
+                            <!-- Excel Import Option (Sleek button next to status if manual or show reset button if uploaded) -->
+                            <div class="flex items-center gap-2">
+                                <template v-if="uploadedFileName === 'Input Manual'">
+                                    <input type="file" id="excel-upload-bar" class="hidden" accept=".xlsx"
+                                        @change="handleExcelUpload" :disabled="isUploadingExcel" />
+                                    <label for="excel-upload-bar"
+                                        class="bg-emerald-650 hover:bg-emerald-705 text-white text-xs font-black py-2 px-3.5 rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-3xs select-none">
+                                        <span>📂 {{ isUploadingExcel ? 'Memproses...' : 'Impor dari Excel' }}</span>
+                                    </label>
+                                    <a href="/user/booking/download-template"
+                                        class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-[10px] font-extrabold py-2 px-3 rounded-xl transition inline-flex items-center gap-1.5 shadow-3xs select-none">
+                                        📥 Template Excel
+                                    </a>
+                                </template>
+                                <template v-else>
+                                    <button @click="resetExcel"
+                                        class="bg-red-50 hover:bg-red-100 text-red-650 border border-red-200 hover:border-red-300 text-xs font-black py-2 px-3.5 rounded-xl transition flex items-center gap-1.5 shadow-3xs">
+                                        🔄 Ganti Metode
+                                    </button>
+                                </template>
                             </div>
                         </div>
-                        <button @click="resetExcel"
-                            class="text-xs text-red-500 hover:text-red-700 border border-red-200 rounded px-2.5 py-1 transition">
-                            🔄 Ganti File
-                        </button>
 
-                        <div class="ml-auto flex items-center gap-4">
+                        <!-- Right side: Count summary & Next CTA -->
+                        <div class="flex flex-wrap items-center gap-4">
                             <!-- Ringkasan kapasitas -->
-                            <div class="flex items-center gap-3 text-sm">
-                                <span class="text-gray-500">Peserta: <strong class="text-gray-800">{{ participantCount }}</strong></span>
-                                <span class="text-gray-300">+</span>
-                                <span class="text-gray-500">Panitia: <strong class="text-gray-800">{{ panitiaCount }}</strong></span>
-                                <span class="text-gray-300">=</span>
-                                <span class="font-bold text-blue-700 text-base">{{ totalOrangComputed }} orang</span>
+                            <div class="flex items-center gap-3 text-xs font-semibold text-gray-500">
+                                <span>Peserta: <strong class="text-gray-800 font-extrabold">{{ participantCount }}</strong></span>
+                                <span class="text-gray-300">•</span>
+                                <span>Panitia: <strong class="text-gray-800 font-extrabold">{{ panitiaCount }}</strong></span>
+                                <span class="text-gray-300">•</span>
+                                <span class="font-extrabold text-blue-600 text-sm">Total: {{ totalOrangComputed }} Orang</span>
                             </div>
 
                             <!-- Error inline -->
-                            <div v-if="stage1Error" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                            <div v-if="stage1Error" class="text-xs text-red-650 bg-red-50 border border-red-200 rounded px-2.5 py-1">
                                 ⚠️ {{ stage1Error }}
                             </div>
 
                             <!-- CTA -->
                             <button @click="checkEligibility" :disabled="!isStage1Valid || isChecking"
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded text-sm transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap">
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs">
                                 {{ isChecking ? '⏳ Mengecek...' : 'Cari Ruangan →' }}
                             </button>
                         </div>
@@ -568,105 +599,138 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                     <!-- Tabel bertumpuk: Peserta (Atas) | Panitia (Bawah) -->
                     <div class="flex flex-col gap-6 w-full">
 
-                        <!-- ── Tabel Roster Peserta (dari Excel) ── -->
-                        <div class="border border-gray-200 rounded-lg overflow-hidden flex flex-col">
-                            <div class="bg-blue-50 border-b border-blue-100 px-4 py-2.5 flex items-center justify-between flex-shrink-0">
-                                <span class="text-sm font-bold text-blue-800">📋 Roster Peserta</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ participantCount }}</span>
-                                    <span class="text-xs text-blue-600 font-medium">
-                                        L: {{ participants.filter(p => p.gender === 'L').length }}
-                                        · P: {{ participants.filter(p => p.gender === 'P').length }}
+                        <!-- ── Tabel Roster Peserta (Editable & Interactive) ── -->
+                        <div class="border border-gray-250 rounded-xl overflow-hidden flex flex-col bg-white shadow-3xs">
+                            <div class="bg-blue-50/50 border-b border-blue-100 px-4 py-3 flex items-center justify-between shrink-0">
+                                <span class="text-xs font-black text-blue-900 uppercase tracking-wider">📋 Roster Peserta</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-blue-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-3xs">
+                                        {{ participantCount }} Orang
                                     </span>
-                                </div>
-                            </div>
-                            <div class="overflow-y-auto flex-1" style="max-height: 420px;">
-                                <table class="w-full text-sm text-left border-collapse">
-                                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider sticky top-0 z-10">
-                                        <tr>
-                                            <th class="px-4 py-2.5 w-10 text-center border-b border-gray-200">#</th>
-                                            <th class="px-4 py-2.5 border-b border-gray-200">Nama Lengkap</th>
-                                            <th class="px-4 py-2.5 border-b border-gray-200">Jabatan</th>
-                                            <th class="px-4 py-2.5 border-b border-gray-200">Site</th>
-                                            <th class="px-4 py-2.5 w-28 text-center border-b border-gray-200">Gender</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        <tr v-for="(p, i) in participants" :key="i" class="hover:bg-blue-50 transition-colors">
-                                            <td class="px-4 py-2.5 text-center text-gray-400 text-xs">{{ i + 1 }}</td>
-                                            <td class="px-4 py-2.5 font-medium text-gray-800">{{ p.nama }}</td>
-                                            <td class="px-4 py-2.5 text-gray-500 text-xs">{{ p.jabatan }}</td>
-                                            <td class="px-4 py-2.5 text-gray-500 text-xs">{{ p.site }}</td>
-                                            <td class="px-4 py-2.5 text-center">
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
-                                                    :class="p.gender === 'L' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'">
-                                                    {{ p.gender === 'L' ? '♂ L' : '♀ P' }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- ── Tabel Roster Panitia (manual input) ── -->
-                        <div class="border border-gray-200 rounded-lg overflow-hidden flex flex-col">
-                            <div class="bg-amber-50 border-b border-amber-100 px-4 py-2.5 flex items-center justify-between flex-shrink-0">
-                                <span class="text-sm font-bold text-amber-800">👥 Roster Panitia</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ panitiaCount }}</span>
-                                    <button @click="addPanitia"
-                                        class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded transition flex items-center gap-1">
-                                        + Tambah
+                                    <button @click="addParticipant"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-3 py-1 rounded-lg transition flex items-center gap-1 shadow-3xs">
+                                        + Tambah Peserta
                                     </button>
                                 </div>
                             </div>
-                            <div class="overflow-y-auto flex-1" style="max-height: 420px;">
-                                <table class="w-full text-sm text-left border-collapse">
-                                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider sticky top-0 z-10">
+                            
+                            <div class="overflow-x-auto flex-1 max-h-[420px]">
+                                <table class="w-full text-xs text-left border-collapse min-w-[650px]">
+                                    <thead class="bg-gray-50 text-gray-500 font-extrabold uppercase tracking-wider sticky top-0 z-10 border-b border-gray-200/50">
                                         <tr>
-                                            <th class="px-3 py-2.5 w-10 text-center border-b border-gray-200">#</th>
-                                            <th class="px-3 py-2.5 border-b border-gray-200">Nama<span class="text-red-400">*</span></th>
-                                            <th class="px-3 py-2.5 border-b border-gray-200">Divisi</th>
-                                            <th class="px-3 py-2.5 border-b border-gray-200">Jabatan</th>
-                                            <th class="px-3 py-2.5 border-b border-gray-200">Site</th>
-                                            <th class="px-3 py-2.5 w-10 border-b border-gray-200"></th>
+                                            <th class="px-4 py-3 w-12 text-center">#</th>
+                                            <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3">Jabatan<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3">Site<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3 w-44 text-center">Gender<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3 w-12 text-center"></th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100">
-                                        <tr v-for="(p, i) in panitiaList" :key="i" class="hover:bg-amber-50 transition-colors">
-                                            <td class="px-3 py-2 text-center text-gray-400 text-xs">{{ i + 1 }}</td>
-                                            <td class="px-3 py-2">
-                                                <input v-model="p.nama" type="text" placeholder="Nama lengkap"
-                                                    class="w-full text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-blue-400"
-                                                    :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50' : ''" />
+                                        <tr v-for="(p, i) in participants" :key="i" class="hover:bg-blue-50/20 transition-colors">
+                                            <td class="px-4 py-2.5 text-center text-gray-400 font-bold">{{ i + 1 }}</td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.nama" type="text" placeholder="Ketik nama lengkap..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
-                                            <td class="px-3 py-2">
-                                                <input v-model="p.divisi" type="text" placeholder="Divisi"
-                                                    class="w-full text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-blue-400" />
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.jabatan.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
-                                            <td class="px-3 py-2">
-                                                <input v-model="p.jabatan" type="text" placeholder="Jabatan"
-                                                    class="w-full text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-blue-400" />
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.site" type="text" placeholder="Site..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.site.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
-                                            <td class="px-3 py-2">
-                                                <input v-model="p.site" type="text" placeholder="Site"
-                                                    class="w-full text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-blue-400" />
+                                            <td class="px-4 py-2.5 text-center">
+                                                <select v-model="p.gender"
+                                                    class="text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white min-w-[120px] select-gender appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.65em_auto] bg-[right_0.75rem_center] bg-no-repeat">
+                                                    <option value="L">♂ Laki-laki</option>
+                                                    <option value="P">♀ Perempuan</option>
+                                                </select>
                                             </td>
-                                            <td class="px-3 py-2 text-center">
-                                                <button @click="removePanitia(i)" :disabled="panitiaList.length === 1"
-                                                    class="text-red-400 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed text-base leading-none font-bold transition"
+                                            <td class="px-4 py-2.5 text-center">
+                                                <button @click="removeParticipant(i)"
+                                                    class="text-red-400 hover:text-red-650 text-sm font-black transition"
                                                     title="Hapus baris">×</button>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-                            <!-- Footer hint validasi -->
-                            <div class="bg-gray-50 border-t border-gray-200 px-4 py-2 flex items-center gap-2 flex-shrink-0">
-                                <span class="text-xs text-gray-500">Kolom <strong>Nama*</strong> wajib diisi semua baris.</span>
-                                <span v-if="!panitiaValid" class="text-xs text-red-500 ml-auto">⚠️ Ada nama yang belum diisi</span>
-                                <span v-else class="text-xs text-green-600 ml-auto">✓ Semua nama terisi</span>
+                            
+                            <!-- Footer hint validasi peserta -->
+                            <div class="bg-gray-50 border-t border-gray-200 px-4 py-2.5 flex items-center gap-2 shrink-0">
+                                <span class="text-[10px] text-gray-500 font-semibold">Semua kolom bertanda asterisk (<span class="text-red-450 font-bold">*</span>) wajib diisi.</span>
+                                <span v-if="!participantsValid" class="text-[10px] text-red-500 font-extrabold ml-auto flex items-center gap-1">⚠️ Ada kolom kosong</span>
+                                <span v-else class="text-[10px] text-green-600 font-extrabold ml-auto flex items-center gap-1">✓ Peserta siap validasi</span>
+                            </div>
+                        </div>
+
+                        <!-- ── Tabel Roster Panitia (manual input) ── -->
+                        <div class="border border-gray-250 rounded-xl overflow-hidden flex flex-col bg-white shadow-3xs">
+                            <div class="bg-amber-50/50 border-b border-amber-100 px-4 py-3 flex items-center justify-between shrink-0">
+                                <span class="text-xs font-black text-amber-900 uppercase tracking-wider">👥 Roster Panitia</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-3xs">
+                                        {{ panitiaCount }} Orang
+                                    </span>
+                                    <button @click="addPanitia"
+                                        class="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black px-3 py-1 rounded-lg transition flex items-center gap-1 shadow-3xs">
+                                        + Tambah Panitia
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="overflow-x-auto flex-1 max-h-[420px]">
+                                <table class="w-full text-xs text-left border-collapse min-w-[650px]">
+                                    <thead class="bg-gray-50 text-gray-500 font-extrabold uppercase tracking-wider sticky top-0 z-10 border-b border-gray-200/50">
+                                        <tr>
+                                            <th class="px-4 py-3 w-12 text-center">#</th>
+                                            <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3">Divisi</th>
+                                            <th class="px-4 py-3">Jabatan</th>
+                                            <th class="px-4 py-3">Site</th>
+                                            <th class="px-4 py-3 w-12 text-center"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr v-for="(p, i) in panitiaList" :key="i" class="hover:bg-amber-50/20 transition-colors">
+                                            <td class="px-4 py-2.5 text-center text-gray-400 font-bold">{{ i + 1 }}</td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.nama" type="text" placeholder="Nama lengkap..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.divisi" type="text" placeholder="Divisi..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.site" type="text" placeholder="Site..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <button @click="removePanitia(i)" :disabled="panitiaList.length === 1"
+                                                    class="text-red-400 hover:text-red-655 disabled:opacity-30 disabled:cursor-not-allowed text-sm font-black transition"
+                                                    title="Hapus baris">×</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Footer hint validasi panitia -->
+                            <div class="bg-gray-50 border-t border-gray-200 px-4 py-2.5 flex items-center gap-2 shrink-0">
+                                <span class="text-[10px] text-gray-500 font-semibold">Kolom <strong>Nama*</strong> wajib diisi semua baris.</span>
+                                <span v-if="!panitiaValid" class="text-[10px] text-red-500 font-extrabold ml-auto">⚠️ Ada nama yang belum diisi</span>
+                                <span v-else class="text-[10px] text-green-600 font-extrabold ml-auto">✓ Roster panitia valid</span>
                             </div>
                         </div>
 
