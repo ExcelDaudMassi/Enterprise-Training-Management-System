@@ -344,7 +344,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 <span class="text-[10px] leading-none text-gray-700 mt-1 font-medium">{{ day }}</span>
 
                                 <!-- Titik warna booking -->
-                                <div class="flex flex-wrap gap-0.5 px-0.5 mt-0.5 justify-center">
+                                <div class="flex flex-wrap gap-0.5 max-w-[16px] mx-auto mt-0.5 justify-center">
                                     <span
                                         v-for="b in getBookingsOnDate(filterYear, monthIdx, day)"
                                         :key="b.id"

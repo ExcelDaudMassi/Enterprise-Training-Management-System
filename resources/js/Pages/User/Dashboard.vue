@@ -219,7 +219,7 @@ function statusLabel(status) {
                                 <span class="text-[10px] leading-none text-gray-600 mt-0.5">{{ day }}</span>
 
                                 <!-- Titik warna booking -->
-                                <div class="flex flex-wrap gap-0.5 px-0.5">
+                                <div class="flex flex-wrap gap-0.5 max-w-[16px] mx-auto mt-0.5 justify-center">
                                     <span
                                         v-for="b in getBookingsOnDate(filterYear, monthIdx, day)"
                                         :key="b.id"
