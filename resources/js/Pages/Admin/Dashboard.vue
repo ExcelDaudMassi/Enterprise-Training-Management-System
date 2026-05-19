@@ -98,9 +98,9 @@ function getDateHighlightClass(year, month, day) {
     const totalRooms = props.ruanganList?.length || 0
     
     if (totalRooms > 0 && bookedRoomIds.size >= totalRooms) {
-        return 'bg-red-200 text-red-950 font-bold border border-red-300 shadow-sm'
+        return 'bg-red-50 text-red-800 font-semibold border border-red-200'
     } else {
-        return 'bg-amber-100 text-amber-950 font-bold border border-amber-300 shadow-sm'
+        return 'bg-amber-50 text-amber-800 font-semibold border border-amber-200'
     }
 }
 function getMonthOriginClass(index) {
