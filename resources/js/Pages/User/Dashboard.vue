@@ -128,38 +128,52 @@ function getMonthOriginClass(index) {
 const modalOpen      = ref(false)
 const modalDate      = ref('')
 const selectedMonthIdx = ref(0)
-const selectedMonthWeeks = ref([])
-const activeRoomFilter = ref(null)
-const roomBookingCounts = ref({})
+const selectedYear   = ref(2026)
+const selectedMonthDaysCount = ref(30)
+const selectedMonthDays = ref([])
 
-const filteredMonthWeeks = computed(() => {
-    if (!selectedMonthWeeks.value) return []
-    return selectedMonthWeeks.value.map(w => {
-        const filteredBookings = w.bookings.filter(b => {
-            if (activeRoomFilter.value === null) return true
-            return b.ruangan_id === activeRoomFilter.value
+const roomGanttData = computed(() => {
+    const year = selectedYear.value
+    const monthIdx = selectedMonthIdx.value
+    const daysInMonth = selectedMonthDaysCount.value
+    
+    // Month boundaries
+    const mStartStr = `${year}-${String(monthIdx + 1).padStart(2, '0')}-01`
+    const mEndStr = `${year}-${String(monthIdx + 1).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`
+    
+    const mStart = new Date(year, monthIdx, 1)
+    const mEnd = new Date(year, monthIdx, daysInMonth)
+    
+    return props.ruanganList.map(room => {
+        // Find bookings for this room overlapping this month
+        const roomBookings = props.bookings.filter(b => {
+            if (b.ruangan_id !== room.id) return false
+            return b.tgl_mulai <= mEndStr && b.tgl_selesai >= mStartStr
+        }).map(b => {
+            const bStart = new Date(b.tgl_mulai)
+            const bEnd = new Date(b.tgl_selesai)
+            
+            const startDay = bStart < mStart ? 1 : bStart.getDate()
+            const endDay = bEnd > mEnd ? daysInMonth : bEnd.getDate()
+            
+            const startPct = ((startDay - 1) / daysInMonth) * 100
+            const widthPct = ((endDay - startDay + 1) / daysInMonth) * 100
+            
+            return {
+                ...b,
+                startDay,
+                endDay,
+                startPct,
+                widthPct
+            }
         })
+        
         return {
-            ...w,
-            filteredBookings
+            ...room,
+            bookings: roomBookings
         }
     })
 })
-
-const isAgendaEmpty = computed(() => {
-    return !filteredMonthWeeks.value.some(w => w.filteredBookings.length > 0)
-})
-
-const totalMonthBookingsCount = computed(() => {
-    return Object.values(roomBookingCounts.value).reduce((sum, count) => sum + count, 0)
-})
-
-function getCellDate(year, monthIdx, cellIdx) {
-    const firstDay = new Date(year, monthIdx, 1)
-    const startDayOfWeek = firstDay.getDay() // 0 = Sunday, 6 = Saturday
-    const offset = cellIdx - startDayOfWeek
-    return new Date(year, monthIdx, 1 + offset)
-}
 
 function dateToYmd(date) {
     const y = date.getFullYear()
@@ -192,57 +206,25 @@ function formatDateRange(startStr, endStr) {
 
 function openModal(year, monthIdx) {
     const monthName = MONTH_NAMES[monthIdx]
-    modalDate.value = `Jadwal Training — ${monthName} ${year}`
+    modalDate.value = `Diagram Jadwal Training — ${monthName} ${year}`
     selectedMonthIdx.value = monthIdx
-    activeRoomFilter.value = null
+    selectedYear.value = year
     
-    const grid = getMonthGrid(year, monthIdx)
-    const weeks = []
+    const daysInMonth = new Date(year, monthIdx + 1, 0).getDate()
+    selectedMonthDaysCount.value = daysInMonth
     
-    // Reset room booking counts
-    const counts = {}
-    props.ruanganList.forEach(r => {
-        counts[r.id] = 0
-    })
-    
-    for (let i = 0; i < grid.length; i += 7) {
-        // Generate all 7 days of the week row
-        const weekDays = []
-        for (let col = 0; col < 7; col++) {
-            const cellIdx = i + col
-            const date = getCellDate(year, monthIdx, cellIdx)
-            weekDays.push({
-                date,
-                dayNum: date.getDate(),
-                dayName: DAY_NAMES[col],
-                ymd: dateToYmd(date),
-                isToday: dateToYmd(date) === dateToYmd(new Date())
-            })
-        }
-        
-        const startDateStr = weekDays[0].ymd
-        const endDateStr = weekDays[6].ymd
-        
-        // Find bookings overlapping with this week
-        const weekBookings = props.bookings.filter(b => {
-            return b.tgl_mulai <= endDateStr && b.tgl_selesai >= startDateStr
-        })
-        
-        // Increment room booking counts
-        weekBookings.forEach(b => {
-            counts[b.ruangan_id] = (counts[b.ruangan_id] || 0) + 1
-        })
-        
-        weeks.push({
-            weekIndex: weeks.length + 1,
-            startDateStr,
-            endDateStr,
-            bookings: weekBookings
+    const daysArray = []
+    for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, monthIdx, d)
+        const dayOfWeek = date.getDay()
+        daysArray.push({
+            dayNum: d,
+            dayName: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][dayOfWeek],
+            isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+            isToday: dateToYmd(date) === dateToYmd(new Date())
         })
     }
-    
-    roomBookingCounts.value = counts
-    selectedMonthWeeks.value = weeks
+    selectedMonthDays.value = daysArray
     modalOpen.value = true
 }
 
@@ -445,126 +427,133 @@ function statusLabel(status) {
                     <!-- Header -->
                     <div class="px-6 py-4 border-b border-gray-150 flex items-center justify-between bg-gray-50/50 shrink-0">
                         <div class="flex items-center gap-3">
-                            <span class="text-xl">📅</span>
+                            <span class="text-xl">📊</span>
                             <div>
                                 <h4 class="font-bold text-gray-800 text-sm sm:text-base leading-none">{{ modalDate }}</h4>
-                                <p class="text-[10.5px] text-gray-500 font-semibold mt-1">Total {{ totalMonthBookingsCount }} Jadwal Training Aktif</p>
+                                <p class="text-[10.5px] text-gray-500 font-semibold mt-1">Diagram Gantt Jadwal Penggunaan Ruangan</p>
                             </div>
                         </div>
                         <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer">&times;</button>
                     </div>
 
-                    <!-- Split-pane Body -->
-                    <div class="flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 bg-gray-50/30">
+                    <!-- Gantt Body -->
+                    <div class="flex-1 overflow-hidden bg-gray-50/30 p-6 flex flex-col min-h-0">
                         
-                        <!-- Left Panel: Room Filter Sidebar -->
-                        <div class="w-full md:w-64 bg-gray-50/70 border-b md:border-b-0 md:border-r border-gray-150 p-5 shrink-0 flex flex-col justify-between">
-                            <div>
-                                <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 select-none">Filter Ruangan</h5>
-                                <div class="space-y-1">
-                                    <button
-                                        @click="activeRoomFilter = null"
-                                        class="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition cursor-pointer select-none"
-                                        :class="activeRoomFilter === null ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-700 hover:bg-gray-150'"
-                                    >
-                                        <span class="truncate">Semua Ruangan</span>
-                                        <span 
-                                            class="text-[9px] font-bold px-2 py-0.5 rounded-full transition"
-                                            :class="activeRoomFilter === null ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'"
-                                        >
-                                            {{ totalMonthBookingsCount }}
-                                        </span>
-                                    </button>
-                                    
-                                    <button
-                                        v-for="room in ruanganList"
-                                        :key="room.id"
-                                        @click="activeRoomFilter = room.id"
-                                        class="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition group cursor-pointer select-none"
-                                        :class="activeRoomFilter === room.id ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-700 hover:bg-gray-150'"
-                                    >
-                                        <div class="flex items-center gap-2 truncate">
-                                            <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(room.id).bg }"></span>
-                                            <span class="truncate">{{ room.nama_ruang }}</span>
-                                        </div>
-                                        <span 
-                                            class="text-[9px] font-bold px-2 py-0.5 rounded-full transition"
-                                            :class="activeRoomFilter === room.id ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'"
-                                        >
-                                            {{ roomBookingCounts[room.id] || 0 }}
-                                        </span>
-                                    </button>
-                                </div>
+                        <!-- Diagram Legend -->
+                        <div class="mb-4 flex flex-wrap gap-4 items-center bg-white p-3.5 rounded-xl border border-gray-150 shadow-3xs select-none shrink-0">
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status Booking:</div>
+                            <div class="flex items-center gap-1.5 text-xs font-bold">
+                                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                                <span class="text-gray-700">Plotting</span>
                             </div>
-                            
-                            <div class="hidden md:block text-[10px] text-gray-400 font-medium pt-4 border-t border-gray-200 select-none">
-                                💡 Klik nama ruangan di atas untuk memfilter jadwal.
+                            <div class="flex items-center gap-1.5 text-xs font-bold">
+                                <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                                <span class="text-gray-700">Menunggu Persetujuan</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs font-bold">
+                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                <span class="text-gray-700">Disetujui</span>
+                            </div>
+                            <div class="ml-auto text-[10px] text-gray-400 font-bold hidden sm:block">
+                                💡 Arahkan kursor (hover) pada bar diagram untuk melihat detail lengkap.
                             </div>
                         </div>
                         
-                        <!-- Right Panel: Chronological Agenda List -->
-                        <div class="flex-1 p-6 overflow-y-auto bg-white flex flex-col min-h-0">
-                            <div class="space-y-6">
-                                <div v-for="w in filteredMonthWeeks" :key="w.weekIndex">
-                                    <!-- Render only if this week has filtered bookings -->
-                                    <div v-if="w.filteredBookings.length > 0">
-                                        <!-- Week Header -->
-                                        <div class="flex items-center gap-2.5 mb-3 select-none">
-                                            <span class="bg-blue-50 text-blue-700 text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border border-blue-100/75 shrink-0 shadow-3xs">
-                                                Minggu {{ w.weekIndex }}
-                                            </span>
-                                            <span class="text-xs font-bold text-gray-500 shrink-0">
-                                                ({{ formatIndoDateShort(w.startDateStr) }} - {{ formatIndoDateShort(w.endDateStr) }})
-                                            </span>
-                                            <div class="h-[1px] bg-gray-150 flex-1"></div>
+                        <!-- Gantt Board Scroll Container -->
+                        <div class="bg-white rounded-2xl border border-gray-150 shadow-sm overflow-hidden flex flex-col flex-1 min-h-0">
+                            <div class="overflow-x-auto flex-1 min-w-0">
+                                <div class="min-w-[1000px] flex flex-col h-full">
+                                    
+                                    <!-- Timeline Header Row -->
+                                    <div class="flex border-b border-gray-150 bg-gray-50 select-none shrink-0">
+                                        <!-- Room Name Column Header -->
+                                        <div class="w-48 p-4 shrink-0 font-extrabold text-xs text-gray-500 uppercase tracking-wider border-r border-gray-150 flex items-center">
+                                            Nama Ruangan
                                         </div>
                                         
-                                        <!-- Bookings under this week -->
-                                        <div class="grid grid-cols-1 gap-3">
-                                            <div
-                                                v-for="b in w.filteredBookings"
-                                                :key="b.id"
-                                                class="bg-white rounded-xl border border-gray-150 p-4 shadow-sm relative overflow-hidden transition hover:shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                                        <!-- Days Column Headers -->
+                                        <div class="flex-1 grid" :style="{ gridTemplateColumns: `repeat(${selectedMonthDaysCount}, minmax(0, 1fr))` }">
+                                            <div 
+                                                v-for="d in selectedMonthDays" 
+                                                :key="d.dayNum"
+                                                class="text-center py-2.5 flex flex-col items-center justify-center border-r border-gray-100 last:border-r-0"
+                                                :class="[
+                                                    d.isWeekend ? 'bg-red-50/50 text-red-650' : 'text-gray-700',
+                                                    d.isToday ? 'bg-blue-50 text-blue-600 font-bold' : ''
+                                                ]"
                                             >
-                                                <!-- Left Accent Border -->
-                                                <div class="absolute left-0 top-0 bottom-0 w-1.5" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"></div>
-                                                
-                                                <div class="pl-2 flex-1 min-w-0">
-                                                    <div class="flex flex-wrap items-center gap-2 mb-2">
-                                                        <span 
-                                                            class="text-[9.5px] font-extrabold px-2 py-0.5 rounded-md"
-                                                            :style="{ backgroundColor: getRoomColor(b.ruangan_id).light, color: getRoomColor(b.ruangan_id).text }"
-                                                        >
-                                                            {{ b.nama_ruang }}
-                                                        </span>
-                                                        <span class="text-[11px] font-semibold text-gray-400">Divisi: {{ b.divisi }}</span>
-                                                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" :class="STATUS_STYLE[b.status]">
-                                                            {{ statusLabel(b.status) }}
-                                                        </span>
-                                                    </div>
-                                                    <h4 class="font-extrabold text-gray-800 text-sm leading-snug break-words">{{ b.nama_training }}</h4>
-                                                </div>
-                                                
-                                                <!-- Right Date Range -->
-                                                <div class="sm:text-right shrink-0 pl-2 sm:pl-0 flex flex-col sm:items-end justify-center">
-                                                    <span class="text-xs text-gray-700 font-bold bg-gray-50 border border-gray-150 rounded-lg px-3 py-1.5 inline-flex items-center gap-1.5 shadow-3xs">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                                                        {{ formatDateRange(b.tgl_mulai, b.tgl_selesai) }}
-                                                    </span>
-                                                </div>
+                                                <span class="text-[9px] uppercase font-extrabold tracking-tight opacity-75">{{ d.dayName }}</span>
+                                                <span class="text-xs font-extrabold mt-0.5" :class="d.isToday ? 'w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-black shadow-2xs' : ''">
+                                                    {{ d.dayNum }}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <!-- Empty state for the filtered result -->
-                                <div 
-                                    v-if="isAgendaEmpty"
-                                    class="h-full flex flex-col items-center justify-center text-center py-16 text-gray-400 select-none"
-                                >
-                                    <span class="text-4xl mb-3">📅</span>
-                                    <p class="font-extrabold text-gray-600 text-sm">Tidak Ada Jadwal Training</p>
-                                    <p class="text-xs text-gray-400 mt-1 max-w-sm mx-auto">Tidak ada jadwal training untuk filter ruangan yang Anda pilih pada bulan ini.</p>
+                                    
+                                    <!-- Rows (One per Room) -->
+                                    <div class="divide-y divide-gray-150 flex-1 overflow-y-auto min-h-0">
+                                        <div 
+                                            v-for="room in roomGanttData" 
+                                            :key="room.id"
+                                            class="flex min-h-[68px] hover:bg-gray-50/40 transition relative group"
+                                        >
+                                            <!-- Room Info Label -->
+                                            <div class="w-48 p-4 shrink-0 border-r border-gray-150 flex flex-col justify-center bg-gray-50/20 select-none">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="w-2.5 h-2.5 rounded-full shrink-0 animate-pulse" :style="{ backgroundColor: getRoomColor(room.id).bg }"></span>
+                                                    <span class="font-extrabold text-gray-800 text-xs truncate leading-snug">{{ room.nama_ruang }}</span>
+                                                </div>
+                                                <span class="text-[9.5px] text-gray-400 font-semibold mt-1">Kapasitas: {{ room.kapasitas }} pax</span>
+                                            </div>
+                                            
+                                            <!-- Gantt Track Area (Absolute Bars Overlay) -->
+                                            <div class="flex-1 relative min-h-[68px]">
+                                                <!-- Vertical background grid lines for days -->
+                                                <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: `repeat(${selectedMonthDaysCount}, minmax(0, 1fr))` }">
+                                                    <div 
+                                                        v-for="d in selectedMonthDays" 
+                                                        :key="d.dayNum" 
+                                                        class="border-r border-gray-100 last:border-r-0 h-full"
+                                                        :class="d.isWeekend ? 'bg-red-50/10' : ''"
+                                                    ></div>
+                                                </div>
+                                                
+                                                <!-- Bookings in this room -->
+                                                <div
+                                                    v-for="b in room.bookings"
+                                                    :key="b.id"
+                                                    class="absolute h-9 rounded-xl px-3 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] transition-all cursor-pointer group"
+                                                    :style="{
+                                                        left: `calc(${b.startPct}% + 4px)`,
+                                                        width: `calc(${b.widthPct}% - 8px)`,
+                                                        top: '16px',
+                                                        backgroundColor: getRoomColor(b.ruangan_id).light,
+                                                        color: getRoomColor(b.ruangan_id).text,
+                                                        borderColor: getRoomColor(b.ruangan_id).bg
+                                                    }"
+                                                    :title="`${b.nama_ruang} — ${b.nama_training} (${b.divisi}) — ${formatDateRange(b.tgl_mulai, b.tgl_selesai)}`"
+                                                >
+                                                    <div class="flex items-center gap-1.5 min-w-0 w-full">
+                                                        <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"></span>
+                                                        <span class="font-extrabold text-[11px] truncate">{{ b.nama_training }}</span>
+                                                        
+                                                        <!-- Status indicator dot at the end -->
+                                                        <span class="w-1.5 h-1.5 rounded-full shrink-0 ml-auto" :class="[
+                                                            b.status === 'plotting' ? 'bg-amber-500 animate-pulse' : '',
+                                                            b.status === 'waiting_confirmation' ? 'bg-blue-500 animate-pulse' : '',
+                                                            b.status === 'approved' ? 'bg-emerald-500' : ''
+                                                        ]"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Empty state if there are no rooms -->
+                                        <div v-if="roomGanttData.length === 0" class="py-16 text-center text-gray-400">
+                                            Tidak ada ruangan terdaftar.
+                                        </div>
+                                    </div>
+                                    
                                 </div>
                             </div>
                         </div>
