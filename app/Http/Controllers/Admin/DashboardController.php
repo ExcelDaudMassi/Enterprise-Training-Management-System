@@ -117,7 +117,7 @@ class DashboardController extends Controller
             ->values();
 
         // ── DATA KALENDER (Sama seperti User Dashboard) ─────────────────
-        $year = (int) $request->get('year', $activeWindow->tahun ?? 2027);
+        $year = (int) $request->get('year', $activeWindow?->tahun ?? 2027);
         $ruanganFilter = $request->get('ruangan_id');
 
         $ruanganList = Ruangan::all(['id', 'nama_ruang', 'lokasi_gedung', 'kapasitas_max']);

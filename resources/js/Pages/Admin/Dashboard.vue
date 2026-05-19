@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { router } from '@inertiajs/vue3'
 
@@ -38,11 +38,22 @@ function getRoomColor(ruanganId) {
 const filterYear = ref(props.selectedYear)
 const filterRuangan = ref(props.selectedRuangan)
 
+watch(() => props.selectedYear, (newYear) => {
+    filterYear.value = newYear
+})
+
+watch(() => props.selectedRuangan, (newRuangan) => {
+    filterRuangan.value = newRuangan
+})
+
 function applyFilter() {
     router.get('/admin/dashboard', {
         year: filterYear.value,
         ruangan_id: filterRuangan.value || undefined,
-    }, { preserveScroll: true })
+    }, { 
+        preserveState: true,
+        preserveScroll: true,
+    })
 }
 
 // ============================================================
@@ -300,7 +311,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             <!-- Year -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Tahun Kalender</label>
-                <select v-model="filterYear" class="border border-gray-250 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select v-model="filterYear" @change="applyFilter" class="border border-gray-250 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option v-for="y in [2025,2026,2027,2028]" :key="y" :value="y">{{ y }}</option>
                 </select>
             </div>
@@ -308,16 +319,11 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             <!-- Ruangan -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 mb-1">Filter Ruangan</label>
-                <select v-model="filterRuangan" class="border border-gray-250 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select v-model="filterRuangan" @change="applyFilter" class="border border-gray-250 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option :value="null">Semua Ruangan</option>
                     <option v-for="r in ruanganList" :key="r.id" :value="r.id">{{ r.nama_ruang }}</option>
                 </select>
             </div>
-
-            <!-- Apply Button -->
-            <button @click="applyFilter" class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-4 py-1.5 rounded-lg transition cursor-pointer">
-                Tampilkan
-            </button>
 
             <!-- Legend Warna Ruangan -->
             <div class="flex flex-wrap gap-2 ml-auto">
@@ -338,7 +344,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <!-- Kalender Grid -->
         <div class="bg-white rounded-lg border border-gray-150 shadow-sm p-5 mb-6">
             <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-1.5">
-                <span>📅</span> Kalender Pemesanan Ruangan — {{ filterYear }}
+                <span>📅</span> Kalender Pemesanan Ruangan — {{ selectedYear }}
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -359,7 +365,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                     <!-- Grid tanggal -->
                     <div class="grid grid-cols-7 gap-1">
-                        <template v-for="(day, cellIdx) in getMonthGrid(filterYear, monthIdx)" :key="cellIdx">
+                        <template v-for="(day, cellIdx) in getMonthGrid(selectedYear, monthIdx)" :key="cellIdx">
                             <!-- Kosong -->
                             <div v-if="day === null" class="h-8"></div>
 
@@ -368,21 +374,21 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 v-else
                                 class="h-8 flex flex-col items-center justify-start cursor-pointer rounded relative group transition-all duration-200"
                                 :class="[
-                                    isToday(filterYear, monthIdx, day) ? 'ring-1 ring-blue-500 font-bold bg-white shadow-sm' : '',
-                                    getDateHighlightClass(filterYear, monthIdx, day) || 'bg-white/40 hover:bg-white hover:shadow-sm'
+                                    isToday(selectedYear, monthIdx, day) ? 'ring-1 ring-blue-500 font-bold bg-white shadow-sm' : '',
+                                    getDateHighlightClass(selectedYear, monthIdx, day) || 'bg-white/40 hover:bg-white hover:shadow-sm'
                                 ]"
-                                @click="openModal(filterYear, monthIdx, day, getBookingsOnDate(filterYear, monthIdx, day))"
+                                @click="openModal(selectedYear, monthIdx, day, getBookingsOnDate(selectedYear, monthIdx, day))"
                             >
                                 <!-- Angka tanggal -->
                                 <span 
                                     class="text-[10px] leading-none mt-1 font-medium"
-                                    :class="getBookingsOnDate(filterYear, monthIdx, day).length > 0 ? '' : 'text-gray-700'"
+                                    :class="getBookingsOnDate(selectedYear, monthIdx, day).length > 0 ? '' : 'text-gray-700'"
                                 >{{ day }}</span>
 
                                 <!-- Titik warna booking -->
                                 <div class="flex gap-0.5 px-0.5 mt-0.5 justify-center transition-all duration-300 opacity-0 scale-75 max-h-0 overflow-hidden group-hover/month:opacity-100 group-hover/month:scale-100 group-hover/month:max-h-8">
                                     <span
-                                        v-for="b in getBookingsOnDate(filterYear, monthIdx, day)"
+                                        v-for="b in getBookingsOnDate(selectedYear, monthIdx, day)"
                                         :key="b.id"
                                         class="w-1 h-1 rounded-full"
                                         :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"

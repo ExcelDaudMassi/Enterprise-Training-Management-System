@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { router, useForm, Link, usePage } from '@inertiajs/vue3'
 import UserLayout from '@/Layouts/UserLayout.vue'
 
@@ -33,7 +33,7 @@ const ROOM_COLORS = [
 
 function getRoomColor(ruanganId) {
     const idx = props.ruanganList.findIndex(r => r.id === ruanganId)
-    return ROOM_COLORS[idx % ROOM_COLORS.length]
+    return ROOM_COLORS[idx % ROOM_COLORS.length] ?? ROOM_COLORS[0]
 }
 
 // ============================================================
@@ -42,11 +42,22 @@ function getRoomColor(ruanganId) {
 const filterYear = ref(props.selectedYear)
 const filterRuangan = ref(props.selectedRuangan)
 
+watch(() => props.selectedYear, (newYear) => {
+    filterYear.value = newYear
+})
+
+watch(() => props.selectedRuangan, (newRuangan) => {
+    filterRuangan.value = newRuangan
+})
+
 function applyFilter() {
     router.get('/user/dashboard', {
         year: filterYear.value,
         ruangan_id: filterRuangan.value || undefined,
-    }, { preserveScroll: true })
+    }, { 
+        preserveState: true,
+        preserveScroll: true,
+    })
 }
 
 // ============================================================
@@ -175,7 +186,7 @@ function statusLabel(status) {
             <!-- Year -->
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Tahun</label>
-                <select v-model="filterYear" class="border border-gray-300 rounded px-3 py-1.5 text-sm">
+                <select v-model="filterYear" @change="applyFilter" class="border border-gray-300 rounded px-3 py-1.5 text-sm">
                     <option v-for="y in [2025,2026,2027,2028]" :key="y" :value="y">{{ y }}</option>
                 </select>
             </div>
@@ -183,16 +194,11 @@ function statusLabel(status) {
             <!-- Ruangan -->
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Ruangan</label>
-                <select v-model="filterRuangan" class="border border-gray-300 rounded px-3 py-1.5 text-sm">
+                <select v-model="filterRuangan" @change="applyFilter" class="border border-gray-300 rounded px-3 py-1.5 text-sm">
                     <option :value="null">Semua Ruangan</option>
                     <option v-for="r in ruanganList" :key="r.id" :value="r.id">{{ r.nama_ruang }}</option>
                 </select>
             </div>
-
-            <!-- Apply Button -->
-            <button @click="applyFilter" class="bg-gray-800 hover:bg-gray-700 text-white text-sm px-4 py-1.5 rounded">
-                Tampilkan
-            </button>
 
             <!-- Legend Warna Ruangan -->
             <div class="flex flex-wrap gap-2 ml-auto">
@@ -215,7 +221,7 @@ function statusLabel(status) {
         <!-- Full-Year Calendar: 4 kolom x 3 baris -->
         <!-- ============================================================ -->
         <div class="bg-white rounded shadow p-4 mb-4">
-            <h3 class="text-sm font-semibold text-gray-700 mb-3">Kalender {{ filterYear }}</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">Kalender {{ selectedYear }}</h3>
 
             <div class="grid grid-cols-4 gap-4">
                 <div 
@@ -235,7 +241,7 @@ function statusLabel(status) {
 
                     <!-- Grid tanggal -->
                     <div class="grid grid-cols-7 gap-0.5">
-                        <template v-for="(day, cellIdx) in getMonthGrid(filterYear, monthIdx)" :key="cellIdx">
+                        <template v-for="(day, cellIdx) in getMonthGrid(selectedYear, monthIdx)" :key="cellIdx">
                             <!-- Kosong -->
                             <div v-if="day === null" class="h-6"></div>
 
@@ -244,21 +250,21 @@ function statusLabel(status) {
                                 v-else
                                 class="h-6 flex flex-col items-center justify-start cursor-pointer rounded relative group transition-all duration-200"
                                 :class="[
-                                    isToday(filterYear, monthIdx, day) ? 'ring-1 ring-blue-500 font-bold bg-white' : '',
-                                    getDateHighlightClass(filterYear, monthIdx, day) || 'hover:bg-gray-50'
+                                    isToday(selectedYear, monthIdx, day) ? 'ring-1 ring-blue-500 font-bold bg-white' : '',
+                                    getDateHighlightClass(selectedYear, monthIdx, day) || 'hover:bg-gray-50'
                                 ]"
-                                @click="openModal(filterYear, monthIdx, day, getBookingsOnDate(filterYear, monthIdx, day))"
+                                @click="openModal(selectedYear, monthIdx, day, getBookingsOnDate(selectedYear, monthIdx, day))"
                             >
                                 <!-- Angka tanggal -->
                                 <span 
                                     class="text-[10px] leading-none mt-0.5"
-                                    :class="getBookingsOnDate(filterYear, monthIdx, day).length > 0 ? '' : 'text-gray-600'"
+                                    :class="getBookingsOnDate(selectedYear, monthIdx, day).length > 0 ? '' : 'text-gray-600'"
                                 >{{ day }}</span>
 
                                 <!-- Titik warna booking -->
                                 <div class="flex gap-0.5 px-0.5 mt-0.5 justify-center transition-all duration-300 opacity-0 scale-75 max-h-0 overflow-hidden group-hover/month:opacity-100 group-hover/month:scale-100 group-hover/month:max-h-8">
                                     <span
-                                        v-for="b in getBookingsOnDate(filterYear, monthIdx, day)"
+                                        v-for="b in getBookingsOnDate(selectedYear, monthIdx, day)"
                                         :key="b.id"
                                         class="w-1 h-1 rounded-full"
                                         :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"

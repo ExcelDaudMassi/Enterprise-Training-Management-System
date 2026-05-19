@@ -21,8 +21,10 @@ class DashboardController extends Controller
 
         // Query bookings untuk tahun yang dipilih
         $bookingQuery = Booking::with(['ruangan:id,nama_ruang', 'user:id,name,divisi'])
-            ->whereYear('tgl_mulai', $year)
-            ->orWhereYear('tgl_selesai', $year)
+            ->where(function ($query) use ($year) {
+                $query->whereYear('tgl_mulai', $year)
+                      ->orWhereYear('tgl_selesai', $year);
+            })
             ->whereNotIn('status', ['cancelled']);
 
         if ($ruanganFilter) {
