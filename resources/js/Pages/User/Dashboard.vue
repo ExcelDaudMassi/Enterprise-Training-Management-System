@@ -129,6 +129,30 @@ const modalOpen      = ref(false)
 const modalDate      = ref('')
 const selectedMonthIdx = ref(0)
 const selectedMonthWeeks = ref([])
+const activeRoomFilter = ref(null)
+const roomBookingCounts = ref({})
+
+const filteredMonthWeeks = computed(() => {
+    if (!selectedMonthWeeks.value) return []
+    return selectedMonthWeeks.value.map(w => {
+        const filteredBookings = w.bookings.filter(b => {
+            if (activeRoomFilter.value === null) return true
+            return b.ruangan_id === activeRoomFilter.value
+        })
+        return {
+            ...w,
+            filteredBookings
+        }
+    })
+})
+
+const isAgendaEmpty = computed(() => {
+    return !filteredMonthWeeks.value.some(w => w.filteredBookings.length > 0)
+})
+
+const totalMonthBookingsCount = computed(() => {
+    return Object.values(roomBookingCounts.value).reduce((sum, count) => sum + count, 0)
+})
 
 function getCellDate(year, monthIdx, cellIdx) {
     const firstDay = new Date(year, monthIdx, 1)
@@ -170,9 +194,16 @@ function openModal(year, monthIdx) {
     const monthName = MONTH_NAMES[monthIdx]
     modalDate.value = `Jadwal Training — ${monthName} ${year}`
     selectedMonthIdx.value = monthIdx
+    activeRoomFilter.value = null
     
     const grid = getMonthGrid(year, monthIdx)
     const weeks = []
+    
+    // Reset room booking counts
+    const counts = {}
+    props.ruanganList.forEach(r => {
+        counts[r.id] = 0
+    })
     
     for (let i = 0; i < grid.length; i += 7) {
         // Generate all 7 days of the week row
@@ -193,69 +224,24 @@ function openModal(year, monthIdx) {
         const endDateStr = weekDays[6].ymd
         
         // Find bookings overlapping with this week
-        const weekBookings = []
-        props.bookings.forEach(b => {
-            if (b.tgl_mulai <= endDateStr && b.tgl_selesai >= startDateStr) {
-                let startIndex = 0
-                while (startIndex < 7 && weekDays[startIndex].ymd < b.tgl_mulai) { startIndex++ }
-                
-                let endIndex = 6
-                while (endIndex >= 0 && weekDays[endIndex].ymd > b.tgl_selesai) { endIndex-- }
-                
-                if (endIndex >= startIndex) {
-                    weekBookings.push({
-                        ...b,
-                        startIndex,
-                        endIndex,
-                        span: endIndex - startIndex + 1
-                    })
-                }
-            }
+        const weekBookings = props.bookings.filter(b => {
+            return b.tgl_mulai <= endDateStr && b.tgl_selesai >= startDateStr
         })
         
-        // Sort: earlier start first, then longer span first
-        weekBookings.sort((a, b) => {
-            if (a.startIndex !== b.startIndex) return a.startIndex - b.startIndex
-            return b.span - a.span
-        })
-        
-        // Assign tracks
-        const tracks = []
-        weekBookings.forEach(booking => {
-            let assignedTrack = -1
-            for (let t = 0; t < tracks.length; t++) {
-                let overlap = false
-                for (let col = booking.startIndex; col <= booking.endIndex; col++) {
-                    if (tracks[t][col]) {
-                        overlap = true
-                        break
-                    }
-                }
-                if (!overlap) {
-                    assignedTrack = t
-                    break
-                }
-            }
-            if (assignedTrack === -1) {
-                assignedTrack = tracks.length
-                tracks.push(new Array(7).fill(false))
-            }
-            for (let col = booking.startIndex; col <= booking.endIndex; col++) {
-                tracks[assignedTrack][col] = true
-            }
-            booking.track = assignedTrack
+        // Increment room booking counts
+        weekBookings.forEach(b => {
+            counts[b.ruangan_id] = (counts[b.ruangan_id] || 0) + 1
         })
         
         weeks.push({
             weekIndex: weeks.length + 1,
             startDateStr,
             endDateStr,
-            weekDays,
-            bookings: weekBookings,
-            trackCount: Math.max(tracks.length, 1)
+            bookings: weekBookings
         })
     }
     
+    roomBookingCounts.value = counts
     selectedMonthWeeks.value = weeks
     modalOpen.value = true
 }
@@ -451,93 +437,138 @@ function statusLabel(status) {
         <Teleport to="body">
             <div
                 v-if="modalOpen"
-                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in"
                 @click.self="closeModal"
             >
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl overflow-hidden flex flex-col border border-gray-150 max-h-[90vh]">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col border border-gray-150 max-h-[85vh] transition-all">
 
                     <!-- Header -->
                     <div class="px-6 py-4 border-b border-gray-150 flex items-center justify-between bg-gray-50/50 shrink-0">
-                        <h4 class="font-bold text-gray-800 text-base flex items-center gap-2">
-                            <span class="text-xl">📅</span> {{ modalDate }}
-                        </h4>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">📅</span>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-sm sm:text-base leading-none">{{ modalDate }}</h4>
+                                <p class="text-[10.5px] text-gray-500 font-semibold mt-1">Total {{ totalMonthBookingsCount }} Jadwal Training Aktif</p>
+                            </div>
+                        </div>
                         <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer">&times;</button>
                     </div>
 
-                    <!-- Body (Full Monthly Calendar Grid View) -->
-                    <div class="p-6 overflow-y-auto bg-gray-50/30 flex-1 flex flex-col">
-                        <!-- Calendar Container -->
-                        <div class="bg-white rounded-xl border border-gray-150 shadow-sm overflow-hidden flex flex-col flex-1">
-                            
-                            <!-- Day names header row -->
-                            <div class="grid grid-cols-7 border-b border-gray-150 bg-gray-50/75 text-center py-3 select-none animate-fade-in">
-                                <div v-for="dayName in ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']" :key="dayName" class="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                    {{ dayName }}
+                    <!-- Split-pane Body -->
+                    <div class="flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 bg-gray-50/30">
+                        
+                        <!-- Left Panel: Room Filter Sidebar -->
+                        <div class="w-full md:w-64 bg-gray-50/70 border-b md:border-b-0 md:border-r border-gray-150 p-5 shrink-0 flex flex-col justify-between">
+                            <div>
+                                <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 select-none">Filter Ruangan</h5>
+                                <div class="space-y-1">
+                                    <button
+                                        @click="activeRoomFilter = null"
+                                        class="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition cursor-pointer select-none"
+                                        :class="activeRoomFilter === null ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-700 hover:bg-gray-150'"
+                                    >
+                                        <span class="truncate">Semua Ruangan</span>
+                                        <span 
+                                            class="text-[9px] font-bold px-2 py-0.5 rounded-full transition"
+                                            :class="activeRoomFilter === null ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'"
+                                        >
+                                            {{ totalMonthBookingsCount }}
+                                        </span>
+                                    </button>
+                                    
+                                    <button
+                                        v-for="room in ruanganList"
+                                        :key="room.id"
+                                        @click="activeRoomFilter = room.id"
+                                        class="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition group cursor-pointer select-none"
+                                        :class="activeRoomFilter === room.id ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-700 hover:bg-gray-150'"
+                                    >
+                                        <div class="flex items-center gap-2 truncate">
+                                            <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(room.id).bg }"></span>
+                                            <span class="truncate">{{ room.nama_ruang }}</span>
+                                        </div>
+                                        <span 
+                                            class="text-[9px] font-bold px-2 py-0.5 rounded-full transition"
+                                            :class="activeRoomFilter === room.id ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'"
+                                        >
+                                            {{ roomBookingCounts[room.id] || 0 }}
+                                        </span>
+                                    </button>
                                 </div>
                             </div>
                             
-                            <!-- Weeks rows -->
-                            <div class="divide-y divide-gray-150 flex-1 flex flex-col min-h-0">
-                                <div 
-                                    v-for="w in selectedMonthWeeks" 
-                                    :key="w.weekIndex" 
-                                    class="relative flex flex-col min-h-[110px]"
-                                >
-                                    <!-- Day Numbers (top of week row) -->
-                                    <div class="grid grid-cols-7 text-right p-1.5 pointer-events-none select-none z-10">
-                                        <div 
-                                            v-for="d in w.weekDays" 
-                                            :key="d.ymd" 
-                                            class="text-[11px] font-bold pr-2 flex justify-end"
-                                        >
-                                            <span 
-                                                class="w-5 h-5 rounded-full flex items-center justify-center transition-all"
-                                                :class="[
-                                                    d.isToday ? 'bg-blue-600 text-white shadow-xs font-black' : 'text-gray-700',
-                                                    d.date.getMonth() !== selectedMonthIdx ? 'opacity-30' : ''
-                                                ]"
-                                            >
-                                                {{ d.dayNum }}
+                            <div class="hidden md:block text-[10px] text-gray-400 font-medium pt-4 border-t border-gray-200 select-none">
+                                💡 Klik nama ruangan di atas untuk memfilter jadwal.
+                            </div>
+                        </div>
+                        
+                        <!-- Right Panel: Chronological Agenda List -->
+                        <div class="flex-1 p-6 overflow-y-auto bg-white flex flex-col min-h-0">
+                            <div class="space-y-6">
+                                <div v-for="w in filteredMonthWeeks" :key="w.weekIndex">
+                                    <!-- Render only if this week has filtered bookings -->
+                                    <div v-if="w.filteredBookings.length > 0">
+                                        <!-- Week Header -->
+                                        <div class="flex items-center gap-2.5 mb-3 select-none">
+                                            <span class="bg-blue-50 text-blue-700 text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border border-blue-100/75 shrink-0 shadow-3xs">
+                                                Minggu {{ w.weekIndex }}
                                             </span>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Bookings Area (spans across columns) -->
-                                    <div 
-                                        class="relative flex-1 pb-2"
-                                        :style="{ minHeight: `${w.trackCount * 28 + 10}px` }"
-                                    >
-                                        <!-- Vertical separator lines in background -->
-                                        <div class="absolute inset-0 grid grid-cols-7 pointer-events-none">
-                                            <div v-for="i in 7" :key="i" class="border-r border-gray-100 last:border-r-0 h-full"></div>
+                                            <span class="text-xs font-bold text-gray-500 shrink-0">
+                                                ({{ formatIndoDateShort(w.startDateStr) }} - {{ formatIndoDateShort(w.endDateStr) }})
+                                            </span>
+                                            <div class="h-[1px] bg-gray-150 flex-1"></div>
                                         </div>
                                         
-                                        <!-- Booking pills overlay -->
-                                        <div
-                                            v-for="b in w.bookings"
-                                            :key="b.id"
-                                            class="absolute h-6 rounded px-2.5 flex items-center justify-between text-[11px] font-semibold border shadow-2xs transition-all hover:scale-[1.01] hover:shadow-xs group cursor-pointer"
-                                            :style="{
-                                                left: `calc(${(b.startIndex / 7) * 100}% + 4px)`,
-                                                width: `calc(${(b.span / 7) * 100}% - 8px)`,
-                                                top: `${b.track * 28 + 4}px`,
-                                                backgroundColor: getRoomColor(b.ruangan_id).light,
-                                                color: getRoomColor(b.ruangan_id).text,
-                                                borderColor: getRoomColor(b.ruangan_id).bg
-                                            }"
-                                            :title="`${b.nama_ruang} — ${b.nama_training} (${b.divisi}) — ${formatDateRange(b.tgl_mulai, b.tgl_selesai)}`"
-                                        >
-                                            <div class="flex items-center gap-1.5 truncate">
-                                                <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"></span>
-                                                <span class="font-bold shrink-0 text-[10px]">{{ b.nama_ruang }}:</span>
-                                                <span class="truncate">{{ b.nama_training }}</span>
+                                        <!-- Bookings under this week -->
+                                        <div class="grid grid-cols-1 gap-3">
+                                            <div
+                                                v-for="b in w.filteredBookings"
+                                                :key="b.id"
+                                                class="bg-white rounded-xl border border-gray-150 p-4 shadow-sm relative overflow-hidden transition hover:shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                                            >
+                                                <!-- Left Accent Border -->
+                                                <div class="absolute left-0 top-0 bottom-0 w-1.5" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"></div>
+                                                
+                                                <div class="pl-2 flex-1 min-w-0">
+                                                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                                                        <span 
+                                                            class="text-[9.5px] font-extrabold px-2 py-0.5 rounded-md"
+                                                            :style="{ backgroundColor: getRoomColor(b.ruangan_id).light, color: getRoomColor(b.ruangan_id).text }"
+                                                        >
+                                                            {{ b.nama_ruang }}
+                                                        </span>
+                                                        <span class="text-[11px] font-semibold text-gray-400">Divisi: {{ b.divisi }}</span>
+                                                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" :class="STATUS_STYLE[b.status]">
+                                                            {{ statusLabel(b.status) }}
+                                                        </span>
+                                                    </div>
+                                                    <h4 class="font-extrabold text-gray-800 text-sm leading-snug break-words">{{ b.nama_training }}</h4>
+                                                </div>
+                                                
+                                                <!-- Right Date Range -->
+                                                <div class="sm:text-right shrink-0 pl-2 sm:pl-0 flex flex-col sm:items-end justify-center">
+                                                    <span class="text-xs text-gray-700 font-bold bg-gray-50 border border-gray-150 rounded-lg px-3 py-1.5 inline-flex items-center gap-1.5 shadow-3xs">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                                        {{ formatDateRange(b.tgl_mulai, b.tgl_selesai) }}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <span class="text-[9px] font-bold uppercase tracking-wider scale-90 opacity-80 shrink-0 hidden sm:inline-block pl-1">{{ statusLabel(b.status) }}</span>
                                         </div>
                                     </div>
+                                </div>
+                                
+                                <!-- Empty state for the filtered result -->
+                                <div 
+                                    v-if="isAgendaEmpty"
+                                    class="h-full flex flex-col items-center justify-center text-center py-16 text-gray-400 select-none"
+                                >
+                                    <span class="text-4xl mb-3">📅</span>
+                                    <p class="font-extrabold text-gray-600 text-sm">Tidak Ada Jadwal Training</p>
+                                    <p class="text-xs text-gray-400 mt-1 max-w-sm mx-auto">Tidak ada jadwal training untuk filter ruangan yang Anda pilih pada bulan ini.</p>
                                 </div>
                             </div>
                         </div>
+                        
                     </div>
 
                     <!-- Footer -->
