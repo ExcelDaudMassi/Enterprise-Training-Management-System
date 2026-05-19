@@ -19,21 +19,55 @@ const page = usePage()
 const isWindowActive = computed(() => page.props.bookingWindow?.is_active ?? true)
 
 // ============================================================
-// Warna per ruangan (index-based, statis)
+// Warna per ruangan (index-based, statis) — Palette baru yang tidak bentrok dengan warna status
 // ============================================================
 const ROOM_COLORS = [
-    { bg: '#3b82f6', light: '#dbeafe', text: '#1e40af' }, // Blue  - Ruang 1
-    { bg: '#f97316', light: '#ffedd5', text: '#9a3412' }, // Orange - Ruang 2
-    { bg: '#22c55e', light: '#dcfce7', text: '#166534' }, // Green  - Ruang 3
-    { bg: '#ef4444', light: '#fee2e2', text: '#991b1b' }, // Red    - Ruang 4
-    { bg: '#a855f7', light: '#f3e8ff', text: '#6b21a8' }, // Purple - Ruang 5
-    { bg: '#eab308', light: '#fef9c3', text: '#854d0e' }, // Yellow - Ruang 6
-    { bg: '#14b8a6', light: '#ccfbf1', text: '#134e4a' }, // Teal   - Ruang 7
+    { bg: '#6366f1', light: '#e0e7ff', text: '#312e81' }, // Indigo  - Ruang 1
+    { bg: '#a855f7', light: '#f3e8ff', text: '#581c87' }, // Purple  - Ruang 2
+    { bg: '#ec4899', light: '#fce7f3', text: '#831843' }, // Pink    - Ruang 3
+    { bg: '#06b6d4', light: '#e0f7fa', text: '#164e63' }, // Cyan    - Ruang 4
+    { bg: '#14b8a6', light: '#ccfbf1', text: '#134e4a' }, // Teal    - Ruang 5
+    { bg: '#f43f5e', light: '#ffe4e6', text: '#881337' }, // Rose    - Ruang 6
+    { bg: '#d946ef', light: '#fae8ff', text: '#701a75' }, // Fuchsia - Ruang 7
 ]
 
 function getRoomColor(ruanganId) {
     const idx = props.ruanganList.findIndex(r => r.id === ruanganId)
     return ROOM_COLORS[idx % ROOM_COLORS.length] ?? ROOM_COLORS[0]
+}
+
+// ============================================================
+// Warna per status booking untuk Kalender & Gantt Chart
+// ============================================================
+const STATUS_COLORS = {
+    plotting: {
+        bg: '#f59e0b',      // Amber 500
+        light: '#fffbeb',   // Amber 50
+        text: '#b45309',    // Amber 700
+        border: '#fcd34d',  // Amber 300
+    },
+    waiting_confirmation: {
+        bg: '#3b82f6',      // Blue 500
+        light: '#eff6ff',   // Blue 50
+        text: '#1d4ed8',    // Blue 700
+        border: '#93c5fd',  // Blue 300
+    },
+    confirmed: {
+        bg: '#10b981',      // Emerald 500
+        light: '#ecfdf5',   // Emerald 50
+        text: '#047857',    // Emerald 700
+        border: '#6ee7b7',  // Emerald 300
+    },
+    cancelled: {
+        bg: '#ef4444',      // Red 500
+        light: '#fee2e2',   // Red 50
+        text: '#b91c1c',    // Red 700
+        border: '#fca5a5',  // Red 300
+    }
+}
+
+function getStatusColor(status) {
+    return STATUS_COLORS[status] ?? STATUS_COLORS.plotting
 }
 
 // ============================================================
@@ -242,6 +276,22 @@ function openModal(year, monthIdx) {
 
 function closeModal() {
     modalOpen.value = false
+}
+
+// ============================================================
+// Detail Modal state untuk Popup Informasi Acara/Training
+// ============================================================
+const detailModalOpen = ref(false)
+const selectedDetailBooking = ref(null)
+
+function openDetailModal(booking) {
+    selectedDetailBooking.value = booking
+    detailModalOpen.value = true
+}
+
+function closeDetailModal() {
+    detailModalOpen.value = false
+    selectedDetailBooking.value = null
 }
 
 // ============================================================
@@ -533,26 +583,27 @@ function statusLabel(status) {
                                                 <div
                                                     v-for="b in room.bookings"
                                                     :key="b.id"
+                                                    @click="openDetailModal(b)"
                                                     class="absolute h-8 rounded-lg px-2.5 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] transition-all cursor-pointer group"
                                                     :style="{
                                                         left: `calc(${b.startPct}% + 3px)`,
                                                         width: `calc(${b.widthPct}% - 6px)`,
                                                         top: '16px',
-                                                        backgroundColor: getRoomColor(b.ruangan_id).light,
-                                                        color: getRoomColor(b.ruangan_id).text,
-                                                        borderColor: getRoomColor(b.ruangan_id).bg
+                                                        backgroundColor: getStatusColor(b.status).light,
+                                                        color: getStatusColor(b.status).text,
+                                                        borderColor: getStatusColor(b.status).bg
                                                     }"
                                                     :title="`${b.nama_ruang} — ${b.nama_training} (${b.divisi}) — ${formatDateRange(b.tgl_mulai, b.tgl_selesai)}`"
                                                 >
                                                     <div class="flex items-center gap-1.5 min-w-0 w-full">
-                                                        <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"></span>
+                                                        <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }" :title="`Ruangan: ${b.nama_ruang}`"></span>
                                                         <span class="font-extrabold text-[10px] truncate leading-none mt-0.5">{{ b.nama_training }}</span>
                                                         
                                                         <!-- Status indicator dot at the end -->
                                                         <span class="w-1.5 h-1.5 rounded-full shrink-0 ml-auto" :class="[
                                                             b.status === 'plotting' ? 'bg-amber-500 animate-pulse' : '',
                                                             b.status === 'waiting_confirmation' ? 'bg-blue-500 animate-pulse' : '',
-                                                            b.status === 'approved' ? 'bg-emerald-500' : ''
+                                                            b.status === 'confirmed' ? 'bg-emerald-500' : ''
                                                         ]"></span>
                                                     </div>
                                                 </div>
@@ -575,6 +626,88 @@ function statusLabel(status) {
                     <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
                         <button 
                             @click="closeModal" 
+                            class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- Modal: Detail Booking Training -->
+        <Teleport to="body">
+            <div
+                v-if="detailModalOpen"
+                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
+                @click.self="closeDetailModal"
+            >
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col border border-gray-100 transition-all">
+                    
+                    <!-- Header -->
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">ℹ️</span>
+                            <div>
+                                <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">Detail Pemesanan</h4>
+                            </div>
+                        </div>
+                        <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer focus:outline-none">&times;</button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-6 space-y-4 text-xs text-gray-700">
+                        <div>
+                            <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Nama Acara / Training</span>
+                            <span class="font-bold text-gray-800 text-sm leading-snug block mt-0.5">{{ selectedDetailBooking?.nama_training }}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
+                            <div>
+                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Ruangan</span>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking?.ruangan_id).bg }"></span>
+                                    <span class="font-bold text-gray-800">{{ selectedDetailBooking?.nama_ruang }}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Gabung Ruangan</span>
+                                <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.gabung_ruang ? 'Ya (2 Ruangan)' : 'Tidak' }}</span>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-100 pt-3">
+                            <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Tanggal Pelaksanaan</span>
+                            <span class="font-bold text-gray-800 block mt-0.5">{{ formatDateRange(selectedDetailBooking?.tgl_mulai, selectedDetailBooking?.tgl_selesai) }}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
+                            <div>
+                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Pemohon</span>
+                                <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pemohon }}</span>
+                                <span class="text-[9px] text-gray-400 block mt-0.5">Divisi: {{ selectedDetailBooking?.divisi }}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">PIC Acara</span>
+                                <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pic || '-' }}</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
+                            <div>
+                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Jenis Pemesanan</span>
+                                <span class="font-bold text-gray-800 block mt-0.5 capitalize">{{ selectedDetailBooking?.fase }}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Status Booking</span>
+                                <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase mt-1 tracking-wider" :class="STATUS_STYLE[selectedDetailBooking?.status] || 'bg-gray-150 text-gray-700'">
+                                    {{ statusLabel(selectedDetailBooking?.status) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
+                        <button 
+                            @click="closeDetailModal" 
                             class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
                         >
                             Tutup

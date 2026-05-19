@@ -11,6 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust all proxies for ngrok/expose to work properly with HTTPS and correct domains
+        $middleware->trustProxies(at: '*');
+
         // Inertia middleware — wajib untuk semua request web
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,

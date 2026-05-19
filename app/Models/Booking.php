@@ -59,6 +59,14 @@ class Booking extends Model
         return $this->belongsTo(Ruangan::class, 'ruangan_id');
     }
 
+    /**
+     * Roster peserta dan panitia dari booking ini.
+     */
+    public function participants(): HasMany
+    {
+        return $this->hasMany(BookingParticipant::class);
+    }
+
     // =========================================================
     // Scopes
     // =========================================================

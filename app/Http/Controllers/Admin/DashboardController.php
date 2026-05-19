@@ -122,7 +122,7 @@ class DashboardController extends Controller
 
         $ruanganList = Ruangan::all(['id', 'nama_ruang', 'lokasi_gedung', 'kapasitas_max']);
 
-        $bookingQuery = Booking::with(['ruangan:id,nama_ruang', 'user:id,name,divisi'])
+        $bookingQuery = Booking::with(['ruangan:id,nama_ruang', 'user:id,name,divisi', 'participants'])
             ->where(function ($query) use ($year) {
                 $query->whereYear('tgl_mulai', $year)
                       ->orWhereYear('tgl_selesai', $year);
@@ -135,14 +135,28 @@ class DashboardController extends Controller
 
         $bookings = $bookingQuery->get()->map(function ($booking) {
             return [
-                'id'           => $booking->id,
-                'ruangan_id'   => $booking->ruangan_id,
-                'nama_ruang'   => $booking->ruangan?->nama_ruang,
-                'nama_training'=> $booking->nama_training,
-                'divisi'       => $booking->user?->divisi,
-                'tgl_mulai'    => $booking->tgl_mulai->toDateString(),
-                'tgl_selesai'  => $booking->tgl_selesai->toDateString(),
-                'status'       => $booking->status,
+                'id'            => $booking->id,
+                'ruangan_id'    => $booking->ruangan_id,
+                'nama_ruang'    => $booking->ruangan?->nama_ruang,
+                'nama_training' => $booking->nama_training,
+                'divisi'        => $booking->user?->divisi,
+                'pemohon'       => $booking->user?->name,
+                'pic'           => $booking->pic,
+                'fase'          => $booking->fase,
+                'gabung_ruang'  => (bool) $booking->gabung_ruang,
+                'tgl_mulai'     => $booking->tgl_mulai->toDateString(),
+                'tgl_selesai'   => $booking->tgl_selesai->toDateString(),
+                'status'        => $booking->status,
+                'created_at'    => $booking->created_at->toIso8601String(),
+                'participants'  => $booking->participants->map(function ($p) {
+                    return [
+                        'nama'    => $p->nama,
+                        'jabatan' => $p->jabatan,
+                        'site'    => $p->site,
+                        'gender'  => $p->gender,
+                        'tipe'    => $p->tipe,
+                    ];
+                }),
             ];
         });
 

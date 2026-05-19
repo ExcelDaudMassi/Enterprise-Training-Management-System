@@ -239,7 +239,9 @@ function toDateStr(year, month, day) {
 }
 
 function getDateStatus(dateStr) {
-    return blockedDates.value[dateStr] || 'available'
+    const val = blockedDates.value[dateStr]
+    if (!val) return 'available'
+    return typeof val === 'object' ? (val.status || 'available') : val
 }
 
 function isInRange(dateStr) {
@@ -275,6 +277,37 @@ function dotClass(dateStr) {
     if (status === 'full')    return 'bg-red-400'
     if (status === 'partial') return 'bg-yellow-400'
     return ''
+}
+
+function getMonthOriginClass(index) {
+    let classes = ''
+    
+    // Untuk grid-cols-4 (layar besar lg)
+    const colLg = index % 4
+    if (colLg === 0) classes += ' lg:origin-left'
+    else if (colLg === 3) classes += ' lg:origin-right'
+    else classes += ' lg:origin-center'
+    
+    // Untuk grid-cols-3 (layar sedang sm)
+    const colSm = index % 3
+    if (colSm === 0) classes += ' sm:origin-left'
+    else if (colSm === 2) classes += ' sm:origin-right'
+    else classes += ' sm:origin-center'
+
+    // Untuk grid-cols-2 (layar kecil xs)
+    const colXs = index % 2
+    if (colXs === 0) classes += ' origin-left'
+    else classes += ' origin-right'
+    
+    return classes
+}
+
+function getDayTooltip(dateStr) {
+    const data = blockedDates.value[dateStr]
+    if (!data || !data.occupied_rooms || data.occupied_rooms.length === 0) {
+        return ''
+    }
+    return 'Terisi:\n' + data.occupied_rooms.map(r => `• ${r.nama_ruang} (${r.nama_training})`).join('\n')
 }
 
 async function loadAvailability() {
@@ -775,7 +808,8 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                 <div v-else class="bg-white rounded-lg shadow p-4">
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         <div v-for="(monthName, monthIdx) in MONTH_NAMES" :key="monthIdx"
-                            class="border border-gray-100 rounded-lg p-2">
+                            class="group/month relative border border-gray-100 rounded-lg p-2 bg-white transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:z-[60] hover:border-blue-200"
+                            :class="getMonthOriginClass(monthIdx)">
                             <div class="text-xs font-bold text-center text-gray-700 mb-1 pb-1 border-b border-gray-100">
                                 {{ monthName }} {{ activeYear }}
                             </div>
@@ -788,7 +822,8 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                     <div v-else
                                         class="h-6 w-6 flex flex-col items-center justify-center text-[10px] rounded transition select-none relative"
                                         :class="dayClass(toDateStr(activeYear, monthIdx, day))"
-                                        @click="selectDate(activeYear, monthIdx, day)">
+                                        @click="selectDate(activeYear, monthIdx, day)"
+                                        :title="getDayTooltip(toDateStr(activeYear, monthIdx, day))">
                                         {{ day }}
                                         <span v-if="dotClass(toDateStr(activeYear, monthIdx, day)) && !isInRange(toDateStr(activeYear, monthIdx, day))"
                                             class="absolute bottom-0.5 w-1 h-1 rounded-full"

@@ -220,7 +220,8 @@ class BookingWizardController extends Controller
             ->whereIn('ruangan_id', $eligibleRoomIds)
             ->where('tgl_mulai', '<=', $yearEnd)
             ->where('tgl_selesai', '>=', $yearStart)
-            ->get(['ruangan_id', 'tgl_mulai', 'tgl_selesai']);
+            ->with(['ruangan:id,nama_ruang'])
+            ->get(['id', 'ruangan_id', 'nama_training', 'tgl_mulai', 'tgl_selesai']);
 
         $dateBookedRooms = [];
 
@@ -234,7 +235,11 @@ class BookingWizardController extends Controller
                 if (!isset($dateBookedRooms[$dateStr])) {
                     $dateBookedRooms[$dateStr] = [];
                 }
-                $dateBookedRooms[$dateStr][$booking->ruangan_id] = true;
+                $dateBookedRooms[$dateStr][$booking->ruangan_id] = [
+                    'ruangan_id'    => $booking->ruangan_id,
+                    'nama_ruang'    => $booking->ruangan?->nama_ruang ?? 'Ruangan',
+                    'nama_training' => $booking->nama_training,
+                ];
                 $current->addDay();
             }
         }
@@ -243,10 +248,15 @@ class BookingWizardController extends Controller
         foreach ($dateBookedRooms as $dateStr => $bookedRoomMap) {
             $bookedCount = count($bookedRoomMap);
             if ($isCombined) {
-                $blockedDates[$dateStr] = 'full';
+                $status = 'full';
             } else {
-                $blockedDates[$dateStr] = $bookedCount >= $totalEligible ? 'full' : 'partial';
+                $status = $bookedCount >= $totalEligible ? 'full' : 'partial';
             }
+            
+            $blockedDates[$dateStr] = [
+                'status'         => $status,
+                'occupied_rooms' => array_values($bookedRoomMap),
+            ];
         }
 
         return response()->json([
