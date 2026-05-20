@@ -204,22 +204,45 @@ function submitReject() {
             >
                 <div v-if="showApproveModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div class="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-100">
+                        <!-- Header -->
+                        <div class="px-6 py-4 border-b border-gray-200">
                             <h2 class="text-base font-bold text-gray-900">Konfirmasi Persetujuan</h2>
-                            <p class="text-xs text-gray-500 mt-1">Pastikan data berikut sudah sesuai sebelum mengunci ruangan.</p>
                         </div>
-                        <div class="px-6 py-4 space-y-3 bg-gray-50">
-                            <div><span class="text-xs text-gray-500 block">Nama Training</span><span class="text-sm font-semibold text-gray-800">{{ selectedBooking?.nama_training }}</span></div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><span class="text-xs text-gray-500 block">Pemohon</span><span class="text-sm text-gray-800">{{ selectedBooking?.pemohon }} ({{ selectedBooking?.divisi }})</span></div>
-                                <div><span class="text-xs text-gray-500 block">Ruangan</span><span class="text-sm text-gray-800">{{ selectedBooking?.ruangan }}</span></div>
+                        
+                        <!-- Content -->
+                        <div class="px-6 py-4 space-y-3 text-sm text-gray-700">
+                            <div>
+                                <span class="font-semibold">Nama Training :</span> {{ selectedBooking?.nama_training }}
                             </div>
-                            <div><span class="text-xs text-gray-500 block">Jadwal</span><span class="text-sm text-gray-800">{{ formatDate(selectedBooking?.tgl_mulai) }} - {{ formatDate(selectedBooking?.tgl_selesai) }}</span></div>
+                            <div>
+                                <span class="font-semibold">Ruangan       :</span> {{ selectedBooking?.ruangan }}
+                            </div>
+                            <div>
+                                <span class="font-semibold">Jadwal        :</span> {{ formatDate(selectedBooking?.tgl_mulai) }} s/d {{ formatDate(selectedBooking?.tgl_selesai) }}
+                            </div>
+                            <div>
+                                <span class="font-semibold">Pemohon       :</span> {{ selectedBooking?.pemohon }} - {{ selectedBooking?.divisi }}
+                            </div>
+
+                            <div class="pt-4 border-t border-gray-100 text-center font-medium text-gray-800">
+                                Apakah Anda yakin ingin menyetujui booking ini?
+                            </div>
                         </div>
-                        <div class="px-6 py-4 flex gap-3">
-                            <button @click="showApproveModal = false" class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
-                            <button @click="submitApprove" :disabled="approveForm.processing" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium">
-                                {{ approveForm.processing ? 'Menyimpan...' : '✓ Setujui Booking' }}
+
+                        <!-- Footer Actions -->
+                        <div class="px-6 py-4 bg-gray-50 flex gap-3 border-t border-gray-100">
+                            <button 
+                                @click="showApproveModal = false" 
+                                class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition"
+                            >
+                                Batal
+                            </button>
+                            <button 
+                                @click="submitApprove" 
+                                :disabled="approveForm.processing" 
+                                class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded text-sm font-semibold transition"
+                            >
+                                {{ approveForm.processing ? 'Memproses...' : 'Ya, Setujui' }}
                             </button>
                         </div>
                     </div>

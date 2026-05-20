@@ -206,6 +206,16 @@ provide('isWindowActive', isWindowActive)
 
             <!-- Page Slot -->
             <main class="flex-1 p-6 overflow-auto">
+                <!-- Flash Alert Messages -->
+                <div v-if="$page.props.flash?.error" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800 flex items-start justify-between">
+                    <span>{{ $page.props.flash.error }}</span>
+                    <button @click="$page.props.flash.error = null" class="text-red-500 hover:text-red-700 font-semibold ml-2">✕</button>
+                </div>
+                <div v-if="$page.props.flash?.success" class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 flex items-start justify-between">
+                    <span>{{ $page.props.flash.success }}</span>
+                    <button @click="$page.props.flash.success = null" class="text-emerald-500 hover:text-emerald-700 font-semibold ml-2">✕</button>
+                </div>
+
                 <slot />
             </main>
         </div>

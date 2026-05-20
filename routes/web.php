@@ -17,9 +17,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/dev/switch-role', [AuthController::class, 'switchRole'])->middleware('auth')->name('dev.switch-role');
 
 // ============================================================
-// User routes (auth required, any role)
+// User routes (auth required + user role)
 // ============================================================
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'user'])->group(function () {
     Route::get('/user/dashboard', [UserDashboard::class, 'index'])->name('user.dashboard');
     Route::get('/user/booking/create', [BookingWizardController::class, 'create'])->name('user.booking.create');
     Route::get('/user/booking/download-template', [BookingWizardController::class, 'downloadTemplate'])->name('user.booking.download-template');

@@ -22,9 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Redirect unauthenticated users ke /login saat mengakses route yang di-protect
         $middleware->redirectGuestsTo('/login');
 
-        // Custom alias: 'admin' middleware untuk proteksi halaman admin
+        // Custom alias: 'admin' dan 'user' middleware untuk proteksi halaman sesuai role
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'user'  => \App\Http\Middleware\EnsureUser::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
