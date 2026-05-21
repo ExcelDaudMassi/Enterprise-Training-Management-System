@@ -486,8 +486,10 @@ class BookingWizardController extends Controller
     // ============================================================
     private function hasConflict(int $roomId, string $startDate, string $endDate): bool
     {
+        // Hanya 'cancelled' yang tidak mengunci ruangan.
+        // 'waiting_confirmation', 'confirmed', dan 'final' semuanya mengunci ruangan.
         return Booking::where('ruangan_id', $roomId)
-            ->whereNotIn('status', ['cancelled'])
+            ->whereNotIn('status', [Booking::STATUS_CANCELLED])
             ->where('tgl_mulai', '<=', $endDate)
             ->where('tgl_selesai', '>=', $startDate)
             ->exists();

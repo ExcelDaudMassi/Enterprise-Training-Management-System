@@ -1,6 +1,6 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue'
-import { useForm, usePage } from '@inertiajs/vue3'
+import { useForm, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 
 const props = defineProps({
@@ -9,284 +9,417 @@ const props = defineProps({
     activeFilter: { type: String, default: 'all' },
 })
 
-// Map filter dari dashboard ke tab yang relevan
-const filterToTab = {
-    'waiting_confirmation': 'waiting_confirmation',
-    'confirmed':            'confirmed',
-    'cancelled':            'cancelled',
-    'urgent':               'urgent',
-    'overdue':              'overdue',
-    'all':                  'all',
-}
-const activeTab = ref(filterToTab[props.activeFilter] ?? 'all')
-
+// ─── Tabs ─────────────────────────────────────────────────────
 const tabs = [
-    { key: 'waiting_confirmation', label: 'Menunggu' },
-    { key: 'confirmed',            label: 'Disetujui' },
-    { key: 'cancelled',            label: 'Ditolak' },
-    { key: 'urgent',               label: '🚨 H-14' },
+    { key: 'waiting_confirmation', label: 'Menunggu ACC' },
+    { key: 'h14',                  label: '🚨 H-14 (ACC Final)' },
     { key: 'overdue',              label: '⛔ Lewat Tenggat' },
+    { key: 'date_changes',         label: '📅 Ubah Tanggal' },
+    { key: 'confirmed',            label: 'Confirmed' },
+    { key: 'final',                label: '✅ Final' },
+    { key: 'cancelled',            label: 'Dibatalkan' },
     { key: 'all',                  label: 'Semua' },
 ]
 
-const statusMeta = {
-    waiting_confirmation: { label: 'Menunggu', class: 'bg-yellow-100 text-yellow-800' },
+const activeTab = ref(props.activeFilter ?? 'all')
+
+function switchTab(key) {
+    activeTab.value = key
+    router.get('/admin/bookings', { filter: key }, { preserveScroll: true, preserveState: true })
+}
+
+// ─── Status display helpers ───────────────────────────────────
+const STATUS_META = {
+    waiting_confirmation: { label: 'Menunggu',  class: 'bg-yellow-100 text-yellow-800' },
     confirmed:            { label: 'Disetujui', class: 'bg-green-100 text-green-800' },
-    cancelled:            { label: 'Ditolak', class: 'bg-red-100 text-red-800' },
-    plotting:             { label: 'Plotting', class: 'bg-blue-100 text-blue-800' },
+    cancelled:            { label: 'Ditolak',   class: 'bg-red-100 text-red-800' },
+    final:                { label: 'Final',     class: 'bg-blue-100 text-blue-800' },
 }
-
-function tabCount(key) {
-    if (key === 'all') return props.bookings.length
-    // 'urgent' dan 'overdue' — data sudah difilter dari backend, pakai semua
-    if (key === activeTab.value && ['urgent', 'overdue'].includes(key)) return props.bookings.length
-    if (['urgent', 'overdue'].includes(key)) return '-'
-    return props.bookings.filter(b => b.status === (key === 'urgent' ? 'waiting_confirmation' : key)).length
-}
-
-const filteredBookings = computed(() => {
-    if (activeTab.value === 'all') return props.bookings
-    return props.bookings.filter(b => b.status === activeTab.value)
-})
 
 function formatDate(d) {
     if (!d) return '-'
     return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-const showApproveModal = ref(false)
-const showRejectModal = ref(false)
-const selectedBooking = ref(null)
+// ─── Modal: ACC Tahap 1 Approve ───────────────────────────────
+const showApproveModal    = ref(false)
+const selectedBooking     = ref(null)
+const approveForm         = useForm({})
 
-const rejectForm = useForm({
-    catatan_admin: ''
-})
-
-const approveForm = useForm({})
-
-function confirmApprove(booking) {
-    selectedBooking.value = booking
+function openApprove(b) {
+    selectedBooking.value = b
     showApproveModal.value = true
 }
-
-function confirmReject(booking) {
-    selectedBooking.value = booking
-    rejectForm.reset()
-    showRejectModal.value = true
-}
-
 function submitApprove() {
-    if (!selectedBooking.value) return
     approveForm.post(`/admin/bookings/${selectedBooking.value.id}/approve`, {
         preserveScroll: true,
-        onSuccess: () => {
-            showApproveModal.value = false
-            selectedBooking.value = null
-        }
+        onSuccess: () => { showApproveModal.value = false }
     })
 }
 
+// ─── Modal: ACC Tahap 1 Reject ────────────────────────────────
+const showRejectModal  = ref(false)
+const rejectForm       = useForm({ catatan_admin: '' })
+
+function openReject(b) {
+    selectedBooking.value = b
+    rejectForm.reset()
+    showRejectModal.value = true
+}
 function submitReject() {
-    if (!selectedBooking.value) return
     rejectForm.post(`/admin/bookings/${selectedBooking.value.id}/reject`, {
         preserveScroll: true,
-        onSuccess: () => {
-            showRejectModal.value = false
-            selectedBooking.value = null
-            rejectForm.reset()
-        }
+        onSuccess: () => { showRejectModal.value = false; rejectForm.reset() }
+    })
+}
+
+// ─── Modal: ACC Final (Tahap 4) ───────────────────────────────
+const showFinalModal  = ref(false)
+const finalForm       = useForm({})
+
+function openFinal(b) {
+    selectedBooking.value = b
+    showFinalModal.value = true
+}
+function submitFinal() {
+    finalForm.post(`/admin/bookings/${selectedBooking.value.id}/final`, {
+        preserveScroll: true,
+        onSuccess: () => { showFinalModal.value = false }
+    })
+}
+
+// ─── Modal: ACC Terlambat (Tahap 5) ──────────────────────────
+const showFinalLateModal  = ref(false)
+const finalLateForm       = useForm({ catatan_acc_terlambat: '' })
+
+function openFinalLate(b) {
+    selectedBooking.value = b
+    finalLateForm.reset()
+    showFinalLateModal.value = true
+}
+function submitFinalLate() {
+    finalLateForm.post(`/admin/bookings/${selectedBooking.value.id}/final-late`, {
+        preserveScroll: true,
+        onSuccess: () => { showFinalLateModal.value = false; finalLateForm.reset() }
+    })
+}
+
+// ─── Modal: Setujui Perubahan Tanggal ────────────────────────
+const showApproveDateModal = ref(false)
+const approveDateForm      = useForm({})
+
+function openApproveDate(b) {
+    selectedBooking.value = b
+    showApproveDateModal.value = true
+}
+function submitApproveDate() {
+    approveDateForm.post(`/admin/bookings/${selectedBooking.value.id}/approve-date-change`, {
+        preserveScroll: true,
+        onSuccess: () => { showApproveDateModal.value = false }
+    })
+}
+
+// ─── Modal: Tolak Perubahan Tanggal ──────────────────────────
+const showRejectDateModal = ref(false)
+const rejectDateForm      = useForm({ catatan_admin: '' })
+
+function openRejectDate(b) {
+    selectedBooking.value = b
+    rejectDateForm.reset()
+    showRejectDateModal.value = true
+}
+function submitRejectDate() {
+    rejectDateForm.post(`/admin/bookings/${selectedBooking.value.id}/reject-date-change`, {
+        preserveScroll: true,
+        onSuccess: () => { showRejectDateModal.value = false; rejectDateForm.reset() }
     })
 }
 </script>
 
-
 <template>
     <AdminLayout :auth="auth">
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-4">
             <h1 class="text-lg font-bold text-gray-800">Manajemen Booking</h1>
         </div>
 
-        <!-- Active filter banner -->
-        <div v-if="activeFilter !== 'all'" class="mb-3 flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
-            Filter aktif dari Dashboard: <strong class="ml-1">{{ tabs.find(t => t.key === activeFilter)?.label ?? activeFilter }}</strong>
+        <!-- Filter aktif banner -->
+        <div v-if="activeFilter !== 'all'"
+             class="mb-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+            Filter aktif: <strong>{{ tabs.find(t => t.key === activeFilter)?.label ?? activeFilter }}</strong>
         </div>
 
         <!-- Tabs -->
-        <div class="flex flex-wrap gap-1 mb-4 bg-gray-100 p-1 rounded-lg w-fit">
+        <div class="flex flex-wrap gap-1 mb-4 bg-gray-100 p-1 rounded w-fit">
             <button
                 v-for="tab in tabs" :key="tab.key"
-                @click="activeTab = tab.key"
-                class="px-4 py-1.5 rounded text-sm font-medium transition"
-                :class="activeTab === tab.key ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                @click="switchTab(tab.key)"
+                class="px-3 py-1.5 rounded text-xs font-medium transition"
+                :class="activeTab === tab.key
+                    ? 'bg-white text-gray-800 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'"
             >
                 {{ tab.label }}
-                <span class="ml-1 text-xs text-gray-400">({{ tabCount(tab.key) }})</span>
             </button>
         </div>
 
         <!-- Table -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-100">
+        <div class="bg-white rounded-lg shadow overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100 text-sm">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acara / Pemohon</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ruangan</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jadwal</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peserta</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Info</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
-                    <tr v-if="filteredBookings.length === 0">
-                        <td colspan="7" class="px-6 py-10 text-center text-gray-400 text-sm">
+                    <tr v-if="bookings.length === 0">
+                        <td colspan="6" class="px-6 py-10 text-center text-gray-400 text-sm">
                             Tidak ada data booking.
                         </td>
                     </tr>
-                    <tr v-for="b in filteredBookings" :key="b.id" class="hover:bg-gray-50">
+                    <tr v-for="b in bookings" :key="b.id" class="hover:bg-gray-50 align-top">
                         <td class="px-4 py-3">
-                            <div class="text-sm font-semibold text-gray-900">{{ b.nama_training }}</div>
-                            <div class="text-xs text-gray-500">{{ b.pemohon }} · Divisi: {{ b.divisi }}</div>
+                            <div class="font-semibold text-gray-900">{{ b.nama_training }}</div>
+                            <div class="text-xs text-gray-500">{{ b.pemohon }} · {{ b.divisi }}</div>
                             <div class="text-xs text-gray-400">PIC: {{ b.pic }}</div>
                         </td>
-                        <td class="px-4 py-3 text-sm text-gray-700">
+                        <td class="px-4 py-3">
                             {{ b.ruangan }}
-                            <div class="text-xs text-gray-400 capitalize">Layout: {{ b.layout || '-' }}</div>
+                            <div class="text-xs text-gray-400 capitalize">{{ b.layout || '-' }}</div>
                         </td>
                         <td class="px-4 py-3 text-xs text-gray-700">
                             {{ formatDate(b.tgl_mulai) }}<br/>s/d {{ formatDate(b.tgl_selesai) }}
+                            <!-- Countdown -->
+                            <div v-if="b.days_to_start !== null && b.status === 'confirmed' && b.days_to_start >= 0"
+                                 class="mt-1 font-semibold"
+                                 :class="b.days_to_start <= 14 ? 'text-red-600' : 'text-gray-500'">
+                                H-{{ b.days_to_start }}
+                            </div>
+                            <div v-if="b.is_overdue_acc2" class="text-red-600 font-semibold mt-1">
+                                ⛔ Tanggal sudah lewat
+                            </div>
+                            <!-- Usulan Ubah Tanggal -->
+                            <div v-if="b.has_pending_date_change" class="mt-1 text-orange-600 text-xs font-medium">
+                                📅 Usulan: {{ formatDate(b.proposed_tgl_mulai) }} – {{ formatDate(b.proposed_tgl_selesai) }}
+                            </div>
                         </td>
                         <td class="px-4 py-3 text-xs text-gray-700 text-center">
                             <div>{{ b.jumlah_peserta }} peserta</div>
-                            <div>{{ b.jumlah_panitia }} panitia</div>
-                        </td>
-                        <td class="px-4 py-3 text-xs text-gray-600 space-y-0.5">
-                            <div v-if="b.is_hybrid" class="flex items-center gap-1">📹 Hybrid</div>
-                            <div v-if="b.is_flipchart" class="flex items-center gap-1">📝 Flipchart</div>
-                            <div v-if="!b.is_hybrid && !b.is_flipchart" class="text-gray-400">-</div>
+                            <div class="text-gray-400">{{ b.jumlah_panitia }} panitia</div>
                         </td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-0.5 rounded-full text-xs font-semibold"
-                                  :class="statusMeta[b.status]?.class ?? 'bg-gray-100 text-gray-600'">
-                                {{ statusMeta[b.status]?.label ?? b.status }}
+                                  :class="STATUS_META[b.status]?.class ?? 'bg-gray-100 text-gray-600'">
+                                {{ STATUS_META[b.status]?.label ?? b.status }}
                             </span>
                         </td>
                         <td class="px-4 py-3">
-                            <div v-if="b.status === 'waiting_confirmation'" class="flex gap-2">
-                                <button @click="confirmApprove(b)"
-                                    class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium py-1 px-3 rounded transition">
-                                    ✓ Setujui
-                                </button>
-                                <button @click="confirmReject(b)"
-                                    class="bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium py-1 px-3 rounded transition">
-                                    ✕ Tolak
-                                </button>
+                            <div class="flex flex-col gap-1">
+                                <!-- Tahap 1: ACC Awal -->
+                                <template v-if="b.status === 'waiting_confirmation'">
+                                    <button @click="openApprove(b)"
+                                            class="bg-green-600 hover:bg-green-700 text-white text-xs py-1 px-2 rounded">
+                                        ✓ Setujui
+                                    </button>
+                                    <button @click="openReject(b)"
+                                            class="bg-red-100 hover:bg-red-200 text-red-700 text-xs py-1 px-2 rounded">
+                                        ✕ Tolak
+                                    </button>
+                                </template>
+
+                                <!-- Tahap 3: Perubahan Tanggal -->
+                                <template v-if="b.has_pending_date_change">
+                                    <button @click="openApproveDate(b)"
+                                            class="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded">
+                                        ✓ ACC Ubah Tanggal
+                                    </button>
+                                    <button @click="openRejectDate(b)"
+                                            class="bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs py-1 px-2 rounded">
+                                        ✕ Tolak Ubah Tanggal
+                                    </button>
+                                </template>
+
+                                <!-- Tahap 4: ACC Final -->
+                                <template v-if="b.can_be_finalized && !b.is_overdue_acc2">
+                                    <button @click="openFinal(b)"
+                                            class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1 px-2 rounded">
+                                        🏁 ACC Final
+                                    </button>
+                                </template>
+
+                                <!-- Tahap 5: ACC Terlambat -->
+                                <template v-if="b.can_be_finalized && b.is_overdue_acc2">
+                                    <button @click="openFinalLate(b)"
+                                            class="bg-amber-500 hover:bg-amber-600 text-white text-xs py-1 px-2 rounded">
+                                        ⚠️ ACC Terlambat
+                                    </button>
+                                </template>
+
+                                <span v-if="b.status === 'final' || b.status === 'cancelled'"
+                                      class="text-xs text-gray-400">—</span>
                             </div>
-                            <span v-else class="text-xs text-gray-400">—</span>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-
-        <!-- ── Modal: Konfirmasi Approve ─────────────────────────────── -->
+        <!-- ── Modal: Konfirmasi ACC Tahap 1 ─────────────────── -->
         <Teleport to="body">
-            <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <div v-if="showApproveModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
-                        <!-- Header -->
-                        <div class="px-6 py-4 border-b border-gray-200">
-                            <h2 class="text-base font-bold text-gray-900">Konfirmasi Persetujuan</h2>
-                        </div>
-                        
-                        <!-- Content -->
-                        <div class="px-6 py-4 space-y-3 text-sm text-gray-700">
-                            <div>
-                                <span class="font-semibold">Nama Training :</span> {{ selectedBooking?.nama_training }}
-                            </div>
-                            <div>
-                                <span class="font-semibold">Ruangan       :</span> {{ selectedBooking?.ruangan }}
-                            </div>
-                            <div>
-                                <span class="font-semibold">Jadwal        :</span> {{ formatDate(selectedBooking?.tgl_mulai) }} s/d {{ formatDate(selectedBooking?.tgl_selesai) }}
-                            </div>
-                            <div>
-                                <span class="font-semibold">Pemohon       :</span> {{ selectedBooking?.pemohon }} - {{ selectedBooking?.divisi }}
-                            </div>
-
-                            <div class="pt-4 border-t border-gray-100 text-center font-medium text-gray-800">
-                                Apakah Anda yakin ingin menyetujui booking ini?
-                            </div>
-                        </div>
-
-                        <!-- Footer Actions -->
-                        <div class="px-6 py-4 bg-gray-50 flex gap-3 border-t border-gray-100">
-                            <button 
-                                @click="showApproveModal = false" 
-                                class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition"
-                            >
-                                Batal
-                            </button>
-                            <button 
-                                @click="submitApprove" 
-                                :disabled="approveForm.processing" 
-                                class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded text-sm font-semibold transition"
-                            >
-                                {{ approveForm.processing ? 'Memproses...' : 'Ya, Setujui' }}
-                            </button>
-                        </div>
+            <div v-if="showApproveModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                    <h2 class="text-base font-bold text-gray-900 mb-3">Konfirmasi Persetujuan</h2>
+                    <div class="text-sm text-gray-700 space-y-1 mb-4">
+                        <div><strong>Training:</strong> {{ selectedBooking?.nama_training }}</div>
+                        <div><strong>Ruangan:</strong> {{ selectedBooking?.ruangan }}</div>
+                        <div><strong>Jadwal:</strong> {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}</div>
+                        <div><strong>Pemohon:</strong> {{ selectedBooking?.pemohon }} ({{ selectedBooking?.divisi }})</div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button @click="showApproveModal = false"
+                                class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+                        <button @click="submitApprove" :disabled="approveForm.processing"
+                                class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm disabled:opacity-50">
+                            {{ approveForm.processing ? 'Memproses...' : 'Ya, Setujui' }}
+                        </button>
                     </div>
                 </div>
-            </Transition>
+            </div>
         </Teleport>
 
-        <!-- ── Modal: Konfirmasi Tolak ─────────────────────────────── -->
+        <!-- ── Modal: Tolak Tahap 1 ───────────────────────────── -->
         <Teleport to="body">
-            <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <div v-if="showRejectModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-100">
-                            <h2 class="text-base font-bold text-gray-900">Penolakan Booking</h2>
-                            <p class="text-xs text-gray-500 mt-1">Booking <span class="font-semibold">{{ selectedBooking?.nama_training }}</span> akan dibatalkan.</p>
+            <div v-if="showRejectModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                    <h2 class="text-base font-bold text-gray-900 mb-1">Penolakan Booking</h2>
+                    <p class="text-xs text-gray-500 mb-4">
+                        Booking <strong>{{ selectedBooking?.nama_training }}</strong> akan dibatalkan.
+                    </p>
+                    <form @submit.prevent="submitReject">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alasan Penolakan <span class="text-red-500">*</span></label>
+                        <textarea v-model="rejectForm.catatan_admin" required rows="3"
+                                  placeholder="Contoh: Jadwal bentrok, ruangan sedang direnovasi..."
+                                  class="w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
+                        <p v-if="rejectForm.errors.catatan_admin" class="text-xs text-red-500 mt-1">{{ rejectForm.errors.catatan_admin }}</p>
+                        <div class="flex gap-3 mt-4">
+                            <button type="button" @click="showRejectModal = false"
+                                    class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+                            <button type="submit" :disabled="rejectForm.processing || !rejectForm.catatan_admin"
+                                    class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm disabled:opacity-50">
+                                {{ rejectForm.processing ? 'Menyimpan...' : '✕ Tolak' }}
+                            </button>
                         </div>
-                        <form @submit.prevent="submitReject" class="px-6 py-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
-                            <textarea
-                                v-model="rejectForm.catatan_admin"
-                                required
-                                rows="3"
-                                placeholder="Contoh: Jadwal bentrok, ruangan sedang direnovasi..."
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                            ></textarea>
-                            <p v-if="rejectForm.errors.catatan_admin" class="text-xs text-red-500 mt-1">{{ rejectForm.errors.catatan_admin }}</p>
-                            
-                            <div class="mt-5 flex gap-3">
-                                <button type="button" @click="showRejectModal = false" class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
-                                <button type="submit" :disabled="rejectForm.processing || !rejectForm.catatan_admin" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">
-                                    {{ rejectForm.processing ? 'Menyimpan...' : '✕ Tolak Booking' }}
-                                </button>
-                            </div>
-                        </form>
+                    </form>
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- ── Modal: ACC Final ───────────────────────────────── -->
+        <Teleport to="body">
+            <div v-if="showFinalModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                    <h2 class="text-base font-bold text-gray-900 mb-3">🏁 Konfirmasi ACC Final</h2>
+                    <div class="text-sm text-gray-700 space-y-1 mb-4">
+                        <div><strong>Training:</strong> {{ selectedBooking?.nama_training }}</div>
+                        <div><strong>Jadwal:</strong> {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}</div>
+                        <div><strong>Peserta:</strong> {{ selectedBooking?.jumlah_peserta }} orang, {{ selectedBooking?.jumlah_panitia }} panitia</div>
+                    </div>
+                    <p class="text-xs text-orange-600 mb-4">
+                        ⚠️ Setelah ACC Final, user tidak dapat mengubah booking ini. Pastikan semua data sudah benar.
+                    </p>
+                    <div class="flex gap-3">
+                        <button @click="showFinalModal = false"
+                                class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+                        <button @click="submitFinal" :disabled="finalForm.processing"
+                                class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm disabled:opacity-50">
+                            {{ finalForm.processing ? 'Memproses...' : '🏁 ACC & Final' }}
+                        </button>
                     </div>
                 </div>
-            </Transition>
+            </div>
+        </Teleport>
+
+        <!-- ── Modal: ACC Terlambat ───────────────────────────── -->
+        <Teleport to="body">
+            <div v-if="showFinalLateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                    <h2 class="text-base font-bold text-gray-900 mb-1">⚠️ ACC Terlambat</h2>
+                    <p class="text-xs text-red-600 mb-4">Tanggal training sudah lewat. Mohon isi alasan ACC terlambat.</p>
+                    <form @submit.prevent="submitFinalLate">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alasan ACC Terlambat <span class="text-red-500">*</span></label>
+                        <textarea v-model="finalLateForm.catatan_acc_terlambat" required rows="3"
+                                  placeholder="Contoh: Training tetap berjalan, laporan menyusul..."
+                                  class="w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
+                        <p v-if="finalLateForm.errors.catatan_acc_terlambat" class="text-xs text-red-500 mt-1">
+                            {{ finalLateForm.errors.catatan_acc_terlambat }}
+                        </p>
+                        <div class="flex gap-3 mt-4">
+                            <button type="button" @click="showFinalLateModal = false"
+                                    class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+                            <button type="submit" :disabled="finalLateForm.processing || !finalLateForm.catatan_acc_terlambat"
+                                    class="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded text-sm disabled:opacity-50">
+                                {{ finalLateForm.processing ? 'Menyimpan...' : '⚠️ Konfirmasi ACC Terlambat' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- ── Modal: Setujui Ubah Tanggal ────────────────────── -->
+        <Teleport to="body">
+            <div v-if="showApproveDateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                    <h2 class="text-base font-bold text-gray-900 mb-3">Setujui Perubahan Tanggal</h2>
+                    <div class="text-sm text-gray-700 space-y-1 mb-4">
+                        <div><strong>Training:</strong> {{ selectedBooking?.nama_training }}</div>
+                        <div class="text-gray-400 line-through text-xs">
+                            Lama: {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}
+                        </div>
+                        <div class="text-green-700 font-medium">
+                            Baru: {{ formatDate(selectedBooking?.proposed_tgl_mulai) }} – {{ formatDate(selectedBooking?.proposed_tgl_selesai) }}
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button @click="showApproveDateModal = false"
+                                class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+                        <button @click="submitApproveDate" :disabled="approveDateForm.processing"
+                                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm disabled:opacity-50">
+                            {{ approveDateForm.processing ? 'Memproses...' : '✓ Setujui' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- ── Modal: Tolak Ubah Tanggal ──────────────────────── -->
+        <Teleport to="body">
+            <div v-if="showRejectDateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                    <h2 class="text-base font-bold text-gray-900 mb-1">Tolak Perubahan Tanggal</h2>
+                    <p class="text-xs text-gray-500 mb-4">
+                        Tanggal lama akan tetap berlaku. Booking tetap berstatus Confirmed.
+                    </p>
+                    <form @submit.prevent="submitRejectDate">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alasan <span class="text-red-500">*</span></label>
+                        <textarea v-model="rejectDateForm.catatan_admin" required rows="3"
+                                  placeholder="Contoh: Tanggal baru bentrok dengan event lain..."
+                                  class="w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
+                        <div class="flex gap-3 mt-4">
+                            <button type="button" @click="showRejectDateModal = false"
+                                    class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+                            <button type="submit" :disabled="rejectDateForm.processing || !rejectDateForm.catatan_admin"
+                                    class="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded text-sm disabled:opacity-50">
+                                {{ rejectDateForm.processing ? 'Menyimpan...' : '✕ Tolak' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </Teleport>
 
     </AdminLayout>
