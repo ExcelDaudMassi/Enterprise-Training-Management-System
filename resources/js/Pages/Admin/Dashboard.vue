@@ -128,7 +128,18 @@ function getDateHighlightClass(year, month, day) {
     const dayBookings = getBookingsOnDate(year, month, day)
     if (dayBookings.length === 0) return ''
     
-    const bookedRoomIds = new Set(dayBookings.map(b => b.ruangan_id))
+    const bookedRoomIds = new Set()
+    dayBookings.forEach(b => {
+        if (b.gabung_ruang) {
+            const r2 = props.ruanganList.find(r => r.nama_ruang === 'Ruang 2')
+            const r3 = props.ruanganList.find(r => r.nama_ruang === 'Ruang 3')
+            if (r2) bookedRoomIds.add(r2.id)
+            if (r3) bookedRoomIds.add(r3.id)
+        } else {
+            bookedRoomIds.add(b.ruangan_id)
+        }
+    })
+    
     const totalRooms = props.ruanganList?.length || 0
     
     if (totalRooms > 0 && bookedRoomIds.size >= totalRooms) {
@@ -136,6 +147,38 @@ function getDateHighlightClass(year, month, day) {
     } else {
         return 'bg-amber-50 text-amber-800 font-semibold border border-amber-200'
     }
+}
+
+function getDotsForDate(year, month, day) {
+    const dayBookings = getBookingsOnDate(year, month, day)
+    const dots = []
+    dayBookings.forEach(b => {
+        if (b.gabung_ruang) {
+            const r2 = props.ruanganList.find(r => r.nama_ruang === 'Ruang 2')
+            const r3 = props.ruanganList.find(r => r.nama_ruang === 'Ruang 3')
+            
+            const r2Id = r2 ? r2.id : 2
+            const r3Id = r3 ? r3.id : 3
+            
+            dots.push({
+                id: `${b.id}-r2`,
+                bg: getRoomColor(r2Id).bg,
+                title: `${b.nama_training} – ${b.divisi} (Ruang 2)`
+            })
+            dots.push({
+                id: `${b.id}-r3`,
+                bg: getRoomColor(r3Id).bg,
+                title: `${b.nama_training} – ${b.divisi} (Ruang 3)`
+            })
+        } else {
+            dots.push({
+                id: b.id,
+                bg: getRoomColor(b.ruangan_id).bg,
+                title: `${b.nama_training} – ${b.divisi}`
+            })
+        }
+    })
+    return dots
 }
 function getMonthOriginClass(index) {
     let classes = ''
@@ -557,11 +600,11 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 <!-- Titik warna booking -->
                                 <div class="flex gap-0.5 px-0.5 mt-0.5 justify-center transition-all duration-300 opacity-0 scale-75 max-h-0 overflow-hidden group-hover/month:opacity-100 group-hover/month:scale-100 group-hover/month:max-h-8">
                                     <span
-                                        v-for="b in getBookingsOnDate(selectedYear, monthIdx, day)"
-                                        :key="b.id"
+                                        v-for="dot in getDotsForDate(selectedYear, monthIdx, day)"
+                                        :key="dot.id"
                                         class="w-1 h-1 rounded-full"
-                                        :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"
-                                        :title="`${b.nama_training} – ${b.divisi}`"
+                                        :style="{ backgroundColor: dot.bg }"
+                                        :title="dot.title"
                                     ></span>
                                 </div>
                             </div>
