@@ -86,9 +86,69 @@ class BookingApprovalController extends Controller
      */
     public function approve(Booking $booking)
     {
-        $booking->update(['status' => 'confirmed']);
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($booking) {
+                // Tentukan daftar ID ruangan yang dipesan
+                $roomIds = [$booking->ruangan_id];
+                $booking->loadMissing('ruangan');
+                if ($booking->gabung_ruang && $booking->ruangan && $booking->ruangan->pasangan_ruang_id) {
+                    $roomIds[] = $booking->ruangan->pasangan_ruang_id;
+                }
 
-        return back()->with('success', "Booking #{$booking->id} berhasil disetujui.");
+                // Pessimistic locking pada baris ruangan di database
+                \App\Models\Ruangan::whereIn('id', $roomIds)->lockForUpdate()->get();
+
+                // Cek konflik: apakah ada booking CONFIRMED lain yang bertabrakan tanggal dan ruangan
+                $overlappingConfirmed = Booking::where('status', 'confirmed')
+                    ->where('id', '!=', $booking->id)
+                    ->where('tgl_mulai', '<=', $booking->tgl_selesai->toDateString())
+                    ->where('tgl_selesai', '>=', $booking->tgl_mulai->toDateString())
+                    ->with('ruangan')
+                    ->get();
+
+                $hasConflict = false;
+                foreach ($overlappingConfirmed as $cb) {
+                    $cbRoomIds = [$cb->ruangan_id];
+                    if ($cb->gabung_ruang && $cb->ruangan && $cb->ruangan->pasangan_ruang_id) {
+                        $cbRoomIds[] = $cb->ruangan->pasangan_ruang_id;
+                    }
+                    if (!empty(array_intersect($roomIds, $cbRoomIds))) {
+                        $hasConflict = true;
+                        break;
+                    }
+                }
+
+                if ($hasConflict) {
+                    throw new \Exception("Gagal menyetujui: Ruangan telah terisi (disetujui oleh admin lain) pada rentang tanggal tersebut.");
+                }
+
+                // Ubah status menjadi confirmed (ruangan resmi terkunci)
+                $booking->update(['status' => 'confirmed']);
+
+                // Catat log administratif
+                \App\Models\BookingLog::create([
+                    'booking_id' => $booking->id,
+                    'user_id'    => auth()->id(),
+                    'action'     => 'approve',
+                    'message'    => "Admin " . auth()->user()->name . " menyetujui booking ini.",
+                ]);
+
+                // Kirim/Catat notifikasi untuk user pemohon
+                \App\Models\BookingNotification::create([
+                    'user_id'    => $booking->user_id,
+                    'booking_id' => $booking->id,
+                    'tipe'       => 'approval',
+                    'title'      => 'Booking Disetujui',
+                    'message'      => "Booking Anda untuk '{$booking->nama_training}' pada tanggal " . $booking->tgl_mulai->format('d M Y') . " telah disetujui.",
+                ]);
+
+                \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} disetujui oleh admin ID #" . auth()->id());
+            });
+
+            return back()->with('success', "Booking #{$booking->id} berhasil disetujui.");
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     /**

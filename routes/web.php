@@ -17,9 +17,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/dev/switch-role', [AuthController::class, 'switchRole'])->middleware('auth')->name('dev.switch-role');
 
 // ============================================================
-// User routes (auth required, any role)
+// User routes (auth + user role required)
 // ============================================================
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'user'])->group(function () {
     Route::get('/user/dashboard', [UserDashboard::class, 'index'])->name('user.dashboard');
     Route::get('/user/booking/create', [BookingWizardController::class, 'create'])->name('user.booking.create');
     Route::get('/user/booking/download-template', [BookingWizardController::class, 'downloadTemplate'])->name('user.booking.download-template');
@@ -30,6 +30,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/booking/get-available-rooms', [BookingWizardController::class, 'getAvailableRooms'])->name('api.booking.get-available-rooms');
     Route::post('/api/booking/save-stage4', [BookingWizardController::class, 'saveStage4'])->name('api.booking.save-stage4');
     Route::post('/api/booking/submit', [BookingWizardController::class, 'submitBooking'])->name('api.booking.submit');
+    
+    // Tandai notifikasi sebagai terbaca
+    Route::post('/api/notifications/{notification}/read', function (\App\Models\BookingNotification $notification) {
+        if ($notification->user_id !== auth()->id()) {
+            abort(403);
+        }
+        $notification->update(['is_read' => true]);
+        return back();
+    })->name('api.notifications.read');
     
     // Polling API untuk realtime check window status
     Route::get('/api/booking-window/status', function () {

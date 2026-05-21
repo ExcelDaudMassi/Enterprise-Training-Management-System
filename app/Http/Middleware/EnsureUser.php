@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureAdmin
+class EnsureUser
 {
     /**
      * Handle an incoming request.
@@ -15,11 +15,11 @@ class EnsureAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role !== 'admin') {
-            if (auth()->check() && auth()->user()->role === 'user') {
-                return redirect()->route('user.dashboard')->with('error', 'User tidak diperbolehkan mengakses halaman Admin.');
+        if (!auth()->check() || auth()->user()->role !== 'user') {
+            if (auth()->check() && auth()->user()->role === 'admin') {
+                return redirect()->route('admin.dashboard')->with('error', 'Admin tidak diperbolehkan mengakses halaman User.');
             }
-            abort(403, 'Akses ditolak. Halaman ini hanya untuk Admin.');
+            abort(403, 'Akses ditolak. Halaman ini hanya untuk User.');
         }
 
         return $next($request);
