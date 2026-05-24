@@ -117,6 +117,24 @@ class HandleInertiaRequests extends Middleware
                     ->values()
                     ->toArray();
             },
+            // Share user notifications
+            'userNotifications' => function () {
+                if (!auth()->check()) {
+                    return [];
+                }
+                return \App\Models\BookingNotification::where('user_id', auth()->id())
+                    ->where('is_read', false)
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->map(fn($n) => [
+                        'id'         => $n->id,
+                        'booking_id' => $n->booking_id,
+                        'tipe'       => $n->tipe,
+                        'title'      => $n->title,
+                        'message'    => $n->message,
+                        'created_at' => $n->created_at->diffForHumans(),
+                    ]);
+            },
             // Share flash messages
             'flash' => [
                 'success' => $request->session()->get('success'),

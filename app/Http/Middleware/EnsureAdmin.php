@@ -20,7 +20,10 @@ class EnsureAdmin
         }
 
         if (auth()->user()->role !== 'admin') {
-            return redirect()->route('user.dashboard')->with('error', 'Akses ditolak. Halaman tersebut hanya untuk Admin.');
+            if (auth()->user()->role === 'user') {
+                return redirect()->route('user.dashboard')->with('error', 'Akses ditolak. Halaman tersebut hanya untuk Admin.');
+            }
+            abort(403, 'Akses ditolak. Halaman ini hanya untuk Admin.');
         }
 
         return $next($request);

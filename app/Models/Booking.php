@@ -48,6 +48,8 @@ class Booking extends Model
         'proposed_tgl_selesai',
         'status_perubahan',
         // Workflow Tahap 4 — ACC Final
+        'acc1_at',
+        'acc1_by',
         'acc2_at',
         'acc2_by',
         // Workflow Tahap 5 — ACC Terlambat
@@ -61,6 +63,7 @@ class Booking extends Model
             'tgl_selesai'          => 'date',
             'proposed_tgl_mulai'   => 'date',
             'proposed_tgl_selesai' => 'date',
+            'acc1_at'              => 'datetime',
             'acc2_at'              => 'datetime',
             'gabung_ruang'         => 'boolean',
             'is_hybrid'            => 'boolean',
@@ -91,6 +94,14 @@ class Booking extends Model
     public function acc2Admin(): BelongsTo
     {
         return $this->belongsTo(User::class, 'acc2_by');
+    }
+
+    /**
+     * Log aktivitas administratif pada booking ini.
+     */
+    public function logs(): HasMany
+    {
+        return $this->hasMany(BookingLog::class);
     }
 
     // =========================================================
@@ -168,6 +179,16 @@ class Booking extends Model
     public function isConfirmed(): bool
     {
         return $this->status === self::STATUS_CONFIRMED;
+    }
+
+    public function isFinalConfirmed(): bool
+    {
+        return $this->status === 'final_confirmed';
+    }
+
+    public function canBeAcc2(): bool
+    {
+        return $this->isConfirmed() && !$this->isFinalConfirmed();
     }
 
     public function isCancelled(): bool

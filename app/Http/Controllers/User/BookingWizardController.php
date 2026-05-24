@@ -285,6 +285,13 @@ class BookingWizardController extends Controller
             $ruang2 = Ruangan::where('nama_ruang', 'Ruang 2')->first();
             $ruang3 = Ruangan::where('nama_ruang', 'Ruang 3')->first();
 
+            if (!$ruang2 || !$ruang3) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Konfigurasi ruang gabungan tidak ditemukan. Hubungi Admin untuk menyiapkan Ruang 2 dan Ruang 3.',
+                ], 500);
+            }
+
             $r2Conflict = $this->hasConflict($ruang2->id, $startDate, $endDate);
             $r3Conflict = $this->hasConflict($ruang3->id, $startDate, $endDate);
 

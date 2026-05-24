@@ -20,8 +20,10 @@ class EnsureUser
         }
 
         if (auth()->user()->role !== 'user') {
-            // Redirect admin to admin dashboard if they try to access regular user pages
-            return redirect()->route('admin.dashboard')->with('error', 'Akses ditolak. Halaman tersebut hanya untuk User.');
+            if (auth()->user()->role === 'admin') {
+                return redirect()->route('admin.dashboard')->with('error', 'Akses ditolak. Halaman tersebut hanya untuk User.');
+            }
+            abort(403, 'Akses ditolak. Halaman ini hanya untuk User.');
         }
 
         return $next($request);

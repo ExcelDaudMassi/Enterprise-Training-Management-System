@@ -18,7 +18,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/dev/switch-role', [AuthController::class, 'switchRole'])->middleware('auth')->name('dev.switch-role');
 
 // ============================================================
-// User routes (auth required + user role)
+// User routes (auth + user role required)
 // ============================================================
 Route::middleware(['auth', 'user'])->group(function () {
     Route::get('/user/dashboard', [UserDashboard::class, 'index'])->name('user.dashboard');
@@ -33,7 +33,14 @@ Route::middleware(['auth', 'user'])->group(function () {
     Route::post('/api/booking/get-available-rooms', [BookingWizardController::class, 'getAvailableRooms'])->name('api.booking.get-available-rooms');
     Route::post('/api/booking/save-stage4', [BookingWizardController::class, 'saveStage4'])->name('api.booking.save-stage4');
     Route::post('/api/booking/submit', [BookingWizardController::class, 'submitBooking'])->name('api.booking.submit');
-
+    // Tandai notifikasi sebagai terbaca
+    Route::post('/api/notifications/{notification}/read', function (\App\Models\BookingNotification $notification) {
+        if ($notification->user_id !== auth()->id()) {
+            abort(403);
+        }
+        $notification->update(['is_read' => true]);
+        return back();
+    })->name('api.notifications.read');
     // Polling API untuk realtime check window status
     Route::get('/api/booking-window/status', function () {
         return response()->json([
@@ -58,9 +65,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // ─── Booking Approval ─────────────────────────────────────
     Route::get('/bookings', [BookingApprovalController::class, 'index'])->name('bookings.index');
+    Route::get('/booking-recap', [BookingApprovalController::class, 'recap'])->name('bookings.recap');
+    Route::get('/bookings/export', [BookingApprovalController::class, 'export'])->name('bookings.export');
+    Route::get('/bookings/{booking}/details', [BookingApprovalController::class, 'showDetails'])->name('bookings.details');
 
     // Tahap 1 — ACC Awal
     Route::post('/bookings/{booking}/approve', [BookingApprovalController::class, 'approve'])->name('bookings.approve');
+    Route::post('/bookings/{booking}/acc2', [BookingApprovalController::class, 'acc2'])->name('bookings.acc2');
     Route::post('/bookings/{booking}/reject', [BookingApprovalController::class, 'reject'])->name('bookings.reject');
 
     // Tahap 4 — ACC Final (confirmed → final)
@@ -77,6 +88,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/booking-windows', [\App\Http\Controllers\Admin\BookingWindowController::class, 'index'])->name('booking-windows.index');
     Route::post('/booking-window/open', [\App\Http\Controllers\Admin\BookingWindowController::class, 'open'])->name('booking-window.open');
     Route::post('/booking-window/close', [\App\Http\Controllers\Admin\BookingWindowController::class, 'close'])->name('booking-window.close');
+
+    // Master Data Ruangan
+    Route::get('/rooms', [\App\Http\Controllers\Admin\RoomController::class, 'index'])->name('rooms.index');
+    Route::post('/rooms', [\App\Http\Controllers\Admin\RoomController::class, 'store'])->name('rooms.store');
+    Route::put('/rooms/{room}', [\App\Http\Controllers\Admin\RoomController::class, 'update'])->name('rooms.update');
+    Route::delete('/rooms/{room}', [\App\Http\Controllers\Admin\RoomController::class, 'destroy'])->name('rooms.destroy');
 });
 
 // Default: redirect root ke halaman login

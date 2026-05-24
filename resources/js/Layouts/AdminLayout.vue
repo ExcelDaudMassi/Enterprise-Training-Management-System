@@ -143,9 +143,17 @@ function toggleSidebar() {
                 <Link
                     href="/admin/bookings"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
-                    :class="isActive('/admin/bookings') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
+                    :class="isActive('/admin/bookings') && !isActive('/admin/booking-recap') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
                 >
-                    <span class="text-base">✅</span> Persetujuan Booking
+                    <span class="text-base">⚙️</span> Manajemen Booking
+                </Link>
+
+                <Link
+                    href="/admin/booking-recap"
+                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    :class="isActive('/admin/booking-recap') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
+                >
+                    <span class="text-base">📋</span> Rekap Booking
                 </Link>
 
                 <Link
@@ -154,6 +162,16 @@ function toggleSidebar() {
                     :class="isActive('/admin/booking-windows') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
                 >
                     <span class="text-base">📅</span> Riwayat Window
+                </Link>
+
+                <div class="px-3 py-2 text-[10px] text-gray-600 uppercase tracking-wider mt-2">Master Data</div>
+
+                <Link
+                    href="/admin/rooms"
+                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    :class="isActive('/admin/rooms') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
+                >
+                    <span class="text-base">🏢</span> Master Ruangan
                 </Link>
             </nav>
 

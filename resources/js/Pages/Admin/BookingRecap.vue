@@ -10,33 +10,51 @@ const props = defineProps({
     activeFilter: { type: String, default: 'all' },
 })
 
-// ─── Tabs ─────────────────────────────────────────────────────
+// Map filter dari dashboard ke tab yang relevan
+const filterToTab = {
+    'waiting_confirmation': 'waiting_confirmation',
+    'confirmed':            'confirmed',
+    'final_confirmed':      'final_confirmed',
+    'cancelled':            'cancelled',
+    'urgent':               'urgent',
+    'overdue':              'overdue',
+    'all':                  'all',
+}
+const activeTab = ref(filterToTab[props.activeFilter] ?? 'all')
+
 const tabs = [
-    { key: 'waiting_confirmation', label: 'Menunggu ACC' },
-    { key: 'h14',                  label: '🚨 H-14 (ACC Final)' },
+    { key: 'waiting_confirmation', label: 'Menunggu' },
+    { key: 'confirmed',            label: 'Disetujui' },
+    { key: 'final_confirmed',      label: 'Final Confirmed' },
+    { key: 'cancelled',            label: 'Ditolak' },
+    { key: 'urgent',               label: '🚨 H-14' },
     { key: 'overdue',              label: '⛔ Lewat Tenggat' },
-    { key: 'date_changes',         label: '📅 Ubah Tanggal' },
-    { key: 'confirmed',            label: 'Confirmed' },
-    { key: 'final',                label: '✅ Final' },
-    { key: 'cancelled',            label: 'Dibatalkan' },
     { key: 'all',                  label: 'Semua' },
 ]
 
-const activeTab = ref(props.activeFilter ?? 'all')
-
-function switchTab(key) {
-    activeTab.value = key
-    router.get('/admin/bookings', { filter: key }, { preserveScroll: true, preserveState: true })
-}
-
-// ─── Status display helpers ───────────────────────────────────
-const STATUS_META = {
+const statusMeta = {
     waiting_confirmation: { label: 'Menunggu',  class: 'bg-yellow-100 text-yellow-800 border border-yellow-200' },
     confirmed:            { label: 'Disetujui', class: 'bg-blue-100 text-blue-800 border border-blue-200' },
-    final:                { label: 'Final',     class: 'bg-green-100 text-green-800 border border-green-200' },
     final_confirmed:      { label: 'Final',     class: 'bg-green-100 text-green-800 border border-green-200' },
     cancelled:            { label: 'Ditolak',   class: 'bg-red-100 text-red-800 border border-red-200' },
     plotting:             { label: 'Plotting',  class: 'bg-purple-100 text-purple-800 border border-purple-200' },
+}
+
+function tabCount(key) {
+    if (key === 'all') return props.bookings.length
+    if (key === activeTab.value && ['urgent', 'overdue'].includes(key)) return props.bookings.length
+    if (['urgent', 'overdue'].includes(key)) return '-'
+    return props.bookings.filter(b => b.status === (key === 'urgent' ? 'waiting_confirmation' : key)).length
+}
+
+const filteredBookings = computed(() => {
+    if (activeTab.value === 'all') return props.bookings
+    return props.bookings.filter(b => b.status === activeTab.value)
+})
+
+function formatTanggal(tgl) {
+    if (!tgl) return '-'
+    return new Date(tgl).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function isPastH14(tglMulai) {
@@ -55,125 +73,7 @@ function formatDate(d) {
     return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-// ── Approve / Reject / ACC-2 ─────────────────────────────────────
-const showApproveModal = ref(false)
-const showRejectModal  = ref(false)
-const showAcc2Modal    = ref(false)
-const selectedBooking  = ref(null)
 
-const rejectForm  = useForm({ catatan_admin: '' })
-const approveForm = useForm({})
-const acc2Form    = useForm({})
-
-function openApprove(b) {
-    selectedBooking.value = b
-    showApproveModal.value = true
-}
-function confirmApprove(b) {
-    selectedBooking.value = b
-    showApproveModal.value = true
-}
-
-function openReject(b) {
-    selectedBooking.value = b
-    rejectForm.reset()
-    showRejectModal.value = true
-}
-function confirmReject(b) {
-    selectedBooking.value = b
-    rejectForm.reset()
-    showRejectModal.value = true
-}
-
-function confirmAcc2(b) {
-    selectedBooking.value = b
-    showAcc2Modal.value = true
-}
-
-function submitApprove() {
-    approveForm.post(`/admin/bookings/${selectedBooking.value.id}/approve`, {
-        preserveScroll: true,
-        onSuccess: () => { showApproveModal.value = false; selectedBooking.value = null }
-    })
-}
-
-// ─── Modal: ACC Tahap 1 Reject ────────────────────────────────
-function submitReject() {
-    rejectForm.post(`/admin/bookings/${selectedBooking.value.id}/reject`, {
-        preserveScroll: true,
-        onSuccess: () => { showRejectModal.value = false; selectedBooking.value = null; rejectForm.reset() }
-    })
-}
-
-function submitAcc2() {
-    if (!selectedBooking.value) return
-    acc2Form.post(`/admin/bookings/${selectedBooking.value.id}/acc2`, {
-        preserveScroll: true,
-        onSuccess: () => { showAcc2Modal.value = false; selectedBooking.value = null }
-    })
-}
-
-// ─── Modal: ACC Final (Tahap 4) ───────────────────────────────
-const showFinalModal  = ref(false)
-const finalForm       = useForm({})
-
-function openFinal(b) {
-    selectedBooking.value = b
-    showFinalModal.value = true
-}
-function submitFinal() {
-    finalForm.post(`/admin/bookings/${selectedBooking.value.id}/final`, {
-        preserveScroll: true,
-        onSuccess: () => { showFinalModal.value = false }
-    })
-}
-
-// ─── Modal: ACC Terlambat (Tahap 5) ──────────────────────────
-const showFinalLateModal  = ref(false)
-const finalLateForm       = useForm({ catatan_acc_terlambat: '' })
-
-function openFinalLate(b) {
-    selectedBooking.value = b
-    finalLateForm.reset()
-    showFinalLateModal.value = true
-}
-function submitFinalLate() {
-    finalLateForm.post(`/admin/bookings/${selectedBooking.value.id}/final-late`, {
-        preserveScroll: true,
-        onSuccess: () => { showFinalLateModal.value = false; finalLateForm.reset() }
-    })
-}
-
-// ─── Modal: Setujui Perubahan Tanggal ────────────────────────
-const showApproveDateModal = ref(false)
-const approveDateForm      = useForm({})
-
-function openApproveDate(b) {
-    selectedBooking.value = b
-    showApproveDateModal.value = true
-}
-function submitApproveDate() {
-    approveDateForm.post(`/admin/bookings/${selectedBooking.value.id}/approve-date-change`, {
-        preserveScroll: true,
-        onSuccess: () => { showApproveDateModal.value = false }
-    })
-}
-
-// ─── Modal: Tolak Perubahan Tanggal ──────────────────────────
-const showRejectDateModal = ref(false)
-const rejectDateForm      = useForm({ catatan_admin: '' })
-
-function openRejectDate(b) {
-    selectedBooking.value = b
-    rejectDateForm.reset()
-    showRejectDateModal.value = true
-}
-function submitRejectDate() {
-    rejectDateForm.post(`/admin/bookings/${selectedBooking.value.id}/reject-date-change`, {
-        preserveScroll: true,
-        onSuccess: () => { showRejectDateModal.value = false; rejectDateForm.reset() }
-    })
-}
 
 // ── Detail Modal ─────────────────────────────────────────────────
 const showDetailModal = ref(false)
@@ -211,6 +111,11 @@ const layoutLabels = {
     'o-shape': 'O-Shape',
     custom:    'Custom (Lihat file)',
 }
+
+// ── Export Excel ─────────────────────────────────────────────────
+function exportExcel() {
+    window.open(`/admin/bookings/export?filter=${activeTab.value}`, '_blank')
+}
 </script>
 
 <template>
@@ -218,28 +123,38 @@ const layoutLabels = {
         <!-- ── Page Header ─────────────────────────────────────── -->
         <div class="mb-5 flex items-center justify-between">
             <div>
-                <h1 class="text-xl font-bold text-gray-900">⚙️ Manajemen Booking</h1>
-                <p class="text-sm text-gray-500 mt-1">Kelola dan proses pengajuan peminjaman ruangan</p>
+                <h1 class="text-xl font-bold text-gray-900">📋 Rekap Booking</h1>
+                <p class="text-sm text-gray-500 mt-1">Melihat riwayat dan merekap semua pengajuan peminjaman ruangan</p>
             </div>
+            <!-- Export Button -->
+            <button
+                @click="exportExcel"
+                class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
+                title="Unduh rekap sesuai tab aktif sebagai file Excel"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Unduh Rekap ({{ tabs.find(t => t.key === activeTab)?.label }})
+            </button>
         </div>
 
-        <!-- Filter aktif banner -->
-        <div v-if="activeFilter !== 'all'"
-             class="mb-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-            Filter aktif: <strong>{{ tabs.find(t => t.key === activeFilter)?.label ?? activeFilter }}</strong>
+        <!-- Active filter banner -->
+        <div v-if="activeFilter !== 'all'" class="mb-3 flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+            Filter aktif dari Dashboard: <strong class="ml-1">{{ tabs.find(t => t.key === activeFilter)?.label ?? activeFilter }}</strong>
         </div>
 
         <!-- Tabs -->
-        <div class="flex flex-wrap gap-1 mb-4 bg-gray-100 p-1 rounded w-fit">
+        <div class="flex flex-wrap gap-1 mb-4 bg-gray-100 p-1 rounded-lg w-fit">
             <button
                 v-for="tab in tabs" :key="tab.key"
-                @click="switchTab(tab.key)"
-                class="px-3 py-1.5 rounded text-xs font-medium transition"
-                :class="activeTab === tab.key
-                    ? 'bg-white text-gray-800 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'"
+                @click="activeTab = tab.key"
+                class="px-4 py-1.5 rounded text-sm font-medium transition"
+                :class="activeTab === tab.key ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
             >
                 {{ tab.label }}
+                <span class="ml-1 text-xs text-gray-400">({{ tabCount(tab.key) }})</span>
             </button>
         </div>
 
@@ -254,11 +169,10 @@ const layoutLabels = {
                         <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Peserta</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Fasilitas</th>
                         <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
-                    <tr v-if="bookings.length === 0">
+                    <tr v-if="filteredBookings.length === 0">
                         <td colspan="7" class="px-6 py-12 text-center text-gray-400 text-sm">
                             <div class="flex flex-col items-center gap-2">
                                 <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -266,7 +180,7 @@ const layoutLabels = {
                             </div>
                         </td>
                     </tr>
-                    <tr v-for="b in bookings" :key="b.id" class="hover:bg-gray-50 transition-colors align-top">
+                    <tr v-for="b in filteredBookings" :key="b.id" class="hover:bg-gray-50 transition-colors">
                         <td class="px-4 py-3">
                             <div class="text-sm font-semibold text-gray-900">{{ b.nama_training }}</div>
                             <div class="text-xs text-gray-500 mt-0.5">{{ b.pemohon }} · <span class="font-medium text-gray-600">{{ b.divisi }}</span></div>
@@ -286,19 +200,6 @@ const layoutLabels = {
                             <div class="font-medium">{{ formatDate(b.tgl_mulai) }}</div>
                             <div class="text-gray-400">s/d</div>
                             <div class="font-medium">{{ formatDate(b.tgl_selesai) }}</div>
-                            <!-- Countdown -->
-                            <div v-if="b.days_to_start !== null && b.status === 'confirmed' && b.days_to_start >= 0"
-                                 class="mt-1 font-semibold text-[11px]"
-                                 :class="b.days_to_start <= 14 ? 'text-red-600 bg-red-50 border border-red-100 px-1 py-0.5 rounded inline-block' : 'text-gray-500 bg-gray-50 border border-gray-100 px-1 py-0.5 rounded inline-block'">
-                                H-{{ b.days_to_start }}
-                            </div>
-                            <div v-if="b.is_overdue_acc2" class="text-red-600 font-bold mt-1.5 flex items-center gap-1 text-[11px]">
-                                ⛔ Tanggal sudah lewat
-                            </div>
-                            <!-- Usulan Ubah Tanggal -->
-                            <div v-if="b.has_pending_date_change" class="mt-1.5 text-orange-600 text-[11px] font-bold bg-orange-50 border border-orange-100 p-1 rounded">
-                                📅 Usulan: {{ formatDate(b.proposed_tgl_mulai) }} – {{ formatDate(b.proposed_tgl_selesai) }}
-                            </div>
                         </td>
                         <td class="px-4 py-3 text-center">
                             <div class="text-sm font-bold text-gray-800">{{ b.jumlah_peserta }}</div>
@@ -316,8 +217,8 @@ const layoutLabels = {
                         </td>
                         <td class="px-4 py-3 text-center">
                             <span class="px-2.5 py-1 rounded-full text-xs font-semibold"
-                                  :class="STATUS_META[b.status]?.class ?? 'bg-gray-100 text-gray-600 border border-gray-200'">
-                                {{ STATUS_META[b.status]?.label ?? b.status }}
+                                  :class="statusMeta[b.status]?.class ?? 'bg-gray-100 text-gray-600 border border-gray-200'">
+                                {{ statusMeta[b.status]?.label ?? b.status }}
                             </span>
                         </td>
                         <td class="px-4 py-3">
@@ -328,53 +229,13 @@ const layoutLabels = {
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     Lihat Detail
                                 </button>
-                                <!-- Approve/Reject (only for waiting) -->
-                                <div v-if="b.status === 'waiting_confirmation'" class="flex gap-1.5">
-                                    <button @click="confirmApprove(b)"
-                                        class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1.5 px-2 rounded-lg transition">
-                                        ✓ Setujui
-                                    </button>
-                                    <button @click="confirmReject(b)"
-                                        class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold py-1.5 px-2 rounded-lg transition border border-red-200">
-                                        ✕ Tolak
-                                    </button>
-                                </div>
-                                <!-- Tahap 3: Perubahan Tanggal -->
-                                <template v-if="b.has_pending_date_change">
-                                    <button @click="openApproveDate(b)"
-                                            class="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 px-2 rounded-lg transition font-semibold">
-                                        ✓ ACC Ubah Tanggal
-                                    </button>
-                                    <button @click="openRejectDate(b)"
-                                            class="bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs py-1.5 px-2 rounded-lg transition font-semibold border border-orange-200">
-                                        ✕ Tolak Ubah Tanggal
-                                    </button>
-                                </template>
-                                <!-- Tahap 4: ACC Final / Final Confirm -->
-                                <template v-if="b.can_be_finalized && !b.is_overdue_acc2">
-                                    <button @click="openFinal(b)"
-                                            class="w-full flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-1.5 px-2 rounded-lg transition shadow-sm">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        🏁 ACC Final
-                                    </button>
-                                </template>
-                                <!-- Tahap 5: ACC Terlambat -->
-                                <template v-if="b.can_be_finalized && b.is_overdue_acc2">
-                                    <button @click="openFinalLate(b)"
-                                            class="w-full flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold py-1.5 px-2 rounded-lg transition shadow-sm">
-                                        ⚠️ ACC Terlambat
-                                    </button>
-                                </template>
-                                <!-- Catatan penolakan jika ditolak -->
-                                <div v-if="b.status === 'cancelled' && b.catatan_admin" class="text-xs text-red-600 italic max-w-[160px] truncate" :title="b.catatan_admin">
-                                    ⚠ {{ b.catatan_admin }}
-                                </div>
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
 
         <!-- ══════════════════════════════════════════════════════════ -->
         <!-- MODAL: DETAIL LENGKAP BOOKING                            -->
@@ -413,8 +274,8 @@ const layoutLabels = {
                                             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Detail Booking</span>
                                             <span v-if="detailData"
                                                   class="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                                  :class="STATUS_META[detailData.booking.status]?.class ?? 'bg-gray-100 text-gray-600'">
-                                                {{ STATUS_META[detailData.booking.status]?.label ?? detailData.booking.status }}
+                                                  :class="statusMeta[detailData.booking.status]?.class ?? 'bg-gray-100 text-gray-600'">
+                                                {{ statusMeta[detailData.booking.status]?.label ?? detailData.booking.status }}
                                             </span>
                                         </div>
                                         <h2 class="text-base font-bold text-white mt-1 truncate">
@@ -541,7 +402,7 @@ const layoutLabels = {
                                                     <p class="text-[11px] text-gray-400 mb-0.5">Fase Pemesanan</p>
                                                     <p class="text-sm font-medium text-gray-700 capitalize">{{ detailData.booking.fase === 'reguler' ? '📋 Reguler' : '📊 Plotting' }}</p>
                                                 </div>
-                                                <div class="flex items-center gap-3 col-span-2">
+                                                <div class="flex items-center gap-3">
                                                     <div class="flex items-center gap-2">
                                                         <span :class="detailData.booking.is_hybrid ? 'bg-purple-500' : 'bg-gray-300'" class="w-3 h-3 rounded-full flex-shrink-0"></span>
                                                         <span class="text-sm text-gray-700">Hybrid</span>
@@ -551,7 +412,7 @@ const layoutLabels = {
                                                         <span class="text-sm text-gray-700">Flipchart</span>
                                                     </div>
                                                 </div>
-                                                <div v-if="detailData.booking.layout_url" class="col-span-2">
+                                                <div v-if="detailData.booking.layout_url">
                                                     <a :href="detailData.booking.layout_url" target="_blank"
                                                        class="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium underline">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
@@ -572,20 +433,57 @@ const layoutLabels = {
                                                 <p class="text-xs text-gray-500 mt-0.5">Panitia</p>
                                             </div>
                                             <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                                                <p class="text-2xl font-black text-gray-700">{{ detailData.booking.status === 'confirmed' ? '1/2' : (['final', 'final_confirmed'].includes(detailData.booking.status) ? '2/2' : '0/2') }}</p>
-                                                <p class="text-xs text-gray-500 mt-0.5">Tahap ACC</p>
+                                                <p class="text-2xl font-black text-gray-700">{{ detailData.total_peserta + detailData.total_panitia }}</p>
+                                                <p class="text-xs text-gray-500 mt-0.5">Total Orang</p>
                                             </div>
                                         </div>
+
+                                        <!-- Gender & Site Stats -->
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="bg-pink-50 rounded-xl p-4 border border-pink-100">
+                                                <h4 class="text-xs font-bold text-pink-600 uppercase tracking-wider mb-2">Distribusi Gender</h4>
+                                                <div class="flex items-center gap-3">
+                                                    <div class="text-center">
+                                                        <p class="text-xl font-black text-blue-600">{{ detailData.gender_stats.L }}</p>
+                                                        <p class="text-xs text-gray-500">Laki-laki</p>
+                                                    </div>
+                                                    <div class="flex-1 h-px bg-gray-200"></div>
+                                                    <div class="text-center">
+                                                        <p class="text-xl font-black text-pink-600">{{ detailData.gender_stats.P }}</p>
+                                                        <p class="text-xs text-gray-500">Perempuan</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="bg-teal-50 rounded-xl p-4 border border-teal-100">
+                                                <h4 class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-2">Distribusi Site</h4>
+                                                <div class="space-y-1.5">
+                                                    <div v-for="(count, site) in detailData.site_stats" :key="site"
+                                                         class="flex items-center justify-between text-xs">
+                                                        <span class="text-gray-700 font-medium truncate">{{ site }}</span>
+                                                        <span class="ml-2 px-2 py-0.5 bg-teal-100 text-teal-700 rounded-full font-bold flex-shrink-0">{{ count }}</span>
+                                                    </div>
+                                                    <p v-if="!Object.keys(detailData.site_stats).length" class="text-gray-400 text-xs">—</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Catatan Admin (jika ada) -->
+                                        <div v-if="detailData.booking.catatan_admin" class="bg-red-50 rounded-xl p-4 border border-red-100">
+                                            <h4 class="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">📝 Catatan Admin</h4>
+                                            <p class="text-sm text-gray-700">{{ detailData.booking.catatan_admin }}</p>
+                                        </div>
+
+                                        <!-- Timestamp -->
+                                        <p class="text-xs text-gray-400 text-right">📅 Diajukan: {{ detailData.booking.created_at }}</p>
                                     </div>
 
                                     <!-- ── TAB: DAFTAR PESERTA ── -->
                                     <div v-if="detailTab === 'peserta'">
-                                        <div class="mb-4 flex items-center justify-between">
+                                        <div class="flex items-center justify-between mb-4">
                                             <h3 class="text-sm font-bold text-gray-800">Daftar Peserta <span class="text-gray-400 font-normal">({{ detailData.total_peserta }} orang)</span></h3>
-                                            <!-- Gender Stats -->
-                                            <div class="flex gap-3 text-xs">
-                                                <span class="text-blue-600 font-semibold">♂ L: {{ detailData.gender_stats?.L ?? 0 }}</span>
-                                                <span class="text-pink-600 font-semibold">♀ P: {{ detailData.gender_stats?.P ?? 0 }}</span>
+                                            <div class="flex items-center gap-3 text-xs text-gray-500">
+                                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-400"></span>L: {{ detailData.gender_stats.L }}</span>
+                                                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-pink-400"></span>P: {{ detailData.gender_stats.P }}</span>
                                             </div>
                                         </div>
                                         <div v-if="detailData.peserta.length === 0" class="py-8 text-center text-gray-400 text-sm">Tidak ada data peserta.</div>
@@ -673,33 +571,9 @@ const layoutLabels = {
 
                                 </div><!-- /Tab Content -->
 
-                                <!-- Panel Footer: Approve / Reject / ACC-2 Actions -->
-                                <div v-if="detailData.booking.status === 'waiting_confirmation'"
-                                     class="flex-shrink-0 border-t border-gray-100 px-6 py-4 bg-gray-50 flex gap-3">
-                                    <button @click="closeDetail(); confirmReject({ id: detailData.booking.id, nama_training: detailData.booking.nama_training })"
-                                        class="flex-1 px-4 py-2.5 bg-red-100 hover:bg-red-200 border border-red-200 text-red-700 rounded-lg text-sm font-semibold transition">
-                                        ✕ Tolak Booking
-                                    </button>
-                                    <button @click="closeDetail(); confirmApprove({ id: detailData.booking.id, nama_training: detailData.booking.nama_training, pemohon: detailData.booking.pemohon?.name, divisi: detailData.booking.pemohon?.divisi, ruangan: detailData.booking.ruangan?.nama_ruang ?? 'Ruang Gabungan', tgl_mulai: detailData.booking.tgl_mulai, tgl_selesai: detailData.booking.tgl_selesai })"
-                                        class="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition shadow-sm">
-                                        ✓ Setujui Booking
-                                    </button>
-                                </div>
-                                <div v-if="detailData.booking.status === 'confirmed'"
-                                     class="flex-shrink-0 border-t px-6 py-4 flex gap-3 flex-col"
-                                     :class="isPastH14(detailData.booking.tgl_mulai) ? 'border-red-100 bg-red-50' : 'border-emerald-100 bg-emerald-50'">
-                                    
-                                    <div v-if="isPastH14(detailData.booking.tgl_mulai)" class="text-xs text-red-700 font-semibold flex items-center gap-1.5 mb-1 bg-white px-3 py-2 rounded-md border border-red-200">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                        Booking ini sudah melewati batas waktu ACC-2 (H-14). Silakan segera proses manual.
-                                    </div>
-
-                                    <button @click="closeDetail(); confirmAcc2({ id: detailData.booking.id, nama_training: detailData.booking.nama_training })"
-                                        class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-white rounded-lg text-sm font-semibold transition shadow-sm"
-                                        :class="isPastH14(detailData.booking.tgl_mulai) ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        Beri Final Confirmation (ACC-2)
-                                    </button>
+                                <!-- Panel Footer: Read-only -->
+                                <div class="flex-shrink-0 border-t border-gray-100 px-6 py-4 bg-gray-50">
+                                    <p class="text-xs text-gray-500 text-center">Menampilkan detail rekap booking (Mode Read-Only)</p>
                                 </div>
 
                             </div><!-- /if detailData -->
@@ -709,220 +583,8 @@ const layoutLabels = {
             </Transition>
         </Teleport>
 
-        <!-- ── Modal: Konfirmasi Approve ──────────────────────────── -->
-        <Teleport to="body">
-            <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <div v-if="showApproveModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-600 to-emerald-600">
-                            <h2 class="text-base font-bold text-white">Konfirmasi Persetujuan</h2>
-                            <p class="text-xs text-green-100 mt-1">Ruangan akan dikunci setelah booking disetujui.</p>
-                        </div>
-                        <div class="px-6 py-4 space-y-3 bg-gray-50">
-                            <div><span class="text-xs text-gray-500 block">Nama Training</span><span class="text-sm font-semibold text-gray-800">{{ selectedBooking?.nama_training }}</span></div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><span class="text-xs text-gray-500 block">Pemohon</span><span class="text-sm text-gray-800">{{ selectedBooking?.pemohon }} ({{ selectedBooking?.divisi }})</span></div>
-                                <div><span class="text-xs text-gray-500 block">Ruangan</span><span class="text-sm text-gray-800">{{ selectedBooking?.ruangan }}</span></div>
-                            </div>
-                            <div><span class="text-xs text-gray-500 block">Jadwal</span><span class="text-sm text-gray-800">{{ selectedBooking?.tgl_mulai }} – {{ selectedBooking?.tgl_selesai }}</span></div>
-                        </div>
-                        <div class="mt-6 flex justify-end gap-3 px-6 pb-6">
-                            <button @click="showApproveModal = false" :disabled="approveForm.processing" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50">Batal</button>
-                            <button @click="submitApprove" :disabled="approveForm.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition shadow-sm disabled:opacity-50">
-                                <span v-if="approveForm.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                Setujui Booking
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
 
-        <!-- ── Modal: Konfirmasi ACC-2 (Final Confirm) ──────────────────────────── -->
-        <Teleport to="body">
-            <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0 scale-95"
-                enter-to-class="opacity-100 scale-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100 scale-100"
-                leave-to-class="opacity-0 scale-95"
-            >
-                <div v-if="showAcc2Modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative overflow-hidden" @click.stop>
-                        <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
-                        <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-900">Final Confirmation (ACC-2)</h3>
-                                <p class="text-sm text-gray-500 mt-1">Anda akan memberikan Final Confirmation untuk acara <strong class="text-gray-800">"{{ selectedBooking?.nama_training }}"</strong>.</p>
-                                <p class="text-xs text-gray-500 mt-2 bg-emerald-50 p-2 rounded border border-emerald-100">Pastikan persiapan ruangan dan logistik sudah siap sesuai kebutuhan.</p>
-                            </div>
-                        </div>
 
-                        <div class="mt-6 flex justify-end gap-3">
-                            <button @click="showAcc2Modal = false" :disabled="acc2Form.processing" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50">Batal</button>
-                            <button @click="submitAcc2" :disabled="acc2Form.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm disabled:opacity-50">
-                                <span v-if="acc2Form.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                Final Confirm
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
 
-        <!-- ── Modal: Konfirmasi Tolak ──────────────────────────── -->
-        <Teleport to="body">
-            <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <div v-if="showRejectModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-red-600 to-rose-600">
-                            <h2 class="text-base font-bold text-white">Penolakan Booking</h2>
-                            <p class="text-xs text-red-100 mt-1">Booking <strong>{{ selectedBooking?.nama_training }}</strong> akan dibatalkan.</p>
-                        </div>
-                        <form @submit.prevent="submitReject" class="px-6 py-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
-                            <textarea
-                                v-model="rejectForm.catatan_admin"
-                                required
-                                rows="3"
-                                placeholder="Contoh: Jadwal bentrok, ruangan sedang direnovasi..."
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                            ></textarea>
-                            <p v-if="rejectForm.errors.catatan_admin" class="text-xs text-red-500 mt-1">{{ rejectForm.errors.catatan_admin }}</p>
-
-                            <div class="mt-5 flex gap-3">
-                                <button type="button" @click="showRejectModal = false" class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
-                                <button type="submit" :disabled="rejectForm.processing || !rejectForm.catatan_admin"
-                                    class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg text-sm font-semibold">
-                                    {{ rejectForm.processing ? 'Menyimpan...' : '✕ Tolak Booking' }}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
-
-        <!-- ── Modal: ACC Final ───────────────────────────────── -->
-        <Teleport to="body">
-            <div v-if="showFinalModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                    <h2 class="text-base font-bold text-gray-900 mb-3">🏁 Konfirmasi ACC Final</h2>
-                    <div class="text-sm text-gray-700 space-y-1 mb-4">
-                        <div><strong>Training:</strong> {{ selectedBooking?.nama_training }}</div>
-                        <div><strong>Jadwal:</strong> {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}</div>
-                        <div><strong>Peserta:</strong> {{ selectedBooking?.jumlah_peserta }} orang, {{ selectedBooking?.jumlah_panitia }} panitia</div>
-                    </div>
-                    <p class="text-xs text-orange-600 mb-4">
-                        ⚠️ Setelah ACC Final, user tidak dapat mengubah booking ini. Pastikan semua data sudah benar.
-                    </p>
-                    <div class="flex gap-3">
-                        <button @click="showFinalModal = false"
-                                class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
-                        <button @click="submitFinal" :disabled="finalForm.processing"
-                                class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm disabled:opacity-50">
-                            {{ finalForm.processing ? 'Memproses...' : '🏁 ACC & Final' }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </Teleport>
-
-        <!-- ── Modal: ACC Terlambat ───────────────────────────── -->
-        <Teleport to="body">
-            <div v-if="showFinalLateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                    <h2 class="text-base font-bold text-gray-900 mb-1">⚠️ ACC Terlambat</h2>
-                    <p class="text-xs text-red-600 mb-4">Tanggal training sudah lewat. Mohon isi alasan ACC terlambat.</p>
-                    <form @submit.prevent="submitFinalLate">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Alasan ACC Terlambat <span class="text-red-500">*</span></label>
-                        <textarea v-model="finalLateForm.catatan_acc_terlambat" required rows="3"
-                                  placeholder="Contoh: Training tetap berjalan, laporan menyusul..."
-                                  class="w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
-                        <p v-if="finalLateForm.errors.catatan_acc_terlambat" class="text-xs text-red-500 mt-1">
-                            {{ finalLateForm.errors.catatan_acc_terlambat }}
-                        </p>
-                        <div class="flex gap-3 mt-4">
-                            <button type="button" @click="showFinalLateModal = false"
-                                    class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
-                            <button type="submit" :disabled="finalLateForm.processing || !finalLateForm.catatan_acc_terlambat"
-                                    class="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded text-sm disabled:opacity-50">
-                                {{ finalLateForm.processing ? 'Menyimpan...' : '⚠️ Konfirmasi ACC Terlambat' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </Teleport>
-
-        <!-- ── Modal: Setujui Ubah Tanggal ────────────────────── -->
-        <Teleport to="body">
-            <div v-if="showApproveDateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                    <h2 class="text-base font-bold text-gray-900 mb-3">Setujui Perubahan Tanggal</h2>
-                    <div class="text-sm text-gray-700 space-y-1 mb-4">
-                        <div><strong>Training:</strong> {{ selectedBooking?.nama_training }}</div>
-                        <div class="text-gray-400 line-through text-xs">
-                            Lama: {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}
-                        </div>
-                        <div class="text-green-700 font-medium">
-                            Baru: {{ formatDate(selectedBooking?.proposed_tgl_mulai) }} – {{ formatDate(selectedBooking?.proposed_tgl_selesai) }}
-                        </div>
-                    </div>
-                    <div class="flex gap-3">
-                        <button @click="showApproveDateModal = false"
-                                class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
-                        <button @click="submitApproveDate" :disabled="approveDateForm.processing"
-                                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm disabled:opacity-50">
-                            {{ approveDateForm.processing ? 'Memproses...' : '✓ Setujui' }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </Teleport>
-
-        <!-- ── Modal: Tolak Ubah Tanggal ──────────────────────── -->
-        <Teleport to="body">
-            <div v-if="showRejectDateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                    <h2 class="text-base font-bold text-gray-900 mb-1">Tolak Perubahan Tanggal</h2>
-                    <p class="text-xs text-gray-500 mb-4">
-                        Tanggal lama akan tetap berlaku. Booking tetap berstatus Confirmed.
-                    </p>
-                    <form @submit.prevent="submitRejectDate">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Alasan <span class="text-red-500">*</span></label>
-                        <textarea v-model="rejectDateForm.catatan_admin" required rows="3"
-                                  placeholder="Contoh: Tanggal baru bentrok dengan event lain..."
-                                  class="w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
-                        <div class="flex gap-3 mt-4">
-                            <button type="button" @click="showRejectDateModal = false"
-                                    class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
-                            <button type="submit" :disabled="rejectDateForm.processing || !rejectDateForm.catatan_admin"
-                                    class="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded text-sm disabled:opacity-50">
-                                {{ rejectDateForm.processing ? 'Menyimpan...' : '✕ Tolak' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </Teleport>
     </AdminLayout>
 </template>

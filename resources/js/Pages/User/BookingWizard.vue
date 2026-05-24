@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { Link } from '@inertiajs/vue3'
 import UserLayout from '@/Layouts/UserLayout.vue'
 import axios from 'axios'
 
@@ -370,7 +371,9 @@ function validateRange() {
 
     while (current <= end) {
         const dateStr = current.toISOString().split('T')[0]
-        if (blockedDates.value[dateStr] === 'full') {
+        // blockedDates[dateStr] adalah object { status, occupied_rooms }, bukan string
+        const entry = blockedDates.value[dateStr]
+        if (entry?.status === 'full') {
             rangeError.value = 'Rentang tanggal yang Anda pilih mengandung hari yang sudah penuh. Silakan pilih rentang lain.'
             return false
         }
@@ -505,8 +508,47 @@ async function submitFinal() {
 // ============================================================
 // NAVIGATION
 // ============================================================
-function backToStage1() { currentStage.value = 1 }
-function backToStage2() { currentStage.value = 2 }
+function backToStage1() {
+    currentStage.value   = 1
+    // Reset semua state downstream (stage 2, 3, 4)
+    blockedDates.value   = {}
+    startDate.value      = null
+    endDate.value        = null
+    rangeError.value     = ''
+    availableRooms.value = []
+    selectedRoom.value   = null
+    stage3Error.value    = ''
+    formStage4.value     = {
+        nama_training: '',
+        nama_pic: '',
+        layout_preferensi: 'classroom',
+        layout_custom_file: null,
+        hybrid: false,
+        flipchart: false,
+        catatan: ''
+    }
+    uploadedCustomFileName.value = ''
+    stage4Error.value            = ''
+}
+
+function backToStage2() {
+    currentStage.value   = 2
+    // Reset state stage 3 dan 4
+    availableRooms.value = []
+    selectedRoom.value   = null
+    stage3Error.value    = ''
+    formStage4.value     = {
+        nama_training: '',
+        nama_pic: '',
+        layout_preferensi: 'classroom',
+        layout_custom_file: null,
+        hybrid: false,
+        flipchart: false,
+        catatan: ''
+    }
+    uploadedCustomFileName.value = ''
+    stage4Error.value            = ''
+}
 
 function formatDate(dateStr) {
     if (!dateStr) return '-'

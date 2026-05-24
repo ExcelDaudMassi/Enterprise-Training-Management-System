@@ -1,5 +1,5 @@
 <script setup>
-import { Link, useForm, usePage } from '@inertiajs/vue3'
+import { Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted, provide, watch } from 'vue'
 
 defineProps({
@@ -23,6 +23,40 @@ function logout() {
 function switchRole() {
     switchForm.post('/dev/switch-role')
 }
+
+// ── User Notifications & Flash Messages ──────────────────────────────
+const isNotificationDropdownOpen = ref(false)
+const notificationRef = ref(null)
+const userNotifications = computed(() => page.props.userNotifications ?? [])
+
+function toggleNotification() {
+    isNotificationDropdownOpen.value = !isNotificationDropdownOpen.value
+}
+
+function markAsRead(notificationId) {
+    router.post(`/api/notifications/${notificationId}/read`, {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Re-evaluasi otomatis dilakukan oleh Inertia
+        }
+    })
+}
+
+function handleClickOutside(e) {
+    if (notificationRef.value && !notificationRef.value.contains(e.target)) {
+        isNotificationDropdownOpen.value = false
+    }
+}
+
+const flashSuccess = ref('')
+const flashError = ref('')
+
+watch(() => page.props.flash, (newVal) => {
+    if (newVal) {
+        flashSuccess.value = newVal.success ?? ''
+        flashError.value = newVal.error ?? ''
+    }
+}, { immediate: true, deep: true })
 
 // ── Realtime Booking Window Polling ──────────────────────────────────
 const isWindowActive = ref(page.props.bookingWindow?.is_active ?? true)
@@ -67,12 +101,14 @@ onMounted(() => {
         isSidebarOpen.value = window.innerWidth >= 1024
     }
     window.addEventListener('resize', handleResize)
+    document.addEventListener('click', handleClickOutside)
     checkWindowStatus() // Cek saat pertama kali load
     pollingInterval = setInterval(checkWindowStatus, 10000) // Polling setiap 10 detik
 })
 
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
+    document.removeEventListener('click', handleClickOutside)
     if (pollingInterval) clearInterval(pollingInterval)
 })
 
@@ -201,19 +237,75 @@ provide('isWindowActive', isWindowActive)
                         </span>
                     </h1>
                 </div>
-                <span class="text-xs text-gray-400 hidden sm:inline">{{ auth.user.email }}</span>
+                
+                <div class="flex items-center gap-4">
+                    <!-- Bell Button / Dropdown -->
+                    <div class="relative" ref="notificationRef" @click.stop>
+                        <button 
+                            @click="toggleNotification" 
+                            class="relative p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition focus:outline-none"
+                            title="Notifikasi"
+                        >
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            <!-- Badge -->
+                            <span 
+                                v-if="userNotifications.length > 0" 
+                                class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
+                            ></span>
+                        </button>
+
+                        <!-- Simple Dropdown Menu -->
+                        <div 
+                            v-if="isNotificationDropdownOpen" 
+                            class="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden"
+                        >
+                            <div class="px-4 py-2 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                                <span class="text-xs font-semibold text-gray-700">Notifikasi Baru</span>
+                                <span class="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-bold">{{ userNotifications.length }} Baru</span>
+                            </div>
+                            
+                            <div class="max-h-60 overflow-y-auto divide-y divide-gray-100">
+                                <div v-if="userNotifications.length === 0" class="px-4 py-6 text-center text-xs text-gray-400">
+                                    Tidak ada notifikasi baru.
+                                </div>
+                                <div 
+                                    v-for="n in userNotifications" 
+                                    :key="n.id" 
+                                    class="p-3 hover:bg-gray-50 transition text-xs flex gap-2.5 items-start justify-between"
+                                >
+                                    <div class="space-y-0.5 min-w-0 flex-1">
+                                        <div class="font-bold text-gray-800 truncate">{{ n.title }}</div>
+                                        <div class="text-gray-600 leading-snug break-words">{{ n.message }}</div>
+                                        <div class="text-[9px] text-gray-400 font-semibold">{{ n.created_at }}</div>
+                                    </div>
+                                    <button 
+                                        @click="markAsRead(n.id)" 
+                                        class="text-[10px] text-blue-600 hover:text-blue-800 font-semibold shrink-0"
+                                        title="Tandai terbaca"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <span class="text-xs text-gray-400 hidden sm:inline">{{ auth.user.email }}</span>
+                </div>
             </header>
 
             <!-- Page Slot -->
             <main class="flex-1 p-6 overflow-auto">
                 <!-- Flash Alert Messages -->
-                <div v-if="$page.props.flash?.error" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800 flex items-start justify-between">
-                    <span>{{ $page.props.flash.error }}</span>
-                    <button @click="$page.props.flash.error = null" class="text-red-500 hover:text-red-700 font-semibold ml-2">✕</button>
+                <div v-if="flashError" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800 flex items-start justify-between">
+                    <span>{{ flashError }}</span>
+                    <button @click="flashError = ''" class="text-red-500 hover:text-red-700 font-semibold ml-2">✕</button>
                 </div>
-                <div v-if="$page.props.flash?.success" class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 flex items-start justify-between">
-                    <span>{{ $page.props.flash.success }}</span>
-                    <button @click="$page.props.flash.success = null" class="text-emerald-500 hover:text-emerald-700 font-semibold ml-2">✕</button>
+                <div v-if="flashSuccess" class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 flex items-start justify-between">
+                    <span>{{ flashSuccess }}</span>
+                    <button @click="flashSuccess = ''" class="text-emerald-500 hover:text-emerald-700 font-semibold ml-2">✕</button>
                 </div>
 
                 <slot />
