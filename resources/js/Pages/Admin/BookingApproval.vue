@@ -416,9 +416,21 @@ const layoutLabels = {
                                             {{ detailData?.booking?.nama_training ?? '—' }}
                                         </h2>
                                     </div>
-                                    <button @click="closeDetail" class="text-slate-400 hover:text-white transition-colors flex-shrink-0">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </button>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <!-- Tombol Download Excel Detail -->
+                                        <a v-if="detailData"
+                                           :href="`/admin/bookings/${detailData.booking.id}/export-detail`"
+                                           target="_blank"
+                                           class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm"
+                                           title="Download Excel daftar peserta & panitia"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                            Excel Peserta
+                                        </a>
+                                        <button @click="closeDetail" class="text-slate-400 hover:text-white transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -592,6 +604,7 @@ const layoutLabels = {
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama Lengkap</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Jabatan</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
                                                         <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">JK</th>
                                                     </tr>
                                                 </thead>
@@ -601,6 +614,7 @@ const layoutLabels = {
                                                         <td class="px-3 py-2 text-xs font-semibold text-gray-800">{{ p.nama }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600">{{ p.jabatan || '-' }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600">{{ p.site || '-' }}</td>
+                                                        <td class="px-3 py-2 text-xs text-gray-600 font-mono">{{ p.no_hp || '-' }}</td>
                                                         <td class="px-3 py-2 text-center">
                                                             <span class="text-xs font-bold"
                                                                   :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-600'">

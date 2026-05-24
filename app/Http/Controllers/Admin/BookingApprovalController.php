@@ -159,6 +159,7 @@ class BookingApprovalController extends Controller
                 'nama'    => $p->nama,
                 'jabatan' => $p->jabatan,
                 'site'    => $p->site,
+                'no_hp'   => $p->no_hp,
                 'gender'  => $p->gender,
             ]);
 
@@ -169,6 +170,8 @@ class BookingApprovalController extends Controller
                 'nama'    => $p->nama,
                 'jabatan' => $p->jabatan,
                 'site'    => $p->site,
+                'no_hp'   => $p->no_hp,
+                'gender'  => $p->gender,
             ]);
 
         $logs = $booking->logs
@@ -232,6 +235,157 @@ class BookingApprovalController extends Controller
             'total_peserta' => $peserta->count(),
             'total_panitia' => $panitia->count(),
         ]);
+    }
+
+    /**
+     * Ekspor detail 1 booking ke Excel:
+     * 1 baris = 1 peserta/panitia, field kosong = N/A
+     */
+    public function exportDetail(Booking $booking)
+    {
+        $booking->load(['ruangan', 'user', 'participants']);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Detail Peserta');
+
+        // ── Judul ──
+        $sheet->setCellValue('A1', 'DETAIL PESERTA & PANITIA - ' . strtoupper($booking->nama_training));
+        $sheet->mergeCells('A1:H1');
+        $sheet->getStyle('A1')->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 12, 'color' => ['argb' => 'FFFFFFFF']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF1E3A5F']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(28);
+
+        // ── Info Booking ──
+        $infos = [
+            ['Ruangan',     $booking->ruangan?->nama_ruang ?? 'Ruang Gabungan'],
+            ['Tanggal',     ($booking->tgl_mulai?->format('d M Y') ?? '-') . ' s/d ' . ($booking->tgl_selesai?->format('d M Y') ?? '-')],
+            ['PIC',         $booking->pic ?? '-'],
+            ['Pemohon',     $booking->user?->name . ' (' . ($booking->user?->divisi ?? '-') . ')'],
+            ['Diekspor',    now()->format('d M Y, H:i')],
+        ];
+        $infoRow = 2;
+        foreach ($infos as [$label, $value]) {
+            $sheet->setCellValue('A' . $infoRow, $label . ':');
+            $sheet->setCellValue('B' . $infoRow, $value);
+            $sheet->mergeCells('B' . $infoRow . ':H' . $infoRow);
+            $sheet->getStyle('A' . $infoRow)->getFont()->setBold(true);
+            $sheet->getStyle('A' . $infoRow . ':H' . $infoRow)->getFont()->setSize(9);
+            $infoRow++;
+        }
+
+        // ── Header Kolom ──
+        $headerRow = $infoRow + 1;
+        $headers = [
+            'A' => 'No.',
+            'B' => 'Tipe',
+            'C' => 'Nama Lengkap',
+            'D' => 'Jabatan',
+            'E' => 'Site',
+            'F' => 'No HP',
+            'G' => 'Gender',
+        ];
+        foreach ($headers as $col => $label) {
+            $sheet->setCellValue($col . $headerRow, $label);
+        }
+        $sheet->getStyle('A' . $headerRow . ':G' . $headerRow)->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF2563EB']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+        ]);
+        $sheet->getRowDimension($headerRow)->setRowHeight(20);
+
+        // ── Lebar Kolom ──
+        $sheet->getColumnDimension('A')->setWidth(5);
+        $sheet->getColumnDimension('B')->setWidth(12);
+        $sheet->getColumnDimension('C')->setWidth(30);
+        $sheet->getColumnDimension('D')->setWidth(22);
+        $sheet->getColumnDimension('E')->setWidth(18);
+        $sheet->getColumnDimension('F')->setWidth(18);
+        $sheet->getColumnDimension('G')->setWidth(10);
+
+        // ── Baris Data ──
+        $all = collect();
+        foreach ($booking->participants->where('tipe', 'peserta') as $p) {
+            $all->push(['tipe' => 'Peserta', 'data' => $p]);
+        }
+        foreach ($booking->participants->where('tipe', 'panitia') as $p) {
+            $all->push(['tipe' => 'Panitia', 'data' => $p]);
+        }
+
+        $dataRow = $headerRow + 1;
+        foreach ($all as $i => $item) {
+            $p    = $item['data'];
+            $tipe = $item['tipe'];
+            $isEven = ($dataRow % 2 === 0);
+
+            $sheet->setCellValue('A' . $dataRow, $i + 1);
+            $sheet->setCellValue('B' . $dataRow, $tipe);
+            $sheet->setCellValue('C' . $dataRow, $p->nama ?: 'N/A');
+            $sheet->setCellValue('D' . $dataRow, $p->jabatan ?: 'N/A');
+            $sheet->setCellValue('E' . $dataRow, $p->site ?: 'N/A');
+            $sheet->setCellValue('F' . $dataRow, $p->no_hp ?: 'N/A');
+            $sheet->setCellValue('G' . $dataRow, $p->gender ?: 'N/A');
+
+            // Zebra
+            if ($isEven) {
+                $sheet->getStyle('A' . $dataRow . ':G' . $dataRow)->applyFromArray([
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFF0F9FF']],
+                ]);
+            }
+
+            // Warna badge Tipe
+            if ($tipe === 'Panitia') {
+                $sheet->getStyle('B' . $dataRow)->applyFromArray([
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFEF3C7']],
+                    'font' => ['bold' => true, 'color' => ['argb' => 'FFD97706']],
+                ]);
+            } else {
+                $sheet->getStyle('B' . $dataRow)->applyFromArray([
+                    'font' => ['color' => ['argb' => 'FF1D4ED8']],
+                ]);
+            }
+
+            $sheet->getStyle('A' . $dataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('G' . $dataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            $dataRow++;
+        }
+
+        // ── Row Total ──
+        $sheet->setCellValue('A' . $dataRow, 'TOTAL');
+        $sheet->setCellValue('C' . $dataRow, $all->count() . ' orang');
+        $sheet->getStyle('A' . $dataRow . ':G' . $dataRow)->applyFromArray([
+            'font' => ['bold' => true],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFE2E8F0']],
+        ]);
+
+        // ── Border ──
+        if ($dataRow > $headerRow + 1) {
+            $sheet->getStyle('A' . $headerRow . ':G' . ($dataRow))->applyFromArray([
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color'       => ['argb' => 'FFE2E8F0'],
+                    ],
+                ],
+            ]);
+        }
+
+        // ── Output ──
+        $safeName = preg_replace('/[^A-Za-z0-9\-]/', '_', $booking->nama_training);
+        $filename  = 'Detail_Peserta_' . $safeName . '_' . now()->format('Ymd') . '.xlsx';
+        $writer    = new Xlsx($spreadsheet);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+        exit;
     }
 
     /**
