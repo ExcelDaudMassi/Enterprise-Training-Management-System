@@ -46,11 +46,7 @@ const panitiaCount = computed(() => panitiaList.value.length)
 const panitiaValid = computed(() =>
     panitiaList.value.every(p => 
         p.nama.trim() !== '' && 
-        p.jabatan.trim() !== '' && 
-        p.site.trim() !== '' && 
-        p.no_hp.trim() !== '' && 
-        /^[0-9+]+$/.test(p.no_hp.trim()) &&
-        (p.gender === 'L' || p.gender === 'P')
+        (p.no_hp.trim() === '' || /^[0-9+]+$/.test(p.no_hp.trim()))
     )
 )
 
@@ -781,10 +777,10 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         <tr>
                                             <th class="px-4 py-3 w-12 text-center">#</th>
                                             <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">Jabatan<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">Site<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">No. HP<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3 w-44 text-center">Gender<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3">Jabatan</th>
+                                            <th class="px-4 py-3">Site</th>
+                                            <th class="px-4 py-3">No. HP</th>
+                                            <th class="px-4 py-3 w-44 text-center">Gender</th>
                                             <th class="px-4 py-3 w-12 text-center"></th>
                                         </tr>
                                     </thead>
@@ -798,18 +794,16 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
-                                                    :class="p.jabatan.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.site" type="text" placeholder="Site..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
-                                                    :class="p.site.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.no_hp" type="text" placeholder="Contoh: 0812..."
                                                     class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
-                                                    :class="p.no_hp.trim() === '' || !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
+                                                    :class="p.no_hp.trim() !== '' && !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <select v-model="p.gender"
