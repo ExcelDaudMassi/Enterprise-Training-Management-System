@@ -13,7 +13,9 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $year = (int) $request->get('year', 2027);
+        $activeWindow  = \App\Models\BookingWindow::active()->latest('id')->first();
+        $defaultYear   = $activeWindow?->tahun ?? now()->year;
+        $year          = (int) $request->get('year', $defaultYear);
         $ruanganFilter = $request->get('ruangan_id');
 
         // Warna per ruangan (statis, konsisten di FE & BE)

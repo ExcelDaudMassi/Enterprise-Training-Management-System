@@ -21,23 +21,23 @@ class DashboardController extends Controller
 
         // ── 4 Stats Cards ──────────────────────────────────────────────
         $stats = [
-            // Kartu 1 – Menunggu approval
-            'pending_approval' => Booking::where('status', 'waiting_confirmation')->count(),
+            // Kartu 1 – Menunggu ACC Tahap 1
+            'pending_approval' => Booking::where('status', Booking::STATUS_WAITING_CONFIRMATION)->count(),
 
             // Kartu 2 – Confirmed bulan berjalan
-            'confirmed_this_month' => Booking::where('status', 'confirmed')
+            'confirmed_this_month' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINAL, 'final_confirmed'])
                 ->whereMonth('tgl_mulai', $today->month)
                 ->whereYear('tgl_mulai', $today->year)
                 ->count(),
 
-            // Kartu 3 – Urgent: waiting + mulai dalam ≤ 14 hari
-            'urgent_h14' => Booking::where('status', 'waiting_confirmation')
+            // Kartu 3 – H-14: confirmed & mulai dalam <= 14 hari (butuh ACC Final)
+            'urgent_h14' => Booking::where('status', Booking::STATUS_CONFIRMED)
                 ->where('tgl_mulai', '<=', $h14Cutoff)
                 ->where('tgl_mulai', '>=', $today)
                 ->count(),
 
-            // Kartu 4 – Ruangan terpakai hari ini (unique ruangan_id)
-            'rooms_today' => Booking::where('status', 'confirmed')
+            // Kartu 4 – Ruangan terpakai hari ini (confirmed, final, ATAU final_confirmed)
+            'rooms_today' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINAL, 'final_confirmed'])
                 ->where('tgl_mulai', '<=', $today)
                 ->where('tgl_selesai', '>=', $today)
                 ->whereNotNull('ruangan_id')
@@ -75,9 +75,9 @@ class DashboardController extends Controller
                 'filter'        => 'waiting_confirmation',
             ]);
 
-        // b) Urgent H-14 (waiting, tgl_mulai dalam 14 hari)
+        // b) Urgent H-14: confirmed, mulai dalam 14 hari (butuh ACC Final)
         $urgentBookings = Booking::with('user')
-            ->where('status', 'waiting_confirmation')
+            ->where('status', Booking::STATUS_CONFIRMED)
             ->where('tgl_mulai', '<=', $h14Cutoff)
             ->where('tgl_mulai', '>=', $today)
             ->orderBy('tgl_mulai', 'asc')
@@ -86,15 +86,31 @@ class DashboardController extends Controller
             ->map(fn($b) => [
                 'type'          => 'urgent',
                 'booking_id'    => $b->id,
-                'label'         => "Urgent H-14: {$b->nama_training}",
+                'label'         => "H-14 Perlu ACC Final: {$b->nama_training}",
                 'sub'           => "Mulai " . $b->tgl_mulai?->format('d M Y'),
                 'created_at'    => $b->created_at->diffForHumans(),
-                'filter'        => 'urgent',
+                'filter'        => 'h14',
             ]);
 
-        // c) Melewati deadline: waiting + tgl_mulai sudah lewat (overdue)
+        // c) Overdue ACC Tahap 2: confirmed, tgl_mulai sudah lewat, belum final
+        // d) Perlu Final Confirmation (ACC-2) (confirmed, tgl_mulai dalam 14 hari)
+        $needAcc2Bookings = Booking::with('user')
+            ->where('status', Booking::STATUS_CONFIRMED)
+            ->where('tgl_mulai', '<=', $h14Cutoff)
+            ->where('tgl_mulai', '>=', $today)
+            ->orderBy('tgl_mulai', 'asc')
+            ->take(5)
+            ->get()
+            ->map(fn($b) => [
+                'type'          => 'overdue', // Menjadikan alert merah
+                'booking_id'    => $b->id,
+                'label'         => "Lewat Batas ACC-2: {$b->nama_training}",
+                'sub'           => "Mulai " . $b->tgl_mulai?->format('d M Y'),
+                'created_at'    => $b->created_at->diffForHumans(),
+                'filter'        => 'confirmed', // Arahkan ke tab confirmed
+            ]);
         $overdueBookings = Booking::with('user')
-            ->where('status', 'waiting_confirmation')
+            ->where('status', Booking::STATUS_CONFIRMED)
             ->where('tgl_mulai', '<', $today)
             ->orderBy('tgl_mulai', 'asc')
             ->take(5)
@@ -102,16 +118,17 @@ class DashboardController extends Controller
             ->map(fn($b) => [
                 'type'          => 'overdue',
                 'booking_id'    => $b->id,
-                'label'         => "Lewat tenggat: {$b->nama_training}",
+                'label'         => "Lewat tenggat ACC: {$b->nama_training}",
                 'sub'           => "Seharusnya mulai " . $b->tgl_mulai?->format('d M Y'),
                 'created_at'    => $b->created_at->diffForHumans(),
                 'filter'        => 'overdue',
             ]);
 
-        // Gabung semua notifikasi, urutkan: overdue → urgent → new
+        // Gabung semua notifikasi, urutkan: overdue → urgent → needAcc2 → new
         $notifications = collect()
             ->merge($overdueBookings)
             ->merge($urgentBookings)
+            ->merge($needAcc2Bookings)
             ->merge($newBookings)
             ->unique('booking_id')
             ->values();

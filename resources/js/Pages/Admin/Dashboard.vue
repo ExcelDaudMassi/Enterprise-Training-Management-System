@@ -128,7 +128,18 @@ function getDateHighlightClass(year, month, day) {
     const dayBookings = getBookingsOnDate(year, month, day)
     if (dayBookings.length === 0) return ''
     
-    const bookedRoomIds = new Set(dayBookings.map(b => b.ruangan_id))
+    const bookedRoomIds = new Set()
+    dayBookings.forEach(b => {
+        if (b.gabung_ruang) {
+            const r2 = props.ruanganList.find(r => r.nama_ruang === 'Ruang 2')
+            const r3 = props.ruanganList.find(r => r.nama_ruang === 'Ruang 3')
+            if (r2) bookedRoomIds.add(r2.id)
+            if (r3) bookedRoomIds.add(r3.id)
+        } else {
+            bookedRoomIds.add(b.ruangan_id)
+        }
+    })
+    
     const totalRooms = props.ruanganList?.length || 0
     
     if (totalRooms > 0 && bookedRoomIds.size >= totalRooms) {
@@ -136,6 +147,38 @@ function getDateHighlightClass(year, month, day) {
     } else {
         return 'bg-amber-50 text-amber-800 font-semibold border border-amber-200'
     }
+}
+
+function getDotsForDate(year, month, day) {
+    const dayBookings = getBookingsOnDate(year, month, day)
+    const dots = []
+    dayBookings.forEach(b => {
+        if (b.gabung_ruang) {
+            const r2 = props.ruanganList.find(r => r.nama_ruang === 'Ruang 2')
+            const r3 = props.ruanganList.find(r => r.nama_ruang === 'Ruang 3')
+            
+            const r2Id = r2 ? r2.id : 2
+            const r3Id = r3 ? r3.id : 3
+            
+            dots.push({
+                id: `${b.id}-r2`,
+                bg: getRoomColor(r2Id).bg,
+                title: `${b.nama_training} – ${b.divisi} (Ruang 2)`
+            })
+            dots.push({
+                id: `${b.id}-r3`,
+                bg: getRoomColor(r3Id).bg,
+                title: `${b.nama_training} – ${b.divisi} (Ruang 3)`
+            })
+        } else {
+            dots.push({
+                id: b.id,
+                bg: getRoomColor(b.ruangan_id).bg,
+                title: `${b.nama_training} – ${b.divisi}`
+            })
+        }
+    })
+    return dots
 }
 function getMonthOriginClass(index) {
     let classes = ''
@@ -304,6 +347,14 @@ const filteredPeserta = computed(() => {
 
 const filteredPanitia = computed(() => {
     return selectedDetailBooking.value?.participants?.filter(p => p.tipe === 'panitia') || []
+})
+
+const sortedParticipants = computed(() => {
+    const list = selectedDetailBooking.value?.participants || []
+    return [...list].sort((a, b) => {
+        if (a.tipe === b.tipe) return 0
+        return a.tipe === 'peserta' ? -1 : 1
+    })
 })
 
 // ============================================================
@@ -557,11 +608,11 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 <!-- Titik warna booking -->
                                 <div class="flex gap-0.5 px-0.5 mt-0.5 justify-center transition-all duration-300 opacity-0 scale-75 max-h-0 overflow-hidden group-hover/month:opacity-100 group-hover/month:scale-100 group-hover/month:max-h-8">
                                     <span
-                                        v-for="b in getBookingsOnDate(selectedYear, monthIdx, day)"
-                                        :key="b.id"
+                                        v-for="dot in getDotsForDate(selectedYear, monthIdx, day)"
+                                        :key="dot.id"
                                         class="w-1 h-1 rounded-full"
-                                        :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"
-                                        :title="`${b.nama_training} – ${b.divisi}`"
+                                        :style="{ backgroundColor: dot.bg }"
+                                        :title="dot.title"
                                     ></span>
                                 </div>
                             </div>
@@ -633,7 +684,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <Teleport to="body">
             <div
                 v-if="modalOpen"
-                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
+                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
                 @click.self="closeModal"
             >
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-100 h-[85vh] min-h-[550px] transition-all">
@@ -793,110 +844,139 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <Teleport to="body">
             <div
                 v-if="detailModalOpen"
-                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
+                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4"
                 @click.self="closeDetailModal"
             >
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl overflow-hidden flex flex-col border border-gray-100 transition-all max-h-[90vh]">
-                    
-                    <!-- Header -->
-                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-100 h-[85vh] min-h-[550px]">
+
+                    <!-- ── Header (sama gaya dengan Gantt modal) ── -->
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
                         <div class="flex items-center gap-3">
-                            <span class="text-xl">ℹ️</span>
+                            <span class="text-xl">📋</span>
                             <div>
-                                <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">Detail Pemesanan Lengkap (Admin)</h4>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">
+                                        {{ selectedDetailBooking?.nama_training || 'Detail Pemesanan' }}
+                                    </h4>
+                                    <span
+                                        class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border"
+                                        :class="{
+                                            'bg-yellow-50 text-yellow-700 border-yellow-200': selectedDetailBooking?.status === 'waiting_confirmation',
+                                            'bg-emerald-50 text-emerald-700 border-emerald-200': selectedDetailBooking?.status === 'confirmed',
+                                            'bg-red-50 text-red-700 border-red-200': selectedDetailBooking?.status === 'cancelled',
+                                            'bg-amber-50 text-amber-700 border-amber-200': selectedDetailBooking?.status === 'plotting',
+                                        }"
+                                    >
+                                        {{ statusLabel(selectedDetailBooking?.status) }}
+                                    </span>
+                                    <span v-if="selectedDetailBooking?.gabung_ruang" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">🔗 Gabung Ruang</span>
+                                </div>
+                                <p class="text-[10px] text-gray-400 font-semibold mt-1.5 uppercase tracking-wider">
+                                    {{ formatDateRange(selectedDetailBooking?.tgl_mulai, selectedDetailBooking?.tgl_selesai) }}
+                                    &nbsp;·&nbsp; {{ selectedDetailBooking?.gabung_ruang ? 'Ruang Gabungan (2+3)' : (selectedDetailBooking?.nama_ruang || '-') }}
+                                </p>
                             </div>
                         </div>
                         <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer focus:outline-none">&times;</button>
                     </div>
 
-                    <!-- Body (Three Columns: Info, Roster Peserta, Roster Panitia) -->
-                    <div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto min-h-0">
-                        
-                        <!-- Kolom 1: Informasi Umum -->
-                        <div class="space-y-4 pr-0 lg:pr-6 border-r-0 lg:border-r border-gray-100 text-xs text-gray-700">
-                            <h5 class="text-[10px] font-black text-blue-900 uppercase tracking-wider mb-2">📋 Rincian Acara & Jadwal</h5>
-                            
-                            <div>
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Nama Acara / Training</span>
-                                <span class="font-bold text-gray-800 text-sm leading-snug block mt-0.5">{{ selectedDetailBooking?.nama_training }}</span>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Ruangan</span>
-                                    <div class="flex items-center gap-1.5 mt-0.5">
-                                        <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking?.ruangan_id).bg }"></span>
-                                        <span class="font-bold text-gray-800">{{ selectedDetailBooking?.nama_ruang }}</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Gabung Ruangan</span>
-                                    <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.gabung_ruang ? 'Ya (2 Ruangan)' : 'Tidak' }}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="border-t border-gray-100 pt-3">
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Tanggal Pelaksanaan</span>
-                                <span class="font-bold text-gray-800 block mt-0.5">{{ formatDateRange(selectedDetailBooking?.tgl_mulai, selectedDetailBooking?.tgl_selesai) }}</span>
-                            </div>
+                    <!-- ── Info Bar (ringkas seperti legend di Gantt) ── -->
+                    <div class="shrink-0 px-6 py-3 border-b border-gray-100 bg-gray-50/40 flex flex-wrap items-center gap-x-6 gap-y-1.5 text-[11px]">
+                        <div class="flex items-center gap-1.5 text-gray-600">
+                            <span class="font-semibold text-gray-400 uppercase tracking-wider text-[9.5px]">Pemohon:</span>
+                            <span class="font-bold text-gray-800">{{ selectedDetailBooking?.pemohon || '-' }}</span>
+                            <span class="text-gray-300">·</span>
+                            <span class="text-blue-600 font-semibold">{{ selectedDetailBooking?.divisi || '-' }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-gray-600">
+                            <span class="font-semibold text-gray-400 uppercase tracking-wider text-[9.5px]">PIC:</span>
+                            <span class="font-bold text-gray-800">{{ selectedDetailBooking?.pic || '-' }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-gray-600">
+                            <span class="font-semibold text-gray-400 uppercase tracking-wider text-[9.5px]">Layout:</span>
+                            <span class="font-bold text-gray-800 capitalize">{{ selectedDetailBooking?.layout_preferensi || '-' }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full" :class="selectedDetailBooking?.is_hybrid ? 'bg-purple-500' : 'bg-gray-300'"></span>
+                            <span class="text-gray-600">Hybrid</span>
+                            <span class="w-2 h-2 rounded-full ml-1" :class="selectedDetailBooking?.is_flipchart ? 'bg-orange-500' : 'bg-gray-300'"></span>
+                            <span class="text-gray-600">Flipchart</span>
+                        </div>
+                        <div class="ml-auto flex items-center gap-3 text-[10px] font-bold">
+                            <span class="text-emerald-700">Peserta: {{ filteredPeserta.length }}</span>
+                            <span class="text-gray-300">|</span>
+                            <span class="text-indigo-700">Panitia: {{ filteredPanitia.length }}</span>
+                            <span class="text-gray-300">|</span>
+                            <span class="text-gray-600">Total: {{ filteredPeserta.length + filteredPanitia.length }}</span>
+                        </div>
+                    </div>
 
-                            <div class="border-t border-gray-100 pt-3">
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Waktu Pembuatan Booking (Created At)</span>
-                                <span class="font-bold text-gray-800 block mt-0.5">{{ formatIndoDateTime(selectedDetailBooking?.created_at) }}</span>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Pemohon</span>
-                                    <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pemohon }}</span>
-                                    <span class="text-[9px] text-gray-400 block mt-0.5">Divisi: {{ selectedDetailBooking?.divisi }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">PIC Acara</span>
-                                    <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pic || '-' }}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Jenis Pemesanan</span>
-                                    <span class="font-bold text-gray-800 block mt-0.5 capitalize">{{ selectedDetailBooking?.fase }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Status Booking</span>
-                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase mt-1 tracking-wider" :class="STATUS_STYLE[selectedDetailBooking?.status] || 'bg-gray-150 text-gray-700'">
-                                        {{ statusLabel(selectedDetailBooking?.status) }}
-                                    </span>
-                                </div>
-                            </div>
+                    <!-- ── Body: Tabel Roster ── -->
+                    <div class="flex-1 overflow-hidden flex flex-col min-h-0 bg-gray-50/20 p-5">
+
+                        <!-- Judul tabel + link denah -->
+                        <div class="flex items-center justify-between mb-3 shrink-0">
+                            <div class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest">👥 Roster Acara</div>
+                            <a v-if="selectedDetailBooking?.layout_url"
+                               :href="selectedDetailBooking.layout_url" target="_blank"
+                               class="inline-flex items-center gap-1 text-[11px] text-purple-700 hover:text-purple-900 font-semibold hover:underline">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                Lihat File Denah Kustom
+                            </a>
                         </div>
 
-                        <!-- Kolom 2: Roster Peserta -->
-                        <div class="space-y-3 flex flex-col min-w-0 pr-0 lg:pr-6 border-r-0 lg:border-r border-gray-100">
-                            <div class="flex items-center justify-between">
-                                <h5 class="text-[10px] font-black text-emerald-905 uppercase tracking-wider">👥 Roster Peserta ({{ filteredPeserta.length }} Orang)</h5>
-                            </div>
-                            
-                            <div class="flex-1 overflow-y-auto border border-gray-100 rounded-lg max-h-[40vh] lg:max-h-[none]">
+                        <!-- Tabel Roster (full width, scrollable) -->
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden flex flex-col flex-1 min-h-0">
+                            <div class="overflow-y-auto flex-1">
                                 <table class="min-w-full divide-y divide-gray-100 text-xs">
-                                    <thead class="bg-gray-50 sticky top-0">
+                                    <thead class="bg-white sticky top-0 z-10 border-b border-gray-100">
                                         <tr>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider text-[9px]">Nama</th>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider text-[9px]">Jabatan / Site</th>
+                                            <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider w-8">#</th>
+                                            <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider">Nama</th>
+                                            <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-20">Peran</th>
+                                            <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-24">NRP</th>
+                                            <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider">Jabatan / Site</th>
+                                            <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-10">JK</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="bg-white divide-y divide-gray-100 text-gray-700">
-                                        <tr v-if="filteredPeserta.length === 0">
-                                            <td colspan="2" class="px-3 py-6 text-center text-gray-400 text-[11px] italic">Tidak ada data peserta.</td>
+                                    <tbody class="bg-white divide-y divide-gray-50">
+                                        <tr v-if="!selectedDetailBooking?.participants || selectedDetailBooking.participants.length === 0">
+                                            <td colspan="6" class="px-4 py-12 text-center text-gray-400 text-[11px] italic">Tidak ada data anggota roster.</td>
                                         </tr>
-                                        <tr v-for="(p, idx) in filteredPeserta" :key="idx" class="hover:bg-gray-50">
-                                            <td class="px-3 py-2">
-                                                <div class="font-bold text-gray-800">{{ p.nama }}</div>
-                                                <div class="text-[9px] text-gray-400 font-semibold">{{ p.gender === 'L' ? 'Laki-laki' : p.gender === 'P' ? 'Perempuan' : '-' }}</div>
+                                        <tr v-for="(p, idx) in sortedParticipants" :key="idx" class="hover:bg-gray-50/60 transition-colors">
+                                            <td class="px-4 py-2.5 text-[10px] text-gray-400 font-medium">{{ idx + 1 }}</td>
+                                            <td class="px-4 py-2.5">
+                                                <div class="font-bold text-gray-800 text-xs">{{ p.nama }}</div>
                                             </td>
-                                            <td class="px-3 py-2">
-                                                <div class="font-semibold text-gray-600">{{ p.jabatan || '-' }}</div>
-                                                <div class="text-[9px] text-gray-400">{{ p.site || '-' }}</div>
+                                            <td class="px-4 py-2.5 text-center select-none">
+                                                <span v-if="p.tipe === 'panitia'" class="inline-flex items-center bg-indigo-50 text-indigo-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-indigo-100">
+                                                    Panitia
+                                                </span>
+                                                <span v-else class="inline-flex items-center bg-emerald-50 text-emerald-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-100">
+                                                    Peserta
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-0.5 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded text-[9px] text-gray-400 font-mono">
+                                                    N/A
+                                                    <span class="bg-gray-200/60 text-gray-500 font-normal px-0.5 rounded text-[7px] uppercase tracking-wider font-sans select-none">Eks</span>
+                                                </span>
+                                                <span v-else class="inline-flex bg-blue-50 text-blue-700 text-[10px] font-extrabold font-mono px-1.5 py-0.5 rounded border border-blue-100">
+                                                    {{ p.nrp }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <div class="font-semibold text-gray-600 text-[11px]">{{ p.jabatan || '-' }}</div>
+                                                <div class="text-[9px] text-gray-400 mt-0.5 flex flex-wrap items-center gap-1">
+                                                    <span>📍 {{ p.site || '-' }}</span>
+                                                    <span v-if="p.no_hp" class="text-gray-300 font-light">|</span>
+                                                    <span v-if="p.no_hp" class="font-mono text-[8.5px] text-gray-500">📞 {{ p.no_hp }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <span class="text-xs font-black" :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-500'">
+                                                    {{ p.gender || '-' }}
+                                                </span>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -904,49 +984,36 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             </div>
                         </div>
 
-                        <!-- Kolom 3: Roster Panitia -->
-                        <div class="space-y-3 flex flex-col min-w-0">
-                            <div class="flex items-center justify-between">
-                                <h5 class="text-[10px] font-black text-indigo-905 uppercase tracking-wider">💼 Roster Panitia ({{ filteredPanitia.length }} Orang)</h5>
-                            </div>
-                            
-                            <div class="flex-1 overflow-y-auto border border-gray-100 rounded-lg max-h-[40vh] lg:max-h-[none]">
-                                <table class="min-w-full divide-y divide-gray-100 text-xs">
-                                    <thead class="bg-gray-50 sticky top-0">
-                                        <tr>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider text-[9px]">Nama</th>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider text-[9px]">Jabatan / Site</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-100 text-gray-700">
-                                        <tr v-if="filteredPanitia.length === 0">
-                                            <td colspan="2" class="px-3 py-6 text-center text-gray-400 text-[11px] italic">Tidak ada data panitia.</td>
-                                        </tr>
-                                        <tr v-for="(p, idx) in filteredPanitia" :key="idx" class="hover:bg-gray-50">
-                                            <td class="px-3 py-2">
-                                                <div class="font-bold text-gray-800">{{ p.nama }}</div>
-                                                <div class="text-[9px] text-gray-400 font-semibold">{{ p.gender === 'L' ? 'Laki-laki' : p.gender === 'P' ? 'Perempuan' : '-' }}</div>
-                                            </td>
-                                            <td class="px-3 py-2">
-                                                <div class="font-semibold text-gray-600">{{ p.jabatan || '-' }}</div>
-                                                <div class="text-[9px] text-gray-400">{{ p.site || '-' }}</div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                        <!-- Catatan Admin (jika ada) -->
+                        <div v-if="selectedDetailBooking?.catatan_admin" class="mt-3 bg-red-50 rounded-xl p-3.5 border border-red-100 shrink-0">
+                            <h6 class="text-[9.5px] font-black text-red-600 uppercase tracking-widest mb-1.5">📝 Catatan Admin</h6>
+                            <p class="text-xs text-gray-700 leading-relaxed">{{ selectedDetailBooking.catatan_admin }}</p>
                         </div>
 
                     </div>
 
-                    <!-- Footer -->
-                    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
-                        <button 
-                            @click="closeDetailModal" 
-                            class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
-                        >
-                            Tutup
-                        </button>
+                    <!-- ── Footer ── -->
+                    <div class="shrink-0 px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                        <p class="text-[10px] text-gray-400">
+                            📅 Diajukan: {{ formatIndoDateTime(selectedDetailBooking?.created_at) }}
+                        </p>
+                        <div class="flex items-center gap-2">
+                            <a v-if="selectedDetailBooking"
+                               :href="`/admin/bookings/${selectedDetailBooking.id}/export-detail`"
+                               target="_blank"
+                               class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold px-3 py-2 rounded-lg transition shadow-sm cursor-pointer"
+                               title="Unduh Excel daftar peserta & panitia"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                Ekspor Excel
+                            </a>
+                            <button
+                                @click="closeDetailModal"
+                                class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
+                            >
+                                Tutup
+                            </button>
+                        </div>
                     </div>
 
                 </div>

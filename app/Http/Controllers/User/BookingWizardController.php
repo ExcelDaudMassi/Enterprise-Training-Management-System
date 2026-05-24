@@ -28,19 +28,19 @@ class BookingWizardController extends Controller
         return Inertia::render('User/BookingWizard');
     }
 
-    /**
-     * Membuat dan mengunduh berkas template Excel asli (.xlsx) secara dinamis.
-     */
     public function downloadTemplate()
     {
-        $filePath = base_path('template_peserta_baru_kosong.xlsx');
+        $filePath = base_path('template_peserta_nrp_kosong.xlsx');
 
         if (!file_exists($filePath)) {
             abort(404, 'File template fisik tidak ditemukan di sistem.');
         }
 
-        return response()->download($filePath, 'template_peserta_baru_kosong.xlsx', [
+        return response()->download($filePath, 'template_peserta_nrp_kosong.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ]);
     }
 
@@ -75,49 +75,76 @@ class BookingWizardController extends Controller
 
         $dataPeserta   = [];
         $jumlahPeserta = 0;
+        $trackedNrps   = []; // Tracker duplikasi NRP di memori
 
         // 3. Perulangan per baris dimulai dari baris ke-5 (karena baris 1-4 adalah header & info)
         for ($row = 5; $row <= $highestRow; $row++) {
-            // 4. Baca per kolom menggunakan koordinat huruf (A, B, C, D) dan pastikan di-cast menjadi string
+            // 4. Baca per kolom menggunakan koordinat huruf (A, B, C, D, E, F) dan pastikan di-cast menjadi string
             $nama         = trim((string) $sheet->getCell("A" . $row)->getValue());
-            $jabatan      = trim((string) $sheet->getCell("B" . $row)->getValue());
-            $site         = trim((string) $sheet->getCell("C" . $row)->getValue());
-            $jenisKelamin = trim((string) $sheet->getCell("D" . $row)->getValue());
+            $nrp          = trim((string) $sheet->getCell("B" . $row)->getValue());
+            $jabatan      = trim((string) $sheet->getCell("C" . $row)->getValue());
+            $site         = trim((string) $sheet->getCell("D" . $row)->getValue());
+            $noHp         = trim((string) $sheet->getCell("E" . $row)->getValue());
+            $jenisKelamin = trim((string) $sheet->getCell("F" . $row)->getValue());
 
             // Abaikan jika barisnya benar-benar kosong
-            if (empty($nama) && empty($jabatan) && empty($site) && empty($jenisKelamin)) {
+            if (empty($nama) && empty($nrp) && empty($jabatan) && empty($site) && empty($noHp) && empty($jenisKelamin)) {
                 continue;
             }
 
-            // 5. Validasi data Wajib (Kolom A, B, C)
+            // 5. Validasi data Wajib (Kolom A, B, C, D)
             if (empty($nama)) {
                 return response()->json([
                     'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Nama Lengkap (A) wajib diisi!",
                 ], 422);
             }
+            if (empty($nrp)) {
+                return response()->json([
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom NRP (B) wajib diisi, ketik 'N/A' jika tidak ada!",
+                ], 422);
+            }
             if (empty($jabatan)) {
                 return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jabatan (B) wajib diisi!",
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jabatan (C) wajib diisi!",
                 ], 422);
             }
             if (empty($site)) {
                 return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Site (C) wajib diisi!",
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Site (D) wajib diisi!",
+                ], 422);
+            }
+            
+            // Validasi Nomor HP (Kolom E) - Wajib berisi angka
+            if (empty($noHp) || !preg_match('/^[0-9+]+$/', $noHp)) {
+                return response()->json([
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom No. HP (E) wajib diisi dan minimal berisi angka!",
                 ], 422);
             }
 
-            // Validasi Jenis Kelamin (Kolom D)
+            // Validasi Jenis Kelamin (Kolom F)
             $jk = strtoupper(trim($jenisKelamin));
             if ($jk !== 'L' && $jk !== 'P') {
                 return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jenis Kelamin (D) harus berisi L atau P!",
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jenis Kelamin (F) harus berisi L atau P!",
                 ], 422);
+            }
+
+            // Validasi duplikasi NRP (Jika NRP bukan "N/A")
+            if (strtoupper($nrp) !== 'N/A') {
+                if (in_array($nrp, $trackedNrps)) {
+                    return response()->json([
+                        'error' => "Pemberitahuan: Baris ke-{$row} Gagal. NRP '{$nrp}' terdeteksi ganda dalam file Excel!",
+                    ], 422);
+                }
+                $trackedNrps[] = $nrp;
             }
 
             $dataPeserta[] = [
                 'nama'    => $nama,
+                'nrp'     => $nrp,
                 'jabatan' => $jabatan,
                 'site'    => $site,
+                'no_hp'   => $noHp,
                 'gender'  => $jk,
             ];
 
@@ -285,6 +312,13 @@ class BookingWizardController extends Controller
             $ruang2 = Ruangan::where('nama_ruang', 'Ruang 2')->first();
             $ruang3 = Ruangan::where('nama_ruang', 'Ruang 3')->first();
 
+            if (!$ruang2 || !$ruang3) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Konfigurasi ruang gabungan tidak ditemukan. Hubungi Admin untuk menyiapkan Ruang 2 dan Ruang 3.',
+                ], 500);
+            }
+
             $r2Conflict = $this->hasConflict($ruang2->id, $startDate, $endDate);
             $r3Conflict = $this->hasConflict($ruang3->id, $startDate, $endDate);
 
@@ -438,8 +472,10 @@ class BookingWizardController extends Controller
                     'booking_id' => $booking->id,
                     'tipe'       => 'peserta',
                     'nama'       => $p['nama'],
+                    'nrp'        => $p['nrp'] ?? 'N/A',
                     'jabatan'    => $p['jabatan'] ?? null,
                     'site'       => $p['site'] ?? null,
+                    'no_hp'      => $p['no_hp'] ?? null,
                     'gender'     => $p['gender'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -451,9 +487,11 @@ class BookingWizardController extends Controller
                     'booking_id' => $booking->id,
                     'tipe'       => 'panitia',
                     'nama'       => $p['nama'],
+                    'nrp'        => $p['nrp'] ?? 'N/A',
                     'jabatan'    => $p['jabatan'] ?? null,
                     'site'       => $p['site'] ?? null,
-                    'gender'     => null,
+                    'no_hp'      => $p['no_hp'] ?? null,
+                    'gender'     => $p['gender'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -486,8 +524,10 @@ class BookingWizardController extends Controller
     // ============================================================
     private function hasConflict(int $roomId, string $startDate, string $endDate): bool
     {
+        // Hanya 'cancelled' yang tidak mengunci ruangan.
+        // 'waiting_confirmation', 'confirmed', dan 'final' semuanya mengunci ruangan.
         return Booking::where('ruangan_id', $roomId)
-            ->whereNotIn('status', ['cancelled'])
+            ->whereNotIn('status', [Booking::STATUS_CANCELLED])
             ->where('tgl_mulai', '<=', $endDate)
             ->where('tgl_selesai', '>=', $startDate)
             ->exists();

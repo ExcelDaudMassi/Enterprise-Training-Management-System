@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { Link } from '@inertiajs/vue3'
 import UserLayout from '@/Layouts/UserLayout.vue'
 import axios from 'axios'
 
@@ -12,7 +13,7 @@ const currentStage = ref(1)
 
 // Stage 1 (Excel Upload & Kapasitas)
 const participants        = ref([
-    { nama: '', jabatan: '', site: '', gender: 'L' }
+    { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
 ])
 const isManualInput       = ref(true)
 const uploadedFileName    = ref('Input Manual')
@@ -27,11 +28,11 @@ const stage1Error         = ref('')
 
 // Roster Panitia (array interaktif)
 const panitiaList = ref([
-    { nama: '', divisi: '', jabatan: '', site: '' }
+    { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
 ])
 
 function addPanitia() {
-    panitiaList.value.push({ nama: '', divisi: '', jabatan: '', site: '' })
+    panitiaList.value.push({ nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' })
 }
 
 function removePanitia(index) {
@@ -43,7 +44,11 @@ function removePanitia(index) {
 const panitiaCount = computed(() => panitiaList.value.length)
 
 const panitiaValid = computed(() =>
-    panitiaList.value.every(p => p.nama.trim() !== '')
+    panitiaList.value.every(p => 
+        p.nama.trim() !== '' && 
+        p.nrp.trim() !== '' &&
+        (p.no_hp.trim() === '' || /^[0-9+]+$/.test(p.no_hp.trim()))
+    )
 )
 
 // Stage 2 (Kalender)
@@ -84,6 +89,7 @@ const isSubmitting = ref(false)
 const submitError = ref('')
 const submitSuccess = ref(false)
 const bookingId = ref(null)
+const termsAccepted = ref(false)
 
 // ============================================================
 // COMPUTED
@@ -98,8 +104,11 @@ const participantsValid = computed(() =>
     participants.value.length > 0 &&
     participants.value.every(p => 
         p.nama.trim() !== '' && 
+        p.nrp.trim() !== '' &&
         p.jabatan.trim() !== '' && 
         p.site.trim() !== '' && 
+        p.no_hp.trim() !== '' && 
+        /^[0-9+]+$/.test(p.no_hp.trim()) &&
         (p.gender === 'L' || p.gender === 'P')
     )
 )
@@ -164,13 +173,13 @@ function startManualInput() {
     isManualInput.value    = true
     uploadedFileName.value = 'Input Manual'
     participants.value     = [
-        { nama: '', jabatan: '', site: '', gender: 'L' }
+        { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
     ]
     stage1Error.value      = ''
 }
 
 function addParticipant() {
-    participants.value.push({ nama: '', jabatan: '', site: '', gender: 'L' })
+    participants.value.push({ nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' })
 }
 
 function removeParticipant(index) {
@@ -183,7 +192,7 @@ function removeParticipant(index) {
 
 function resetExcel() {
     participants.value        = [
-        { nama: '', jabatan: '', site: '', gender: 'L' }
+        { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
     ]
     uploadedFileName.value    = 'Input Manual'
     excelSuccessMessage.value = ''
@@ -370,7 +379,9 @@ function validateRange() {
 
     while (current <= end) {
         const dateStr = current.toISOString().split('T')[0]
-        if (blockedDates.value[dateStr] === 'full') {
+        // blockedDates[dateStr] adalah object { status, occupied_rooms }, bukan string
+        const entry = blockedDates.value[dateStr]
+        if (entry?.status === 'full') {
             rangeError.value = 'Rentang tanggal yang Anda pilih mengandung hari yang sudah penuh. Silakan pilih rentang lain.'
             return false
         }
@@ -505,8 +516,47 @@ async function submitFinal() {
 // ============================================================
 // NAVIGATION
 // ============================================================
-function backToStage1() { currentStage.value = 1 }
-function backToStage2() { currentStage.value = 2 }
+function backToStage1() {
+    currentStage.value   = 1
+    // Reset semua state downstream (stage 2, 3, 4)
+    blockedDates.value   = {}
+    startDate.value      = null
+    endDate.value        = null
+    rangeError.value     = ''
+    availableRooms.value = []
+    selectedRoom.value   = null
+    stage3Error.value    = ''
+    formStage4.value     = {
+        nama_training: '',
+        nama_pic: '',
+        layout_preferensi: 'classroom',
+        layout_custom_file: null,
+        hybrid: false,
+        flipchart: false,
+        catatan: ''
+    }
+    uploadedCustomFileName.value = ''
+    stage4Error.value            = ''
+}
+
+function backToStage2() {
+    currentStage.value   = 2
+    // Reset state stage 3 dan 4
+    availableRooms.value = []
+    selectedRoom.value   = null
+    stage3Error.value    = ''
+    formStage4.value     = {
+        nama_training: '',
+        nama_pic: '',
+        layout_preferensi: 'classroom',
+        layout_custom_file: null,
+        hybrid: false,
+        flipchart: false,
+        catatan: ''
+    }
+    uploadedCustomFileName.value = ''
+    stage4Error.value            = ''
+}
 
 function formatDate(dateStr) {
     if (!dateStr) return '-'
@@ -591,7 +641,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         class="bg-emerald-650 hover:bg-emerald-705 text-white text-xs font-black py-2 px-3.5 rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-3xs select-none">
                                         <span>📂 {{ isUploadingExcel ? 'Memproses...' : 'Impor dari Excel' }}</span>
                                     </label>
-                                    <a href="/user/booking/download-template"
+                                    <a :href="`/user/booking/download-template?v=${Date.now()}`"
                                         class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-[10px] font-extrabold py-2 px-3 rounded-xl transition inline-flex items-center gap-1.5 shadow-3xs select-none">
                                         📥 Template Excel
                                     </a>
@@ -653,8 +703,10 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         <tr>
                                             <th class="px-4 py-3 w-12 text-center">#</th>
                                             <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3">NRP<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3">Jabatan<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3">Site<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3">No. HP<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3 w-44 text-center">Gender<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3 w-12 text-center"></th>
                                         </tr>
@@ -668,6 +720,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                                     :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
+                                                <input v-model="p.nrp" type="text" placeholder="Ketik NRP atau 'N/A'..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.nrp.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
                                                 <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
                                                     class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.jabatan.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
@@ -676,6 +733,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                                 <input v-model="p.site" type="text" placeholder="Site..."
                                                     class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.site.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.no_hp" type="text" placeholder="Contoh: 0812..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.no_hp.trim() === '' || !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <select v-model="p.gender"
@@ -723,9 +785,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         <tr>
                                             <th class="px-4 py-3 w-12 text-center">#</th>
                                             <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">Divisi</th>
+                                            <th class="px-4 py-3">NRP<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3">Jabatan</th>
                                             <th class="px-4 py-3">Site</th>
+                                            <th class="px-4 py-3">No. HP</th>
+                                            <th class="px-4 py-3 w-44 text-center">Gender</th>
                                             <th class="px-4 py-3 w-12 text-center"></th>
                                         </tr>
                                     </thead>
@@ -738,8 +802,9 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                                     :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
-                                                <input v-model="p.divisi" type="text" placeholder="Divisi..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                                <input v-model="p.nrp" type="text" placeholder="Ketik NRP atau 'N/A'..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.nrp.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
@@ -748,6 +813,18 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.site" type="text" placeholder="Site..."
                                                     class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.no_hp" type="text" placeholder="Contoh: 0812..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.no_hp.trim() !== '' && !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <select v-model="p.gender"
+                                                    class="text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white min-w-[120px] select-gender appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.65em_auto] bg-[right_0.75rem_center] bg-no-repeat">
+                                                    <option value="L">♂ Laki-laki</option>
+                                                    <option value="P">♀ Perempuan</option>
+                                                </select>
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <button @click="removePanitia(i)" :disabled="panitiaList.length === 1"
@@ -761,8 +838,8 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                             
                             <!-- Footer hint validasi panitia -->
                             <div class="bg-gray-50 border-t border-gray-200 px-4 py-2.5 flex items-center gap-2 shrink-0">
-                                <span class="text-[10px] text-gray-500 font-semibold">Kolom <strong>Nama*</strong> wajib diisi semua baris.</span>
-                                <span v-if="!panitiaValid" class="text-[10px] text-red-500 font-extrabold ml-auto">⚠️ Ada nama yang belum diisi</span>
+                                <span class="text-[10px] text-gray-500 font-semibold">Kolom <strong>Nama*</strong> dan <strong>NRP*</strong> wajib diisi semua baris (NRP boleh diisi "N/A").</span>
+                                <span v-if="!panitiaValid" class="text-[10px] text-red-500 font-extrabold ml-auto">⚠️ Ada nama atau NRP yang belum diisi</span>
                                 <span v-else class="text-[10px] text-green-600 font-extrabold ml-auto">✓ Roster panitia valid</span>
                             </div>
                         </div>
@@ -773,39 +850,67 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
 
             <!-- ======================================================= -->
             <!-- STAGE 2: Kalender Ketersediaan -->
-            <!-- ======================================================= -->
-            <div v-if="currentStage === 2" class="space-y-4">
-                <div class="bg-white rounded-lg shadow p-4 flex flex-wrap items-center gap-4 justify-between">
-                    <div class="text-sm text-gray-600">
-                        <span class="font-semibold text-gray-800">Kapasitas: {{ totalOrang }} orang</span>
-                        <span class="mx-2 text-gray-300">|</span>
-                        <span>{{ eligibleRooms.length }} opsi ruangan</span>
-                        <span class="mx-2 text-gray-300">|</span>
-                        <span>Tahun {{ activeYear }}</span>
+                    <div v-if="currentStage === 2" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 space-y-6">
+                <div>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 2: Kalender Ketersediaan</h2>
+                    <p class="text-xs text-gray-500 mb-4">Pilih rentang tanggal mulai dan selesai pada kalender di bawah untuk melihat ketersediaan ruangan.</p>
+                </div>
+
+                <!-- Top bar Stage 2: status + info + aksi -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4">
+                    <!-- Left side: Capacity indicator & Date Selection status -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold">👤</span>
+                            <span class="text-xs font-bold text-gray-700">Kapasitas:</span>
+                            <span class="text-xs text-blue-600 font-extrabold">{{ totalOrang }} Orang</span>
+                            <span class="text-gray-300">|</span>
+                            <span class="text-xs text-gray-500 font-semibold">{{ eligibleRooms.length }} Opsi Ruangan</span>
+                        </div>
+
+                        <!-- Date selection status -->
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-2.5 h-2.5 rounded-full" :class="isRangeSelected ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'"></span>
+                            <span class="text-xs text-gray-700 font-semibold">
+                                <template v-if="!startDate">Pilih tanggal mulai di kalender</template>
+                                <template v-else-if="!endDate">Mulai: <strong class="text-blue-600">{{ formatDate(startDate) }}</strong> → Pilih tanggal selesai</template>
+                                <template v-else>Rentang: <strong class="text-green-600">{{ formatDate(startDate) }}</strong> s/d <strong class="text-green-600">{{ formatDate(endDate) }}</strong></template>
+                            </span>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-3 text-xs">
-                        <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-400 inline-block"></span> Tersedia</div>
-                        <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> Sebagian terisi</div>
-                        <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span> Penuh</div>
-                        <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span> Dipilih</div>
+
+                    <!-- Right side: Actions -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Legend -->
+                        <div class="hidden md:flex items-center gap-2.5 text-[10px] text-gray-400 mr-2 font-medium">
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> Tersedia</div>
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span> Parsial</div>
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span> Penuh</div>
+                        </div>
+
+                        <div v-if="rangeError" class="text-xs text-red-650 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                            ⚠️ {{ rangeError }}
+                        </div>
+                        <div v-if="stage3Error" class="text-xs text-red-650 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                            ⚠️ {{ stage3Error }}
+                        </div>
+
+                        <button @click="backToStage1"
+                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-xs font-black py-2.5 px-4 rounded-xl transition shadow-3xs">
+                            ← Kembali
+                        </button>
+                        <button @click="proceedToStage3" :disabled="!isRangeSelected || isLoadingRooms"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs">
+                            {{ isLoadingRooms ? '⏳ Memproses...' : 'Pilih Ruangan →' }}
+                        </button>
                     </div>
                 </div>
 
-                <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-700">
-                    <template v-if="!startDate">Klik <strong>tanggal mulai</strong> pada kalender.</template>
-                    <template v-else-if="!endDate">Tanggal mulai: <strong>{{ formatDate(startDate) }}</strong>. Sekarang klik <strong>tanggal selesai</strong>.</template>
-                    <template v-else>Rentang dipilih: <strong>{{ formatDate(startDate) }}</strong> s/d <strong>{{ formatDate(endDate) }}</strong></template>
-                </div>
-
-                <div v-if="rangeError" class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-                    ⚠️ {{ rangeError }}
-                </div>
-
-                <div v-if="isLoadingCalendar" class="bg-white rounded-lg shadow p-10 text-center text-gray-400 text-sm">
+                <div v-if="isLoadingCalendar" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-10 text-center text-gray-400 text-sm">
                     Memuat data ketersediaan kalender...
                 </div>
 
-                <div v-else class="bg-white rounded-lg shadow p-4">
+                <div v-else class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6">
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         <div v-for="(monthName, monthIdx) in MONTH_NAMES" :key="monthIdx"
                             class="group/month relative border border-gray-100 rounded-lg p-2 bg-white transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:z-[60] hover:border-blue-200"
@@ -836,42 +941,59 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                         </div>
                     </div>
                 </div>
-
-                <div class="flex justify-between pt-1">
-                    <button @click="backToStage1"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-5 rounded text-sm transition">
-                        ← Kembali
-                    </button>
-                    <button @click="proceedToStage3" :disabled="!isRangeSelected || isLoadingRooms"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded text-sm transition disabled:opacity-40 disabled:cursor-not-allowed">
-                        {{ isLoadingRooms ? 'Memuat...' : 'Pilih Ruangan →' }}
-                    </button>
-                </div>
-                <div v-if="stage3Error" class="text-red-600 text-sm text-right">{{ stage3Error }}</div>
             </div>
 
             <!-- ======================================================= -->
             <!-- STAGE 3: Pilih Ruangan -->
             <!-- ======================================================= -->
-            <div v-if="currentStage === 3" class="space-y-4">
-                <div class="bg-white rounded-lg shadow p-4">
-                    <div class="flex flex-wrap items-center gap-4 justify-between">
-                        <div class="text-sm text-gray-600">
-                            <span class="font-semibold text-gray-800">Rentang Tanggal:</span>
-                            {{ formatDate(startDate) }} s/d {{ formatDate(endDate) }}
-                            <span class="mx-2 text-gray-300">|</span>
-                            <span class="font-semibold text-gray-800">Kapasitas:</span> {{ totalOrang }} orang
+            <div v-if="currentStage === 3" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 space-y-6">
+                <div>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 3: Opsi Ruangan</h2>
+                    <p class="text-xs text-gray-500 mb-4">Pilih salah satu opsi ruangan yang tersedia untuk kapasitas peserta dan rentang tanggal yang telah Anda tentukan.</p>
+                </div>
+
+                <!-- Top bar Stage 3: status + info + aksi -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4">
+                    <!-- Left side: Range & Selected Room indicator -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold">📅</span>
+                            <span class="text-xs font-bold text-gray-700">Tanggal:</span>
+                            <span class="text-xs text-gray-600 font-semibold">{{ formatDate(startDate) }} s/d {{ formatDate(endDate) }}</span>
                         </div>
-                        <div class="flex items-center gap-3 text-xs">
+
+                        <!-- Room choice status -->
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-2.5 h-2.5 rounded-full" :class="isRoomSelected ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'"></span>
+                            <span class="text-xs font-bold text-gray-755">Ruangan:</span>
+                            <span class="text-xs font-semibold" :class="isRoomSelected ? 'text-green-600 font-bold' : 'text-gray-400'">
+                                {{ isRoomSelected ? selectedRoom.nama_ruang : 'Pilih salah satu ruangan di bawah' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right side: Actions -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Legend -->
+                        <div class="hidden md:flex items-center gap-3 text-[10px] text-gray-400 mr-2 font-medium">
                             <div class="flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded border-2 border-blue-600 inline-block"></span>
+                                <span class="w-2.5 h-2.5 rounded border-2 border-blue-600 inline-block"></span>
                                 <span>Tersedia & Terpilih</span>
                             </div>
                             <div class="flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded bg-gray-200 inline-block"></span>
+                                <span class="w-2.5 h-2.5 rounded bg-gray-200 inline-block"></span>
                                 <span>Tidak Tersedia</span>
                             </div>
                         </div>
+
+                        <button @click="backToStage2"
+                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-xs font-black py-2.5 px-4 rounded-xl transition shadow-3xs">
+                            ← Kembali
+                        </button>
+                        <button @click="proceedToStage4" :disabled="!isRoomSelected"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs">
+                            Isi Detail Booking →
+                        </button>
                     </div>
                 </div>
 
@@ -879,34 +1001,34 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                     <div
                         v-for="room in availableRooms"
                         :key="room.id"
-                        class="bg-white rounded-lg shadow border-2 transition-all relative overflow-hidden"
+                        class="bg-white rounded-2xl border-2 transition-all relative overflow-hidden shadow-3xs"
                         :class="[
                             !room.is_available
                                 ? 'border-gray-200 opacity-60 cursor-not-allowed'
                                 : isRoomSelected_(room)
-                                    ? 'border-blue-600 ring-2 ring-blue-100 cursor-pointer'
-                                    : 'border-gray-200 hover:border-blue-300 hover:shadow-md cursor-pointer'
+                                    ? 'border-blue-600 ring-4 ring-blue-50 cursor-pointer shadow-md'
+                                    : 'border-gray-100 hover:border-blue-300 hover:shadow-sm cursor-pointer'
                         ]"
                         @click="selectRoom(room)"
                     >
                         <div v-if="isRoomSelected_(room)"
-                            class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">
+                            class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-3xs">
                             TERPILIH
                         </div>
                         <div v-if="!room.is_available"
-                            class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">
+                            class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-3xs">
                             TIDAK TERSEDIA
                         </div>
 
                         <div class="p-5">
                             <div class="flex items-start gap-3 mb-3">
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                                     :class="room.is_combined ? 'bg-purple-100' : 'bg-blue-50'">
                                     <span class="text-lg">{{ room.is_combined ? '🔗' : '🏫' }}</span>
                                 </div>
                                 <div>
-                                    <h3 class="font-semibold text-gray-800 text-sm leading-tight">{{ room.nama_ruang }}</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">{{ room.lokasi_gedung }}</p>
+                                    <h3 class="font-bold text-gray-800 text-sm leading-tight">{{ room.nama_ruang }}</h3>
+                                    <p class="text-[11px] text-gray-400 mt-0.5">{{ room.lokasi_gedung }}</p>
                                 </div>
                             </div>
 
@@ -914,24 +1036,24 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
 
                             <div class="flex items-center justify-between pt-3 border-t border-gray-100">
                                 <div>
-                                    <span class="text-xs text-gray-500">Kapasitas Maks</span>
-                                    <p class="text-lg font-bold text-gray-800">{{ room.kapasitas_max }} <span class="text-xs font-normal text-gray-500">orang</span></p>
+                                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Kapasitas Maks</span>
+                                    <p class="text-lg font-black text-gray-800 leading-none mt-1">{{ room.kapasitas_max }} <span class="text-xs font-normal text-gray-500">orang</span></p>
                                 </div>
 
                                 <div v-if="room.is_available">
-                                    <span class="inline-flex items-center gap-1 text-green-600 text-xs font-medium bg-green-50 px-2 py-1 rounded-full">
+                                    <span class="inline-flex items-center gap-1 text-green-700 text-xs font-black bg-green-50 px-2.5 py-1 rounded-lg">
                                         <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
                                         Tersedia
                                     </span>
                                 </div>
                                 <div v-else>
-                                    <span class="inline-flex items-center gap-1 text-red-500 text-xs font-medium bg-red-50 px-2 py-1 rounded-full">
+                                    <span class="inline-flex items-center gap-1 text-red-500 text-xs font-black bg-red-50 px-2.5 py-1 rounded-lg">
                                         <span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>
                                         Penuh
                                     </span>
                                 </div>
                             </div>
-                            <p v-if="!room.is_available" class="text-[11px] text-red-400 mt-2 text-center">
+                            <p v-if="!room.is_available" class="text-[10px] text-red-500 font-semibold mt-2 text-center">
                                 Tidak tersedia pada tanggal yang dipilih
                             </p>
                         </div>
@@ -939,39 +1061,66 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                 </div>
 
                 <div v-if="availableRooms.length > 0 && availableRooms.every(r => !r.is_available)"
-                    class="bg-orange-50 border border-orange-200 text-orange-700 text-sm rounded-lg px-4 py-3">
+                    class="bg-orange-50 border border-orange-200 text-orange-700 text-sm rounded-2xl px-4 py-3">
                     ⚠️ Semua ruangan tidak tersedia pada rentang tanggal yang dipilih. Silakan kembali dan pilih tanggal lain.
-                </div>
-
-                <div class="flex justify-between pt-2">
-                    <button @click="backToStage2"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-5 rounded text-sm transition">
-                        ← Kembali
-                    </button>
-                    <button @click="proceedToStage4" :disabled="!isRoomSelected"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded text-sm transition disabled:opacity-40 disabled:cursor-not-allowed">
-                        Isi Detail Booking →
-                    </button>
                 </div>
             </div>
 
             <!-- ======================================================= -->
             <!-- STAGE 4: Detail Booking -->
             <!-- ======================================================= -->
-            <div v-if="currentStage === 4" class="bg-white rounded-lg shadow p-6 space-y-6">
+            <div v-if="currentStage === 4" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 space-y-6">
                 <div>
-                    <h2 class="text-base font-semibold text-gray-800 mb-1">Tahap 4: Informasi Utama Acara</h2>
-                    <p class="text-sm text-gray-500 mb-4">Lengkapi detail acara dan penanggung jawab.</p>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 4: Detail Informasi Acara</h2>
+                    <p class="text-xs text-gray-500 mb-4">Lengkapi informasi utama acara seperti nama training/acara, nama PIC divisi, kebutuhan layout ruangan, serta logistik tambahan.</p>
+                </div>
+
+                <!-- Top bar Stage 4: status + info + aksi -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4 mb-4">
+                    <!-- Left side: Summary of selection -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold">🏫</span>
+                            <span class="text-xs font-bold text-gray-700">Ruangan Terpilih:</span>
+                            <span class="text-xs text-blue-600 font-extrabold">{{ selectedRoom?.nama_ruang }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="text-xs font-bold text-gray-700">Form Detail:</span>
+                            <span class="w-2 h-2 rounded-full" :class="isStage4Valid ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'"></span>
+                            <span class="text-xs font-semibold" :class="isStage4Valid ? 'text-green-600 font-bold' : 'text-gray-400'">
+                                {{ isStage4Valid ? 'Siap dilanjutkan' : 'Lengkapi Nama Acara & PIC' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right side: Actions -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div v-if="stage4Error" class="text-xs text-red-655 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                            ⚠️ {{ stage4Error }}
+                        </div>
+                        <button @click="currentStage = 3" :disabled="isSavingStage4"
+                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-xs font-black py-2.5 px-4 rounded-xl transition shadow-3xs">
+                            ← Kembali
+                        </button>
+                        <button @click="proceedToStage5" :disabled="!isStage4Valid || isSavingStage4"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs">
+                            {{ isSavingStage4 ? '⏳ Menyimpan...' : 'Lanjut ke Review →' }}
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-sm font-bold text-gray-800 mb-3 uppercase tracking-wider text-blue-900/80">Informasi Utama</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Training / Acara <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold text-gray-750 mb-1">Nama Training / Acara <span class="text-red-500">*</span></label>
                             <input v-model="formStage4.nama_training" type="text" placeholder="Masukkan nama acara..."
-                                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" />
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-500 bg-white" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama PIC Divisi <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold text-gray-750 mb-1">Nama PIC Divisi <span class="text-red-500">*</span></label>
                             <input v-model="formStage4.nama_pic" type="text" placeholder="Masukkan nama PIC..."
-                                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" />
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-500 bg-white" />
                         </div>
                     </div>
                 </div>
@@ -979,115 +1128,293 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                 <hr class="border-gray-100" />
 
                 <div>
-                    <h2 class="text-base font-semibold text-gray-800 mb-1">Pemilihan Layout Ruangan</h2>
-                    <p class="text-sm text-gray-500 mb-4">Pilih pengaturan meja dan kursi yang paling sesuai.</p>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Pemilihan Layout Ruangan</h2>
+                    <p class="text-xs text-gray-500 mb-4">Pilih pengaturan meja dan kursi yang paling sesuai.</p>
                     
                     <div class="flex flex-wrap gap-4">
                         <label v-for="layout in ['classroom', 'u-shape', 'i-shape', 'o-shape', 'custom']" :key="layout" 
-                            class="relative flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition w-32"
-                            :class="formStage4.layout_preferensi === layout ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'">
+                            class="relative flex flex-col items-center justify-center p-4 border-2 rounded-xl cursor-pointer transition w-32 shadow-3xs"
+                            :class="formStage4.layout_preferensi === layout ? 'border-blue-500 bg-blue-50/50' : 'border-gray-150 hover:border-gray-300 bg-white'">
                             
                             <input type="radio" v-model="formStage4.layout_preferensi" :value="layout" class="hidden" />
                             
                             <span class="text-2xl mb-2">
                                 {{ layout === 'classroom' ? '🏫' : layout === 'u-shape' ? '🧲' : layout === 'i-shape' ? '➖' : layout === 'o-shape' ? '⭕' : '✏️' }}
                             </span>
-                            <span class="text-xs font-semibold text-gray-700 uppercase">{{ layout }}</span>
+                            <span class="text-[10px] font-black text-gray-700 uppercase tracking-wider">{{ layout }}</span>
                             
-                            <div v-if="formStage4.layout_preferensi === layout" class="absolute top-2 right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white text-[10px]">✓</div>
+                            <div v-if="formStage4.layout_preferensi === layout" class="absolute top-2 right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white text-[10px] font-black">✓</div>
                         </label>
                     </div>
 
-                    <div v-if="formStage4.layout_preferensi === 'custom'" class="mt-4 bg-gray-50 border border-gray-200 p-4 rounded-lg">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Unggah Denah/Sketsa Kustom (Maks 2MB) <span class="text-red-500">*</span></label>
-                        <input type="file" @change="handleCustomLayoutUpload" accept=".jpg,.png,.pdf" class="text-sm text-gray-600" />
-                        <p v-if="uploadedCustomFileName" class="text-xs text-green-600 mt-2">✓ Berkas terpilih: {{ uploadedCustomFileName }}</p>
+                    <div v-if="formStage4.layout_preferensi === 'custom'" class="mt-4 bg-gray-50 border border-gray-200 p-4 rounded-xl">
+                        <label class="block text-xs font-bold text-gray-755 mb-2">Unggah Denah/Sketsa Kustom (Maks 2MB) <span class="text-red-500">*</span></label>
+                        <input type="file" @change="handleCustomLayoutUpload" accept=".jpg,.png,.pdf" class="text-xs text-gray-600 bg-white border border-gray-200 rounded-lg p-2 file:bg-gray-100 file:border-none file:px-3 file:py-1 file:rounded-md file:mr-3" />
+                        <p v-if="uploadedCustomFileName" class="text-xs text-green-600 font-semibold mt-2">✓ Berkas terpilih: {{ uploadedCustomFileName }}</p>
                     </div>
                 </div>
 
                 <hr class="border-gray-100" />
 
                 <div>
-                    <h2 class="text-base font-semibold text-gray-800 mb-1">Kebutuhan Tambahan & Logistik</h2>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Kebutuhan Tambahan & Logistik</h2>
                     <div class="flex gap-6 mt-3">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" v-model="formStage4.hybrid" class="rounded text-blue-600" />
-                            <span class="text-sm text-gray-700">📹 Hybrid (Kamera & Mic)</span>
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" v-model="formStage4.hybrid" class="rounded text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
+                            <span class="text-xs text-gray-700 font-semibold">📹 Hybrid (Kamera & Mic)</span>
                         </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" v-model="formStage4.flipchart" class="rounded text-blue-600" />
-                            <span class="text-sm text-gray-700">📝 Flipchart (Papan Tulis)</span>
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" v-model="formStage4.flipchart" class="rounded text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
+                            <span class="text-xs text-gray-700 font-semibold">📝 Flipchart (Papan Tulis)</span>
                         </label>
                     </div>
                     <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
+                        <label class="block text-xs font-bold text-gray-750 mb-1">Catatan Tambahan (Opsional)</label>
                         <textarea v-model="formStage4.catatan" rows="3" placeholder="Pesan khusus untuk Admin..."
-                            class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-500 bg-white"></textarea>
                     </div>
-                </div>
-
-                <div v-if="stage4Error" class="bg-red-50 border border-red-200 text-red-600 text-sm rounded p-3">
-                    ⚠️ {{ stage4Error }}
-                </div>
-
-                <div class="flex justify-between mt-6 border-t border-gray-100 pt-4">
-                    <button @click="currentStage = 3" :disabled="isSavingStage4"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-5 rounded text-sm disabled:opacity-50">
-                        ← Kembali
-                    </button>
-                    <button @click="proceedToStage5" :disabled="!isStage4Valid || isSavingStage4"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded text-sm transition disabled:opacity-40">
-                        {{ isSavingStage4 ? '⏳ Menyimpan...' : 'Lanjut ke Review →' }}
-                    </button>
                 </div>
             </div>
 
             <!-- ======================================================= -->
             <!-- STAGE 5: Review & Submit -->
             <!-- ======================================================= -->
-            <div v-if="currentStage === 5 && !submitSuccess" class="bg-white rounded-lg shadow p-6 space-y-6">
+            <div v-if="currentStage === 5 && !submitSuccess" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 space-y-6">
                 <div>
-                    <h2 class="text-base font-semibold text-gray-800 mb-1">Tahap 5: Review & Finalisasi</h2>
-                    <p class="text-sm text-gray-500 mb-4">Pastikan semua informasi sudah benar sebelum diajukan.</p>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 5: Review & Finalisasi</h2>
+                    <p class="text-xs text-gray-500 mb-4">Tinjau kembali seluruh data pemesanan ruangan Anda sebelum diajukan ke admin untuk proses persetujuan.</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                    <div>
-                        <p class="text-xs text-gray-400 font-semibold uppercase">Informasi Acara</p>
-                        <p class="text-sm font-medium text-gray-800 mt-1">{{ formStage4.nama_training }}</p>
-                        <p class="text-xs text-gray-500">PIC: {{ formStage4.nama_pic }}</p>
+                <!-- Top bar Stage 5: status + info + aksi -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4 mb-4">
+                    <!-- Left side: Review status -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold">⭐</span>
+                            <span class="text-xs font-bold text-gray-700">Review Akhir</span>
+                        </div>
+                        <div class="text-xs text-gray-500 font-semibold">Periksa kembali detail pemesanan di bawah</div>
                     </div>
-                    <div>
-                        <p class="text-xs text-gray-400 font-semibold uppercase">Jadwal & Ruangan</p>
-                        <p class="text-sm font-medium text-gray-800 mt-1">{{ selectedRoom?.nama_ruang }}</p>
-                        <p class="text-xs text-gray-500">{{ formatDate(startDate) }} - {{ formatDate(endDate) }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400 font-semibold uppercase">Kapasitas & Layout</p>
-                        <p class="text-sm font-medium text-gray-800 mt-1">{{ totalOrang }} Orang ({{ participantCount }} Peserta, {{ panitiaCount }} Panitia)</p>
-                        <p class="text-xs text-gray-500 capitalize">Layout: {{ formStage4.layout_preferensi }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400 font-semibold uppercase">Logistik</p>
-                        <p class="text-xs text-gray-800 mt-1">Hybrid: <span class="font-medium">{{ formStage4.hybrid ? 'Ya' : 'Tidak' }}</span></p>
-                        <p class="text-xs text-gray-800">Flipchart: <span class="font-medium">{{ formStage4.flipchart ? 'Ya' : 'Tidak' }}</span></p>
+
+                    <!-- Right side: Actions -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div v-if="submitError" class="text-xs text-red-655 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                            ⚠️ {{ submitError }}
+                        </div>
+                        <button @click="currentStage = 4" :disabled="isSubmitting"
+                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-xs font-black py-2.5 px-4 rounded-xl transition shadow-3xs">
+                            ← Kembali Edit
+                        </button>
                     </div>
                 </div>
 
-                <div v-if="submitError" class="bg-red-50 border border-red-200 text-red-600 text-sm rounded p-3">
-                    ⚠️ {{ submitError }}
-                </div>
+                <div class="flex flex-col gap-6">
+                    <!-- Row 1: Acara & Ruangan -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Card: Informasi Acara -->
+                        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -mr-4 -mt-4"></div>
+                            <div class="flex items-center gap-2.5 mb-4">
+                                <span class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-black border border-blue-100 shadow-3xs">📝</span>
+                                <h3 class="text-sm font-black text-gray-800 uppercase tracking-wider">Informasi Acara</h3>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Nama Training / Acara</p>
+                                    <p class="text-base font-black text-gray-900 leading-tight">{{ formStage4.nama_training || '-' }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">PIC Divisi</p>
+                                    <p class="text-sm font-bold text-gray-800">{{ formStage4.nama_pic || '-' }}</p>
+                                </div>
+                                <div v-if="formStage4.catatan">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Catatan Tambahan</p>
+                                    <p class="text-xs text-gray-700 italic bg-gray-50 border border-gray-100 p-2.5 rounded-lg">{{ formStage4.catatan }}</p>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="flex justify-between mt-6 border-t border-gray-100 pt-4">
-                    <button @click="currentStage = 4" :disabled="isSubmitting"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-5 rounded text-sm disabled:opacity-50">
-                        ← Kembali Edit
-                    </button>
-                    <button @click="submitFinal" :disabled="isSubmitting"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded text-sm transition disabled:opacity-40 flex items-center justify-center gap-2">
-                        <span v-if="isSubmitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        {{ isSubmitting ? 'Memproses...' : 'Ajukan Booking Sekarang' }}
-                    </button>
+                        <!-- Card: Jadwal & Ruangan -->
+                        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -mr-4 -mt-4"></div>
+                            <div class="flex items-center gap-2.5 mb-4">
+                                <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-black border border-emerald-100 shadow-3xs">🏫</span>
+                                <h3 class="text-sm font-black text-gray-800 uppercase tracking-wider">Jadwal & Ruangan</h3>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Ruangan Terpilih</p>
+                                    <div class="flex items-start gap-3">
+                                        <!-- Thumbnail Ruangan Placeholder -->
+                                        <div class="w-12 h-12 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center flex-shrink-0">
+                                            <span class="text-xl opacity-50">🖼️</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-base font-black text-gray-900 leading-tight">{{ selectedRoom?.nama_ruang || '-' }}</p>
+                                            <p class="text-[11px] text-gray-500 mt-0.5">{{ selectedRoom?.lokasi_gedung || '-' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Tanggal Pelaksanaan</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-bold text-gray-900 bg-gray-50 px-2.5 py-1 rounded border border-gray-100">{{ formatDate(startDate) }}</span>
+                                        <span class="text-xs text-gray-400 font-bold">s/d</span>
+                                        <span class="text-sm font-bold text-gray-900 bg-gray-50 px-2.5 py-1 rounded border border-gray-100">{{ formatDate(endDate) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Layout & Kapasitas -->
+                    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-amber-50 rounded-bl-full -mr-4 -mt-4"></div>
+                        <div class="flex items-center gap-2.5 mb-5">
+                            <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-black border border-amber-100 shadow-3xs">⚙️</span>
+                            <h3 class="text-sm font-black text-gray-800 uppercase tracking-wider">Kapasitas & Setup Ruangan</h3>
+                        </div>
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- Kolom 1: Total Peserta -->
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Total Orang</p>
+                                <p class="text-base font-black text-blue-600">{{ totalOrang }} Orang</p>
+                                <p class="text-[10px] text-gray-500 mt-1">{{ participantCount }} Peserta, {{ panitiaCount }} Panitia</p>
+                            </div>
+                            
+                            <!-- Kolom 2: Layout -->
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Layout Preferensi</p>
+                                <p class="text-base font-black text-gray-900 capitalize">{{ formStage4.layout_preferensi }}</p>
+                                <p v-if="formStage4.layout_preferensi === 'custom' && uploadedCustomFileName" class="text-[10px] text-blue-600 font-bold mt-1 flex items-center gap-1 truncate" :title="uploadedCustomFileName">
+                                    <span class="flex-shrink-0">📎</span> <span class="truncate">{{ uploadedCustomFileName }}</span>
+                                </p>
+                            </div>
+                            
+                            <!-- Kolom 3: Hybrid -->
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Opsi Hybrid</p>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="w-5 h-5 rounded flex items-center justify-center text-[10px]" :class="formStage4.hybrid ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'">
+                                        {{ formStage4.hybrid ? '✓' : '✗' }}
+                                    </span>
+                                    <p class="text-sm font-bold" :class="formStage4.hybrid ? 'text-gray-900' : 'text-gray-500'">
+                                        {{ formStage4.hybrid ? 'Kamera & Mic' : 'Tidak Perlu' }}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Kolom 4: Flipchart -->
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Opsi Flipchart</p>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="w-5 h-5 rounded flex items-center justify-center text-[10px]" :class="formStage4.flipchart ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'">
+                                        {{ formStage4.flipchart ? '✓' : '✗' }}
+                                    </span>
+                                    <p class="text-sm font-bold" :class="formStage4.flipchart ? 'text-gray-900' : 'text-gray-500'">
+                                        {{ formStage4.flipchart ? 'Papan Tulis' : 'Tidak Perlu' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Roster List -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Roster Peserta -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex flex-col bg-white">
+                            <div class="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                                <span class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                                    <span>📋</span> Daftar Peserta
+                                </span>
+                                <span class="bg-white border border-gray-200 text-gray-700 text-[10px] font-black px-2 py-0.5 rounded-full shadow-3xs">{{ participantCount }}</span>
+                            </div>
+                            <!-- Menggunakan class khusus custom-scrollbar yang akan didefinisikan di style -->
+                            <div class="overflow-y-auto max-h-56 p-0 custom-scrollbar">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-white sticky top-0 border-b border-gray-100 shadow-3xs z-10">
+                                        <tr>
+                                            <th class="px-4 py-2 font-bold text-gray-500 w-10 uppercase tracking-wider text-[10px]">#</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Nama Lengkap</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">NRP</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Site</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">No. HP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr v-for="(p, i) in participants" :key="i" class="hover:bg-blue-50/30 transition-colors">
+                                            <td class="px-4 py-2.5 text-gray-400 font-bold">{{ i + 1 }}</td>
+                                            <td class="px-4 py-2.5 font-bold text-gray-800">{{ p.nama }} <span class="text-[10px] font-medium text-gray-400 block mt-0.5">{{ p.jabatan }}</span></td>
+                                            <td class="px-4 py-2.5 font-mono text-gray-700">{{ p.nrp || 'N/A' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.site }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Roster Panitia -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex flex-col bg-white">
+                            <div class="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                                <span class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                                    <span>👥</span> Daftar Panitia
+                                </span>
+                                <span class="bg-white border border-gray-200 text-gray-700 text-[10px] font-black px-2 py-0.5 rounded-full shadow-3xs">{{ panitiaCount }}</span>
+                            </div>
+                            <div class="overflow-y-auto max-h-56 p-0 custom-scrollbar">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-white sticky top-0 border-b border-gray-100 shadow-3xs z-10">
+                                        <tr>
+                                            <th class="px-4 py-2 font-bold text-gray-500 w-10 uppercase tracking-wider text-[10px]">#</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Nama Lengkap</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">NRP</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Site</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">No. HP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr v-for="(p, i) in panitiaList" :key="i" class="hover:bg-amber-50/30 transition-colors">
+                                            <td class="px-4 py-2.5 text-gray-400 font-bold">{{ i + 1 }}</td>
+                                            <td class="px-4 py-2.5 font-bold text-gray-800">{{ p.nama }} <span class="text-[10px] font-medium text-gray-400 block mt-0.5">{{ p.jabatan }}</span></td>
+                                            <td class="px-4 py-2.5 font-mono text-gray-700">{{ p.nrp || 'N/A' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.site || '-' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Konfirmasi & Submit Box -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm mt-2">
+                        <div class="flex-1">
+                            <label class="flex items-start gap-3 cursor-pointer select-none group">
+                                <div class="relative flex items-center mt-0.5">
+                                    <input type="checkbox" v-model="termsAccepted" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer peer" />
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-gray-800 group-hover:text-blue-700 transition-colors block">
+                                        Saya memastikan data pemesanan sudah benar
+                                    </span>
+                                    <span class="text-xs text-gray-500 block mt-0.5">
+                                        Dengan mencentang kotak ini, saya menyetujui syarat penggunaan ruangan dan bertanggung jawab atas kelengkapan data.
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="w-full md:w-auto text-right flex flex-col md:items-end">
+                            <button @click="submitFinal" :disabled="isSubmitting || !termsAccepted"
+                                class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-8 rounded-xl text-sm transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <span v-if="isSubmitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                {{ isSubmitting ? 'Mengirim Data...' : 'Ajukan Booking Sekarang' }}
+                            </button>
+                            <p class="text-[10px] text-gray-400 font-semibold mt-2.5 bg-white border border-gray-200 py-1 px-2.5 rounded-lg inline-flex items-center gap-1.5 shadow-3xs mx-auto md:mx-0">
+                                <span>⏱️</span> Pengajuan akan direview admin maks. 1x24 jam kerja
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1112,3 +1439,21 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
         </div>
     </UserLayout>
 </template>
+
+<style scoped>
+/* Custom Scrollbar for the tables */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1; /* tailwind slate-300 */
+    border-radius: 20px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8; /* tailwind slate-400 */
+}
+</style>
