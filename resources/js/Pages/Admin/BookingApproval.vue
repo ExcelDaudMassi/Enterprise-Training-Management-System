@@ -223,11 +223,6 @@ const layoutLabels = {
             </div>
         </div>
 
-        <!-- Filter aktif banner -->
-        <div v-if="activeFilter !== 'all'"
-             class="mb-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-            Filter aktif: <strong>{{ tabs.find(t => t.key === activeFilter)?.label ?? activeFilter }}</strong>
-        </div>
 
         <!-- Tabs -->
         <div class="flex flex-wrap gap-1 mb-4 bg-gray-100 p-1 rounded w-fit">
