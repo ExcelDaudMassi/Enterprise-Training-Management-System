@@ -184,16 +184,16 @@ async function submitDateChange() {
                             <td class="px-4 py-3">
                                 <div class="flex flex-col gap-1">
                                     <!-- Batalkan -->
+                                    <!-- Lihat Detail -->
+                                    <a :href="`/user/booking/${b.id}/detail`"
+                                       class="text-xs text-blue-600 hover:text-blue-800 font-medium text-left">
+                                        Lihat Detail &rarr;
+                                    </a>
+                                    <!-- Batalkan -->
                                     <button v-if="b.can_cancel"
                                             @click="openCancel(b)"
                                             class="text-xs text-red-600 hover:underline text-left">
                                         Batalkan
-                                    </button>
-                                    <!-- Ubah Tanggal -->
-                                    <button v-if="b.can_request_date_change"
-                                            @click="openDateChange(b)"
-                                            class="text-xs text-blue-600 hover:underline text-left">
-                                        Ubah Tanggal
                                     </button>
                                     <!-- Update Peserta -->
                                     <button v-if="b.can_update_participants"

@@ -25,7 +25,9 @@ Route::middleware(['auth', 'user'])->group(function () {
     Route::get('/user/booking/create', [BookingWizardController::class, 'create'])->name('user.booking.create');
     Route::get('/user/booking/download-template', [BookingWizardController::class, 'downloadTemplate'])->name('user.booking.download-template');
     Route::get('/user/booking/history', [BookingHistoryController::class, 'index'])->name('user.booking.history');
-
+    Route::get('/user/booking/active', [BookingHistoryController::class, 'active'])->name('user.booking.active');
+    Route::get('/user/booking/{booking}/detail', [BookingHistoryController::class, 'show'])->name('user.booking.detail');
+    Route::get('/user/booking/{booking}/pdf', [BookingHistoryController::class, 'downloadPdf'])->name('user.booking.pdf');
     // Booking Wizard APIs
     Route::post('/api/booking/validate-participants', [BookingWizardController::class, 'validateParticipants'])->name('api.booking.validate-participants');
     Route::post('/api/booking/check-eligibility', [BookingWizardController::class, 'checkEligibility'])->name('api.booking.check-eligibility');
