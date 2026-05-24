@@ -12,6 +12,7 @@ class BookingParticipant extends Model
         'nama',
         'jabatan',
         'site',
+        'no_hp',
         'gender',
     ];
 

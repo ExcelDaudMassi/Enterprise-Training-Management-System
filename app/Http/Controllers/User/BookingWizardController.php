@@ -41,6 +41,9 @@ class BookingWizardController extends Controller
 
         return response()->download($filePath, 'template_peserta_baru_kosong.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ]);
     }
 
@@ -78,14 +81,15 @@ class BookingWizardController extends Controller
 
         // 3. Perulangan per baris dimulai dari baris ke-5 (karena baris 1-4 adalah header & info)
         for ($row = 5; $row <= $highestRow; $row++) {
-            // 4. Baca per kolom menggunakan koordinat huruf (A, B, C, D) dan pastikan di-cast menjadi string
+            // 4. Baca per kolom menggunakan koordinat huruf (A, B, C, D, E) dan pastikan di-cast menjadi string
             $nama         = trim((string) $sheet->getCell("A" . $row)->getValue());
             $jabatan      = trim((string) $sheet->getCell("B" . $row)->getValue());
             $site         = trim((string) $sheet->getCell("C" . $row)->getValue());
-            $jenisKelamin = trim((string) $sheet->getCell("D" . $row)->getValue());
+            $noHp         = trim((string) $sheet->getCell("D" . $row)->getValue());
+            $jenisKelamin = trim((string) $sheet->getCell("E" . $row)->getValue());
 
             // Abaikan jika barisnya benar-benar kosong
-            if (empty($nama) && empty($jabatan) && empty($site) && empty($jenisKelamin)) {
+            if (empty($nama) && empty($jabatan) && empty($site) && empty($noHp) && empty($jenisKelamin)) {
                 continue;
             }
 
@@ -105,12 +109,19 @@ class BookingWizardController extends Controller
                     'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Site (C) wajib diisi!",
                 ], 422);
             }
+            
+            // Validasi Nomor HP (Kolom D) - Wajib berisi angka
+            if (empty($noHp) || !preg_match('/^[0-9+]+$/', $noHp)) {
+                return response()->json([
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom No. HP (D) wajib diisi dan minimal berisi angka!",
+                ], 422);
+            }
 
-            // Validasi Jenis Kelamin (Kolom D)
+            // Validasi Jenis Kelamin (Kolom E)
             $jk = strtoupper(trim($jenisKelamin));
             if ($jk !== 'L' && $jk !== 'P') {
                 return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jenis Kelamin (D) harus berisi L atau P!",
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jenis Kelamin (E) harus berisi L atau P!",
                 ], 422);
             }
 
@@ -118,6 +129,7 @@ class BookingWizardController extends Controller
                 'nama'    => $nama,
                 'jabatan' => $jabatan,
                 'site'    => $site,
+                'no_hp'   => $noHp,
                 'gender'  => $jk,
             ];
 
@@ -447,6 +459,7 @@ class BookingWizardController extends Controller
                     'nama'       => $p['nama'],
                     'jabatan'    => $p['jabatan'] ?? null,
                     'site'       => $p['site'] ?? null,
+                    'no_hp'      => $p['no_hp'] ?? null,
                     'gender'     => $p['gender'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -460,7 +473,8 @@ class BookingWizardController extends Controller
                     'nama'       => $p['nama'],
                     'jabatan'    => $p['jabatan'] ?? null,
                     'site'       => $p['site'] ?? null,
-                    'gender'     => null,
+                    'no_hp'      => $p['no_hp'] ?? null,
+                    'gender'     => $p['gender'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];

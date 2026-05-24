@@ -41,8 +41,29 @@ class BookingManageController extends Controller
 
         $booking->update([
             'status'           => Booking::STATUS_CANCELLED,
+            'catatan_user'     => 'Dibatalkan secara mandiri oleh pemohon.',
             'catatan_admin'    => $booking->catatan_admin, // pertahankan catatan admin yang ada
         ]);
+
+        \App\Models\BookingLog::create([
+            'booking_id' => $booking->id,
+            'user_id'    => Auth::id(),
+            'action'     => 'User Cancelled',
+            'message'    => 'Booking dibatalkan secara mandiri oleh user.',
+        ]);
+
+        // Notifikasi ke Admin
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            \App\Models\BookingNotification::create([
+                'user_id'    => $admin->id,
+                'booking_id' => $booking->id,
+                'tipe'       => 'danger',
+                'title'      => 'Booking Dibatalkan User',
+                'message'    => 'User membatalkan booking: ' . $booking->nama_training,
+                'is_read'    => false,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -210,6 +231,26 @@ class BookingManageController extends Controller
         });
 
         $booking->load('participants');
+
+        // Tambah log dan notifikasi ke admin bahwa peserta diupdate user
+        \App\Models\BookingLog::create([
+            'booking_id' => $booking->id,
+            'user_id'    => Auth::id(),
+            'action'     => 'User Updated Participants',
+            'message'    => 'User merubah data peserta/panitia secara mandiri.',
+        ]);
+
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            \App\Models\BookingNotification::create([
+                'user_id'    => $admin->id,
+                'booking_id' => $booking->id,
+                'tipe'       => 'info',
+                'title'      => 'Perubahan Data Peserta',
+                'message'    => 'User memperbarui data peserta untuk booking: ' . $booking->nama_training,
+                'is_read'    => false,
+            ]);
+        }
 
         return response()->json([
             'success'         => true,

@@ -217,10 +217,12 @@ class Booking extends Model
      */
     public function canBeCancelled(): bool
     {
+        $belumMelewatiH1 = \Illuminate\Support\Carbon::today()->lessThan($this->tgl_mulai);
+        
         return in_array($this->status, [
             self::STATUS_WAITING_CONFIRMATION,
             self::STATUS_CONFIRMED,
-        ]) && !$this->isFinal();
+        ]) && !$this->isFinal() && $belumMelewatiH1;
     }
 
     /**

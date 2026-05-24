@@ -156,6 +156,8 @@ provide('isWindowActive', isWindowActive)
 
             <!-- Navigation Menu -->
             <nav class="flex-1 px-2 py-3 space-y-0.5">
+
+                <!-- Dashboard -->
                 <Link
                     href="/user/dashboard"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
@@ -164,6 +166,12 @@ provide('isWindowActive', isWindowActive)
                     <span class="text-base">🏠</span> Dashboard
                 </Link>
 
+                <!-- Divider Label -->
+                <div class="pt-2 pb-1 px-3">
+                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Booking</p>
+                </div>
+
+                <!-- Buat Booking -->
                 <div v-if="!isWindowActive"
                      class="flex items-center justify-between px-3 py-2 text-sm text-gray-400 bg-gray-50 rounded cursor-not-allowed border border-gray-100"
                      title="Window Booking sedang ditutup oleh Admin.">
@@ -177,16 +185,33 @@ provide('isWindowActive', isWindowActive)
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
                     :class="isActive('/user/booking/create') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <span class="text-base">➕</span> Buat Booking
+                    <span class="text-base">➕</span> Buat Booking Baru
                 </Link>
 
+                <!-- Booking Aktif -->
+                <Link
+                    href="/user/booking/active"
+                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    :class="isActive('/user/booking/active') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
+                >
+                    <span class="text-base">📋</span> Booking Aktif
+                </Link>
+
+                <!-- Riwayat Booking -->
                 <Link
                     href="/user/booking/history"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
                     :class="isActive('/user/booking/history') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <span class="text-base">🕒</span> Riwayat
+                    <span class="text-base">🕒</span> Riwayat Booking
                 </Link>
+
+                <!-- Detail Booking (hanya muncul saat user sedang di halaman detail) -->
+                <div v-if="currentUrl.includes('/detail')"
+                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm bg-blue-50 text-blue-700 font-semibold border-l-2 border-blue-500 ml-2">
+                    <span class="text-base">📄</span> Detail Booking
+                </div>
+
             </nav>
 
             <!-- Bottom Actions -->
