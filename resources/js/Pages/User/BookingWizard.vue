@@ -817,37 +817,61 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
             <!-- STAGE 2: Kalender Ketersediaan -->
             <!-- ======================================================= -->
             <div v-if="currentStage === 2" class="space-y-4">
-                <div class="bg-white rounded-lg shadow p-4 flex flex-wrap items-center gap-4 justify-between">
-                    <div class="text-sm text-gray-600">
-                        <span class="font-semibold text-gray-800">Kapasitas: {{ totalOrang }} orang</span>
-                        <span class="mx-2 text-gray-300">|</span>
-                        <span>{{ eligibleRooms.length }} opsi ruangan</span>
-                        <span class="mx-2 text-gray-300">|</span>
-                        <span>Tahun {{ activeYear }}</span>
+                <!-- Top bar Stage 2: status + info + aksi -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4">
+                    <!-- Left side: Capacity indicator & Date Selection status -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold">👤</span>
+                            <span class="text-xs font-bold text-gray-700">Kapasitas:</span>
+                            <span class="text-xs text-blue-600 font-extrabold">{{ totalOrang }} Orang</span>
+                            <span class="text-gray-300">|</span>
+                            <span class="text-xs text-gray-500 font-semibold">{{ eligibleRooms.length }} Opsi Ruangan</span>
+                        </div>
+
+                        <!-- Date selection status -->
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-2.5 h-2.5 rounded-full" :class="isRangeSelected ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'"></span>
+                            <span class="text-xs text-gray-700 font-semibold">
+                                <template v-if="!startDate">Pilih tanggal mulai di kalender</template>
+                                <template v-else-if="!endDate">Mulai: <strong class="text-blue-600">{{ formatDate(startDate) }}</strong> → Pilih tanggal selesai</template>
+                                <template v-else>Rentang: <strong class="text-green-600">{{ formatDate(startDate) }}</strong> s/d <strong class="text-green-600">{{ formatDate(endDate) }}</strong></template>
+                            </span>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-3 text-xs">
-                        <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-400 inline-block"></span> Tersedia</div>
-                        <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> Sebagian terisi</div>
-                        <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span> Penuh</div>
-                        <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span> Dipilih</div>
+
+                    <!-- Right side: Actions -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Legend -->
+                        <div class="hidden md:flex items-center gap-2.5 text-[10px] text-gray-400 mr-2 font-medium">
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> Tersedia</div>
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span> Parsial</div>
+                            <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span> Penuh</div>
+                        </div>
+
+                        <div v-if="rangeError" class="text-xs text-red-650 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                            ⚠️ {{ rangeError }}
+                        </div>
+                        <div v-if="stage3Error" class="text-xs text-red-650 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                            ⚠️ {{ stage3Error }}
+                        </div>
+
+                        <button @click="backToStage1"
+                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-xs font-black py-2.5 px-4 rounded-xl transition shadow-3xs">
+                            ← Kembali
+                        </button>
+                        <button @click="proceedToStage3" :disabled="!isRangeSelected || isLoadingRooms"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs">
+                            {{ isLoadingRooms ? '⏳ Memproses...' : 'Pilih Ruangan →' }}
+                        </button>
                     </div>
                 </div>
 
-                <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-700">
-                    <template v-if="!startDate">Klik <strong>tanggal mulai</strong> pada kalender.</template>
-                    <template v-else-if="!endDate">Tanggal mulai: <strong>{{ formatDate(startDate) }}</strong>. Sekarang klik <strong>tanggal selesai</strong>.</template>
-                    <template v-else>Rentang dipilih: <strong>{{ formatDate(startDate) }}</strong> s/d <strong>{{ formatDate(endDate) }}</strong></template>
-                </div>
-
-                <div v-if="rangeError" class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-                    ⚠️ {{ rangeError }}
-                </div>
-
-                <div v-if="isLoadingCalendar" class="bg-white rounded-lg shadow p-10 text-center text-gray-400 text-sm">
+                <div v-if="isLoadingCalendar" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-10 text-center text-gray-400 text-sm">
                     Memuat data ketersediaan kalender...
                 </div>
 
-                <div v-else class="bg-white rounded-lg shadow p-4">
+                <div v-else class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6">
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         <div v-for="(monthName, monthIdx) in MONTH_NAMES" :key="monthIdx"
                             class="group/month relative border border-gray-100 rounded-lg p-2 bg-white transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:z-[60] hover:border-blue-200"
@@ -878,42 +902,54 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                         </div>
                     </div>
                 </div>
-
-                <div class="flex justify-between pt-1">
-                    <button @click="backToStage1"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-5 rounded text-sm transition">
-                        ← Kembali
-                    </button>
-                    <button @click="proceedToStage3" :disabled="!isRangeSelected || isLoadingRooms"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded text-sm transition disabled:opacity-40 disabled:cursor-not-allowed">
-                        {{ isLoadingRooms ? 'Memuat...' : 'Pilih Ruangan →' }}
-                    </button>
-                </div>
-                <div v-if="stage3Error" class="text-red-600 text-sm text-right">{{ stage3Error }}</div>
             </div>
 
             <!-- ======================================================= -->
             <!-- STAGE 3: Pilih Ruangan -->
             <!-- ======================================================= -->
             <div v-if="currentStage === 3" class="space-y-4">
-                <div class="bg-white rounded-lg shadow p-4">
-                    <div class="flex flex-wrap items-center gap-4 justify-between">
-                        <div class="text-sm text-gray-600">
-                            <span class="font-semibold text-gray-800">Rentang Tanggal:</span>
-                            {{ formatDate(startDate) }} s/d {{ formatDate(endDate) }}
-                            <span class="mx-2 text-gray-300">|</span>
-                            <span class="font-semibold text-gray-800">Kapasitas:</span> {{ totalOrang }} orang
+                <!-- Top bar Stage 3: status + info + aksi -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4">
+                    <!-- Left side: Range & Selected Room indicator -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold">📅</span>
+                            <span class="text-xs font-bold text-gray-700">Tanggal:</span>
+                            <span class="text-xs text-gray-600 font-semibold">{{ formatDate(startDate) }} s/d {{ formatDate(endDate) }}</span>
                         </div>
-                        <div class="flex items-center gap-3 text-xs">
+
+                        <!-- Room choice status -->
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-2.5 h-2.5 rounded-full" :class="isRoomSelected ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'"></span>
+                            <span class="text-xs font-bold text-gray-750">Ruangan:</span>
+                            <span class="text-xs font-semibold" :class="isRoomSelected ? 'text-green-600 font-bold' : 'text-gray-400'">
+                                {{ isRoomSelected ? selectedRoom.nama_ruang : 'Pilih salah satu ruangan di bawah' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right side: Actions -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Legend -->
+                        <div class="hidden md:flex items-center gap-3 text-[10px] text-gray-400 mr-2 font-medium">
                             <div class="flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded border-2 border-blue-600 inline-block"></span>
+                                <span class="w-2.5 h-2.5 rounded border-2 border-blue-600 inline-block"></span>
                                 <span>Tersedia & Terpilih</span>
                             </div>
                             <div class="flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded bg-gray-200 inline-block"></span>
+                                <span class="w-2.5 h-2.5 rounded bg-gray-200 inline-block"></span>
                                 <span>Tidak Tersedia</span>
                             </div>
                         </div>
+
+                        <button @click="backToStage2"
+                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-xs font-black py-2.5 px-4 rounded-xl transition shadow-3xs">
+                            ← Kembali
+                        </button>
+                        <button @click="proceedToStage4" :disabled="!isRoomSelected"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs">
+                            Isi Detail Booking →
+                        </button>
                     </div>
                 </div>
 
@@ -921,34 +957,34 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                     <div
                         v-for="room in availableRooms"
                         :key="room.id"
-                        class="bg-white rounded-lg shadow border-2 transition-all relative overflow-hidden"
+                        class="bg-white rounded-2xl border-2 transition-all relative overflow-hidden shadow-3xs"
                         :class="[
                             !room.is_available
                                 ? 'border-gray-200 opacity-60 cursor-not-allowed'
                                 : isRoomSelected_(room)
-                                    ? 'border-blue-600 ring-2 ring-blue-100 cursor-pointer'
-                                    : 'border-gray-200 hover:border-blue-300 hover:shadow-md cursor-pointer'
+                                    ? 'border-blue-600 ring-4 ring-blue-50 cursor-pointer shadow-md'
+                                    : 'border-gray-100 hover:border-blue-300 hover:shadow-sm cursor-pointer'
                         ]"
                         @click="selectRoom(room)"
                     >
                         <div v-if="isRoomSelected_(room)"
-                            class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">
+                            class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-3xs">
                             TERPILIH
                         </div>
                         <div v-if="!room.is_available"
-                            class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">
+                            class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-3xs">
                             TIDAK TERSEDIA
                         </div>
 
                         <div class="p-5">
                             <div class="flex items-start gap-3 mb-3">
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                                     :class="room.is_combined ? 'bg-purple-100' : 'bg-blue-50'">
                                     <span class="text-lg">{{ room.is_combined ? '🔗' : '🏫' }}</span>
                                 </div>
                                 <div>
-                                    <h3 class="font-semibold text-gray-800 text-sm leading-tight">{{ room.nama_ruang }}</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">{{ room.lokasi_gedung }}</p>
+                                    <h3 class="font-bold text-gray-800 text-sm leading-tight">{{ room.nama_ruang }}</h3>
+                                    <p class="text-[11px] text-gray-400 mt-0.5">{{ room.lokasi_gedung }}</p>
                                 </div>
                             </div>
 
@@ -956,24 +992,24 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
 
                             <div class="flex items-center justify-between pt-3 border-t border-gray-100">
                                 <div>
-                                    <span class="text-xs text-gray-500">Kapasitas Maks</span>
-                                    <p class="text-lg font-bold text-gray-800">{{ room.kapasitas_max }} <span class="text-xs font-normal text-gray-500">orang</span></p>
+                                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Kapasitas Maks</span>
+                                    <p class="text-lg font-black text-gray-800 leading-none mt-1">{{ room.kapasitas_max }} <span class="text-xs font-normal text-gray-500">orang</span></p>
                                 </div>
 
                                 <div v-if="room.is_available">
-                                    <span class="inline-flex items-center gap-1 text-green-600 text-xs font-medium bg-green-50 px-2 py-1 rounded-full">
+                                    <span class="inline-flex items-center gap-1 text-green-700 text-xs font-black bg-green-50 px-2.5 py-1 rounded-lg">
                                         <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
                                         Tersedia
                                     </span>
                                 </div>
                                 <div v-else>
-                                    <span class="inline-flex items-center gap-1 text-red-500 text-xs font-medium bg-red-50 px-2 py-1 rounded-full">
+                                    <span class="inline-flex items-center gap-1 text-red-500 text-xs font-black bg-red-50 px-2.5 py-1 rounded-lg">
                                         <span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>
                                         Penuh
                                     </span>
                                 </div>
                             </div>
-                            <p v-if="!room.is_available" class="text-[11px] text-red-400 mt-2 text-center">
+                            <p v-if="!room.is_available" class="text-[10px] text-red-500 font-semibold mt-2 text-center">
                                 Tidak tersedia pada tanggal yang dipilih
                             </p>
                         </div>
@@ -981,39 +1017,62 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                 </div>
 
                 <div v-if="availableRooms.length > 0 && availableRooms.every(r => !r.is_available)"
-                    class="bg-orange-50 border border-orange-200 text-orange-700 text-sm rounded-lg px-4 py-3">
+                    class="bg-orange-50 border border-orange-200 text-orange-700 text-sm rounded-2xl px-4 py-3">
                     ⚠️ Semua ruangan tidak tersedia pada rentang tanggal yang dipilih. Silakan kembali dan pilih tanggal lain.
-                </div>
-
-                <div class="flex justify-between pt-2">
-                    <button @click="backToStage2"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-5 rounded text-sm transition">
-                        ← Kembali
-                    </button>
-                    <button @click="proceedToStage4" :disabled="!isRoomSelected"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded text-sm transition disabled:opacity-40 disabled:cursor-not-allowed">
-                        Isi Detail Booking →
-                    </button>
                 </div>
             </div>
 
             <!-- ======================================================= -->
             <!-- STAGE 4: Detail Booking -->
             <!-- ======================================================= -->
-            <div v-if="currentStage === 4" class="bg-white rounded-lg shadow p-6 space-y-6">
+            <div v-if="currentStage === 4" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 space-y-6">
+                <!-- Top bar Stage 4: status + info + aksi -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4 mb-4">
+                    <!-- Left side: Summary of selection -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold">🏫</span>
+                            <span class="text-xs font-bold text-gray-700">Ruangan Terpilih:</span>
+                            <span class="text-xs text-blue-600 font-extrabold">{{ selectedRoom?.nama_ruang }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="text-xs font-bold text-gray-700">Form Detail:</span>
+                            <span class="w-2 h-2 rounded-full" :class="isStage4Valid ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'"></span>
+                            <span class="text-xs font-semibold" :class="isStage4Valid ? 'text-green-600 font-bold' : 'text-gray-400'">
+                                {{ isStage4Valid ? 'Siap dilanjutkan' : 'Lengkapi Nama Acara & PIC' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right side: Actions -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div v-if="stage4Error" class="text-xs text-red-655 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                            ⚠️ {{ stage4Error }}
+                        </div>
+                        <button @click="currentStage = 3" :disabled="isSavingStage4"
+                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-xs font-black py-2.5 px-4 rounded-xl transition shadow-3xs">
+                            ← Kembali
+                        </button>
+                        <button @click="proceedToStage5" :disabled="!isStage4Valid || isSavingStage4"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs">
+                            {{ isSavingStage4 ? '⏳ Menyimpan...' : 'Lanjut ke Review →' }}
+                        </button>
+                    </div>
+                </div>
+
                 <div>
-                    <h2 class="text-base font-semibold text-gray-800 mb-1">Tahap 4: Informasi Utama Acara</h2>
-                    <p class="text-sm text-gray-500 mb-4">Lengkapi detail acara dan penanggung jawab.</p>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 4: Informasi Utama Acara</h2>
+                    <p class="text-xs text-gray-500 mb-4">Lengkapi detail acara dan penanggung jawab.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Training / Acara <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold text-gray-750 mb-1">Nama Training / Acara <span class="text-red-500">*</span></label>
                             <input v-model="formStage4.nama_training" type="text" placeholder="Masukkan nama acara..."
-                                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" />
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-500 bg-white" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama PIC Divisi <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold text-gray-750 mb-1">Nama PIC Divisi <span class="text-red-500">*</span></label>
                             <input v-model="formStage4.nama_pic" type="text" placeholder="Masukkan nama PIC..."
-                                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" />
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-500 bg-white" />
                         </div>
                     </div>
                 </div>
@@ -1021,115 +1080,112 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                 <hr class="border-gray-100" />
 
                 <div>
-                    <h2 class="text-base font-semibold text-gray-800 mb-1">Pemilihan Layout Ruangan</h2>
-                    <p class="text-sm text-gray-500 mb-4">Pilih pengaturan meja dan kursi yang paling sesuai.</p>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Pemilihan Layout Ruangan</h2>
+                    <p class="text-xs text-gray-500 mb-4">Pilih pengaturan meja dan kursi yang paling sesuai.</p>
                     
                     <div class="flex flex-wrap gap-4">
                         <label v-for="layout in ['classroom', 'u-shape', 'i-shape', 'o-shape', 'custom']" :key="layout" 
-                            class="relative flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition w-32"
-                            :class="formStage4.layout_preferensi === layout ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'">
+                            class="relative flex flex-col items-center justify-center p-4 border-2 rounded-xl cursor-pointer transition w-32 shadow-3xs"
+                            :class="formStage4.layout_preferensi === layout ? 'border-blue-500 bg-blue-50/50' : 'border-gray-150 hover:border-gray-300 bg-white'">
                             
                             <input type="radio" v-model="formStage4.layout_preferensi" :value="layout" class="hidden" />
                             
                             <span class="text-2xl mb-2">
                                 {{ layout === 'classroom' ? '🏫' : layout === 'u-shape' ? '🧲' : layout === 'i-shape' ? '➖' : layout === 'o-shape' ? '⭕' : '✏️' }}
                             </span>
-                            <span class="text-xs font-semibold text-gray-700 uppercase">{{ layout }}</span>
+                            <span class="text-[10px] font-black text-gray-700 uppercase tracking-wider">{{ layout }}</span>
                             
-                            <div v-if="formStage4.layout_preferensi === layout" class="absolute top-2 right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white text-[10px]">✓</div>
+                            <div v-if="formStage4.layout_preferensi === layout" class="absolute top-2 right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-white text-[10px] font-black">✓</div>
                         </label>
                     </div>
 
-                    <div v-if="formStage4.layout_preferensi === 'custom'" class="mt-4 bg-gray-50 border border-gray-200 p-4 rounded-lg">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Unggah Denah/Sketsa Kustom (Maks 2MB) <span class="text-red-500">*</span></label>
-                        <input type="file" @change="handleCustomLayoutUpload" accept=".jpg,.png,.pdf" class="text-sm text-gray-600" />
-                        <p v-if="uploadedCustomFileName" class="text-xs text-green-600 mt-2">✓ Berkas terpilih: {{ uploadedCustomFileName }}</p>
+                    <div v-if="formStage4.layout_preferensi === 'custom'" class="mt-4 bg-gray-50 border border-gray-200 p-4 rounded-xl">
+                        <label class="block text-xs font-bold text-gray-755 mb-2">Unggah Denah/Sketsa Kustom (Maks 2MB) <span class="text-red-500">*</span></label>
+                        <input type="file" @change="handleCustomLayoutUpload" accept=".jpg,.png,.pdf" class="text-xs text-gray-600 bg-white border border-gray-200 rounded-lg p-2 file:bg-gray-100 file:border-none file:px-3 file:py-1 file:rounded-md file:mr-3" />
+                        <p v-if="uploadedCustomFileName" class="text-xs text-green-600 font-semibold mt-2">✓ Berkas terpilih: {{ uploadedCustomFileName }}</p>
                     </div>
                 </div>
 
                 <hr class="border-gray-100" />
 
                 <div>
-                    <h2 class="text-base font-semibold text-gray-800 mb-1">Kebutuhan Tambahan & Logistik</h2>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Kebutuhan Tambahan & Logistik</h2>
                     <div class="flex gap-6 mt-3">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" v-model="formStage4.hybrid" class="rounded text-blue-600" />
-                            <span class="text-sm text-gray-700">📹 Hybrid (Kamera & Mic)</span>
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" v-model="formStage4.hybrid" class="rounded text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
+                            <span class="text-xs text-gray-700 font-semibold">📹 Hybrid (Kamera & Mic)</span>
                         </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" v-model="formStage4.flipchart" class="rounded text-blue-600" />
-                            <span class="text-sm text-gray-700">📝 Flipchart (Papan Tulis)</span>
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" v-model="formStage4.flipchart" class="rounded text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
+                            <span class="text-xs text-gray-700 font-semibold">📝 Flipchart (Papan Tulis)</span>
                         </label>
                     </div>
                     <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
+                        <label class="block text-xs font-bold text-gray-750 mb-1">Catatan Tambahan (Opsional)</label>
                         <textarea v-model="formStage4.catatan" rows="3" placeholder="Pesan khusus untuk Admin..."
-                            class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-500 bg-white"></textarea>
                     </div>
-                </div>
-
-                <div v-if="stage4Error" class="bg-red-50 border border-red-200 text-red-600 text-sm rounded p-3">
-                    ⚠️ {{ stage4Error }}
-                </div>
-
-                <div class="flex justify-between mt-6 border-t border-gray-100 pt-4">
-                    <button @click="currentStage = 3" :disabled="isSavingStage4"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-5 rounded text-sm disabled:opacity-50">
-                        ← Kembali
-                    </button>
-                    <button @click="proceedToStage5" :disabled="!isStage4Valid || isSavingStage4"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded text-sm transition disabled:opacity-40">
-                        {{ isSavingStage4 ? '⏳ Menyimpan...' : 'Lanjut ke Review →' }}
-                    </button>
                 </div>
             </div>
 
             <!-- ======================================================= -->
             <!-- STAGE 5: Review & Submit -->
             <!-- ======================================================= -->
-            <div v-if="currentStage === 5 && !submitSuccess" class="bg-white rounded-lg shadow p-6 space-y-6">
+            <div v-if="currentStage === 5 && !submitSuccess" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 space-y-6">
+                <!-- Top bar Stage 5: status + info + aksi -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4 mb-4">
+                    <!-- Left side: Review status -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
+                            <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-bold">⭐</span>
+                            <span class="text-xs font-bold text-gray-700">Review Akhir</span>
+                        </div>
+                        <div class="text-xs text-gray-500 font-semibold">Periksa kembali detail pemesanan di bawah</div>
+                    </div>
+
+                    <!-- Right side: Actions -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div v-if="submitError" class="text-xs text-red-650 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                            ⚠️ {{ submitError }}
+                        </div>
+                        <button @click="currentStage = 4" :disabled="isSubmitting"
+                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-xs font-black py-2.5 px-4 rounded-xl transition shadow-3xs">
+                            ← Kembali Edit
+                        </button>
+                        <button @click="submitFinal" :disabled="isSubmitting"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs flex items-center gap-2">
+                            <span v-if="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            {{ isSubmitting ? 'Ajukan...' : 'Ajukan Booking Sekarang' }}
+                        </button>
+                    </div>
+                </div>
+
                 <div>
-                    <h2 class="text-base font-semibold text-gray-800 mb-1">Tahap 5: Review & Finalisasi</h2>
-                    <p class="text-sm text-gray-500 mb-4">Pastikan semua informasi sudah benar sebelum diajukan.</p>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 5: Review & Finalisasi</h2>
+                    <p class="text-xs text-gray-500 mb-4">Pastikan semua informasi sudah benar sebelum diajukan.</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-5 rounded-2xl border border-gray-150">
                     <div>
-                        <p class="text-xs text-gray-400 font-semibold uppercase">Informasi Acara</p>
-                        <p class="text-sm font-medium text-gray-800 mt-1">{{ formStage4.nama_training }}</p>
-                        <p class="text-xs text-gray-500">PIC: {{ formStage4.nama_pic }}</p>
+                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Informasi Acara</p>
+                        <p class="text-sm font-bold text-gray-800 mt-1.5">{{ formStage4.nama_training }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">PIC: {{ formStage4.nama_pic }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-400 font-semibold uppercase">Jadwal & Ruangan</p>
-                        <p class="text-sm font-medium text-gray-800 mt-1">{{ selectedRoom?.nama_ruang }}</p>
-                        <p class="text-xs text-gray-500">{{ formatDate(startDate) }} - {{ formatDate(endDate) }}</p>
+                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Jadwal & Ruangan</p>
+                        <p class="text-sm font-bold text-gray-800 mt-1.5">{{ selectedRoom?.nama_ruang }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ formatDate(startDate) }} - {{ formatDate(endDate) }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-400 font-semibold uppercase">Kapasitas & Layout</p>
-                        <p class="text-sm font-medium text-gray-800 mt-1">{{ totalOrang }} Orang ({{ participantCount }} Peserta, {{ panitiaCount }} Panitia)</p>
-                        <p class="text-xs text-gray-500 capitalize">Layout: {{ formStage4.layout_preferensi }}</p>
+                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Kapasitas & Layout</p>
+                        <p class="text-sm font-bold text-gray-800 mt-1.5">{{ totalOrang }} Orang ({{ participantCount }} Peserta, {{ panitiaCount }} Panitia)</p>
+                        <p class="text-xs text-gray-500 capitalize mt-0.5">Layout: {{ formStage4.layout_preferensi }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-400 font-semibold uppercase">Logistik</p>
-                        <p class="text-xs text-gray-800 mt-1">Hybrid: <span class="font-medium">{{ formStage4.hybrid ? 'Ya' : 'Tidak' }}</span></p>
-                        <p class="text-xs text-gray-800">Flipchart: <span class="font-medium">{{ formStage4.flipchart ? 'Ya' : 'Tidak' }}</span></p>
+                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Logistik</p>
+                        <p class="text-xs text-gray-800 mt-1.5">Hybrid: <span class="font-bold text-gray-700">{{ formStage4.hybrid ? 'Ya' : 'Tidak' }}</span></p>
+                        <p class="text-xs text-gray-800 mt-0.5">Flipchart: <span class="font-bold text-gray-700">{{ formStage4.flipchart ? 'Ya' : 'Tidak' }}</span></p>
                     </div>
-                </div>
-
-                <div v-if="submitError" class="bg-red-50 border border-red-200 text-red-600 text-sm rounded p-3">
-                    ⚠️ {{ submitError }}
-                </div>
-
-                <div class="flex justify-between mt-6 border-t border-gray-100 pt-4">
-                    <button @click="currentStage = 4" :disabled="isSubmitting"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-5 rounded text-sm disabled:opacity-50">
-                        ← Kembali Edit
-                    </button>
-                    <button @click="submitFinal" :disabled="isSubmitting"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded text-sm transition disabled:opacity-40 flex items-center justify-center gap-2">
-                        <span v-if="isSubmitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        {{ isSubmitting ? 'Memproses...' : 'Ajukan Booking Sekarang' }}
-                    </button>
                 </div>
             </div>
 
