@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed, watch } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { router } from '@inertiajs/vue3'
@@ -840,268 +840,180 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             </div>
         </Teleport>
 
-        <!-- Modal: Detail Booking Training (Diperkaya Selengkap Mungkin) -->
+        <!-- Modal: Detail Booking Training -->
         <Teleport to="body">
             <div
                 v-if="detailModalOpen"
                 class="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4"
                 @click.self="closeDetailModal"
             >
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col border border-gray-100 max-h-[92vh]">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col border border-gray-100 h-[88vh] min-h-[520px]">
 
-                        <!-- ── Modal Header ── -->
-                        <div class="flex-shrink-0 px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-700 flex items-center justify-between">
-                            <div class="flex-1 min-w-0 pr-4">
-                                <div class="flex items-center gap-2.5 flex-wrap">
-                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Detail Pemesanan</span>
+                    <!-- ── Header (sama gaya dengan Gantt modal) ── -->
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">📋</span>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">
+                                        {{ selectedDetailBooking?.nama_training || 'Detail Pemesanan' }}
+                                    </h4>
                                     <span
-                                        class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
+                                        class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border"
                                         :class="{
-                                            'bg-yellow-300/20 text-yellow-300 border border-yellow-400/30': selectedDetailBooking?.status === 'waiting_confirmation',
-                                            'bg-emerald-300/20 text-emerald-300 border border-emerald-400/30': selectedDetailBooking?.status === 'confirmed',
-                                            'bg-red-300/20 text-red-300 border border-red-400/30': selectedDetailBooking?.status === 'cancelled',
-                                            'bg-blue-300/20 text-blue-300 border border-blue-400/30': selectedDetailBooking?.status === 'plotting',
+                                            'bg-yellow-50 text-yellow-700 border-yellow-200': selectedDetailBooking?.status === 'waiting_confirmation',
+                                            'bg-emerald-50 text-emerald-700 border-emerald-200': selectedDetailBooking?.status === 'confirmed',
+                                            'bg-red-50 text-red-700 border-red-200': selectedDetailBooking?.status === 'cancelled',
+                                            'bg-amber-50 text-amber-700 border-amber-200': selectedDetailBooking?.status === 'plotting',
                                         }"
                                     >
                                         {{ statusLabel(selectedDetailBooking?.status) }}
                                     </span>
-                                    <span v-if="selectedDetailBooking?.gabung_ruang" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-300/20 text-teal-300 border border-teal-400/30">🔗 Gabung Ruang</span>
+                                    <span v-if="selectedDetailBooking?.gabung_ruang" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">🔗 Gabung Ruang</span>
                                 </div>
-                                <h4 class="text-base font-black text-white mt-1.5 leading-tight truncate">
-                                    {{ selectedDetailBooking?.nama_training }}
-                                </h4>
-                                <p class="text-xs text-slate-400 mt-0.5">
+                                <p class="text-[10px] text-gray-400 font-semibold mt-1.5 uppercase tracking-wider">
                                     {{ formatDateRange(selectedDetailBooking?.tgl_mulai, selectedDetailBooking?.tgl_selesai) }}
+                                    &nbsp;·&nbsp; {{ selectedDetailBooking?.gabung_ruang ? 'Ruang Gabungan (2+3)' : (selectedDetailBooking?.nama_ruang || '-') }}
                                 </p>
                             </div>
-                            <button @click="closeDetailModal" class="text-slate-400 hover:text-white transition-colors flex-shrink-0 ml-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
+                        </div>
+                        <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer focus:outline-none">&times;</button>
+                    </div>
+
+                    <!-- ── Info Bar (ringkas seperti legend di Gantt) ── -->
+                    <div class="shrink-0 px-6 py-3 border-b border-gray-100 bg-gray-50/40 flex flex-wrap items-center gap-x-6 gap-y-1.5 text-[11px]">
+                        <div class="flex items-center gap-1.5 text-gray-600">
+                            <span class="font-semibold text-gray-400 uppercase tracking-wider text-[9.5px]">Pemohon:</span>
+                            <span class="font-bold text-gray-800">{{ selectedDetailBooking?.pemohon || '-' }}</span>
+                            <span class="text-gray-300">·</span>
+                            <span class="text-blue-600 font-semibold">{{ selectedDetailBooking?.divisi || '-' }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-gray-600">
+                            <span class="font-semibold text-gray-400 uppercase tracking-wider text-[9.5px]">PIC:</span>
+                            <span class="font-bold text-gray-800">{{ selectedDetailBooking?.pic || '-' }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-gray-600">
+                            <span class="font-semibold text-gray-400 uppercase tracking-wider text-[9.5px]">Layout:</span>
+                            <span class="font-bold text-gray-800 capitalize">{{ selectedDetailBooking?.layout_preferensi || '-' }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full" :class="selectedDetailBooking?.is_hybrid ? 'bg-purple-500' : 'bg-gray-300'"></span>
+                            <span class="text-gray-600">Hybrid</span>
+                            <span class="w-2 h-2 rounded-full ml-1" :class="selectedDetailBooking?.is_flipchart ? 'bg-orange-500' : 'bg-gray-300'"></span>
+                            <span class="text-gray-600">Flipchart</span>
+                        </div>
+                        <div class="ml-auto flex items-center gap-3 text-[10px] font-bold">
+                            <span class="text-emerald-700">Peserta: {{ filteredPeserta.length }}</span>
+                            <span class="text-gray-300">|</span>
+                            <span class="text-indigo-700">Panitia: {{ filteredPanitia.length }}</span>
+                            <span class="text-gray-300">|</span>
+                            <span class="text-gray-600">Total: {{ filteredPeserta.length + filteredPanitia.length }}</span>
+                        </div>
+                    </div>
+
+                    <!-- ── Body: Tabel Roster ── -->
+                    <div class="flex-1 overflow-hidden flex flex-col min-h-0 bg-gray-50/20 p-5">
+
+                        <!-- Judul tabel + link denah -->
+                        <div class="flex items-center justify-between mb-3 shrink-0">
+                            <div class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest">👥 Roster Acara</div>
+                            <a v-if="selectedDetailBooking?.layout_url"
+                               :href="selectedDetailBooking.layout_url" target="_blank"
+                               class="inline-flex items-center gap-1 text-[11px] text-purple-700 hover:text-purple-900 font-semibold hover:underline">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                Lihat File Denah Kustom
+                            </a>
                         </div>
 
-                        <!-- ── Stats Bar ── -->
-                        <div class="flex-shrink-0 grid grid-cols-4 divide-x divide-gray-100 border-b border-gray-100 bg-gray-50">
-                            <div class="px-4 py-3 text-center">
-                                <p class="text-xl font-black text-blue-700">{{ filteredPeserta.length }}</p>
-                                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">Peserta</p>
-                            </div>
-                            <div class="px-4 py-3 text-center">
-                                <p class="text-xl font-black text-amber-600">{{ filteredPanitia.length }}</p>
-                                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">Panitia</p>
-                            </div>
-                            <div class="px-4 py-3 text-center">
-                                <p class="text-xl font-black">
-                                    <span class="text-blue-500">{{ filteredPeserta.filter(p => p.gender === 'L').length }}</span>
-                                    <span class="text-gray-300 font-light mx-0.5">/</span>
-                                    <span class="text-pink-500">{{ filteredPeserta.filter(p => p.gender === 'P').length }}</span>
-                                </p>
-                                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">L / P Peserta</p>
-                            </div>
-                            <div class="px-4 py-3 text-center">
-                                <p class="text-xl font-black text-gray-700">{{ filteredPeserta.length + filteredPanitia.length }}</p>
-                                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">Total Orang</p>
+                        <!-- Tabel Roster (full width, scrollable) -->
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden flex flex-col flex-1 min-h-0">
+                            <div class="overflow-y-auto flex-1">
+                                <table class="min-w-full divide-y divide-gray-100 text-xs">
+                                    <thead class="bg-gray-50/50 sticky top-0 z-10">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider w-8">#</th>
+                                            <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider">Nama</th>
+                                            <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-20">Peran</th>
+                                            <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-24">NRP</th>
+                                            <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider">Jabatan / Site</th>
+                                            <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-10">JK</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-50">
+                                        <tr v-if="!selectedDetailBooking?.participants || selectedDetailBooking.participants.length === 0">
+                                            <td colspan="6" class="px-4 py-12 text-center text-gray-400 text-[11px] italic">Tidak ada data anggota roster.</td>
+                                        </tr>
+                                        <tr v-for="(p, idx) in sortedParticipants" :key="idx" class="hover:bg-gray-50/60 transition-colors">
+                                            <td class="px-4 py-2.5 text-[10px] text-gray-400 font-medium">{{ idx + 1 }}</td>
+                                            <td class="px-4 py-2.5">
+                                                <div class="font-bold text-gray-800 text-xs">{{ p.nama }}</div>
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center select-none">
+                                                <span v-if="p.tipe === 'panitia'" class="inline-flex items-center bg-indigo-50 text-indigo-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-indigo-100">
+                                                    Panitia
+                                                </span>
+                                                <span v-else class="inline-flex items-center bg-emerald-50 text-emerald-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-100">
+                                                    Peserta
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-0.5 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded text-[9px] text-gray-400 font-mono">
+                                                    N/A
+                                                    <span class="bg-gray-200/60 text-gray-500 font-normal px-0.5 rounded text-[7px] uppercase tracking-wider font-sans select-none">Eks</span>
+                                                </span>
+                                                <span v-else class="inline-flex bg-blue-50 text-blue-700 text-[10px] font-extrabold font-mono px-1.5 py-0.5 rounded border border-blue-100">
+                                                    {{ p.nrp }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <div class="font-semibold text-gray-600 text-[11px]">{{ p.jabatan || '-' }}</div>
+                                                <div class="text-[9px] text-gray-400 mt-0.5 flex flex-wrap items-center gap-1">
+                                                    <span>📍 {{ p.site || '-' }}</span>
+                                                    <span v-if="p.no_hp" class="text-gray-300 font-light">|</span>
+                                                    <span v-if="p.no_hp" class="font-mono text-[8.5px] text-gray-500">📞 {{ p.no_hp }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <span class="text-xs font-black" :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-500'">
+                                                    {{ p.gender || '-' }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
 
-                        <!-- ── Body (3 Columns) ── -->
-                        <div class="flex-1 overflow-y-auto">
-                        <div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                            <!-- Kolom 1: Informasi Umum & Konfigurasi -->
-                            <div class="space-y-4 lg:border-r border-gray-100 lg:pr-6">
-                                <!-- Pemohon & PIC -->
-                                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-3">
-                                    <h5 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">👤 Pemohon & PIC</h5>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Pemohon</span>
-                                            <span class="text-sm font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pemohon || '-' }}</span>
-                                            <span class="text-[10px] text-blue-600 font-semibold block mt-0.5">{{ selectedDetailBooking?.divisi || '-' }}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">PIC Acara</span>
-                                            <span class="text-sm font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pic || '-' }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Ruangan & Jadwal -->
-                                <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100 space-y-3">
-                                    <h5 class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">🏢 Ruangan & Jadwal</h5>
-                                    <div>
-                                        <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Ruangan</span>
-                                        <div class="flex items-center gap-2 mt-0.5">
-                                            <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking?.ruangan_id).bg }"></span>
-                                            <span class="text-sm font-bold text-gray-800">
-                                                {{ selectedDetailBooking?.gabung_ruang ? 'Ruang Gabungan (2+3)' : (selectedDetailBooking?.nama_ruang || '-') }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Tanggal Mulai</span>
-                                            <span class="text-sm font-bold text-gray-800 block mt-0.5">{{ formatIndoDateShort(selectedDetailBooking?.tgl_mulai) }}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Tanggal Selesai</span>
-                                            <span class="text-sm font-bold text-gray-800 block mt-0.5">{{ formatIndoDateShort(selectedDetailBooking?.tgl_selesai) }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Fasilitas & Layout -->
-                                <div class="bg-purple-50 rounded-xl p-4 border border-purple-100 space-y-3">
-                                    <h5 class="text-[10px] font-black text-purple-600 uppercase tracking-widest">⚙️ Konfigurasi & Fasilitas</h5>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Jenis</span>
-                                            <span class="text-sm font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.fase === 'reguler' ? '📋 Reguler' : '📊 Plotting' }}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Layout</span>
-                                            <span class="text-sm font-bold text-gray-800 block mt-0.5 capitalize">{{ selectedDetailBooking?.layout_preferensi || '-' }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex gap-4">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-3 h-3 rounded-full" :class="selectedDetailBooking?.is_hybrid ? 'bg-purple-500' : 'bg-gray-300'"></span>
-                                            <span class="text-xs text-gray-700">Hybrid</span>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-3 h-3 rounded-full" :class="selectedDetailBooking?.is_flipchart ? 'bg-orange-500' : 'bg-gray-300'"></span>
-                                            <span class="text-xs text-gray-700">Flipchart</span>
-                                        </div>
-                                    </div>
-                                    <div v-if="selectedDetailBooking?.layout_url" class="mt-2.5 pt-2 border-t border-purple-100/50">
-                                        <a :href="selectedDetailBooking.layout_url" target="_blank"
-                                           class="inline-flex items-center gap-1 text-[11px] text-purple-700 hover:text-purple-900 font-semibold hover:underline">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                            Lihat File Denah Kustom
-                                        </a>
-                                    </div>
-                                </div>
-                                <!-- Distribusi Site -->
-                                <div v-if="filteredPeserta.length > 0" class="bg-teal-50 rounded-xl p-4 border border-teal-100">
-                                    <h5 class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-3">📍 Distribusi Site Peserta</h5>
-                                    <div class="space-y-1.5">
-                                        <div
-                                            v-for="(count, site) in Object.fromEntries(
-                                                [...filteredPeserta.reduce((acc, p) => {
-                                                    acc.set(p.site || '-', (acc.get(p.site || '-') || 0) + 1);
-                                                    return acc;
-                                                }, new Map())].sort((a, b) => b[1] - a[1])
-                                            )"
-                                            :key="site"
-                                            class="flex items-center justify-between text-xs"
-                                        >
-                                            <span class="text-gray-700 font-medium truncate">{{ site }}</span>
-                                            <span class="ml-2 px-2 py-0.5 bg-teal-100 text-teal-700 rounded-full font-bold flex-shrink-0">{{ count }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Kolom Kanan: Roster Peserta & Roster Panitia Menurun (Wider 2/3 width) -->
-                            <div class="lg:col-span-2 space-y-6 flex flex-col min-w-0">
-                                <!-- Roster Acara -->
-                                <div class="flex flex-col min-w-0">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <h5 class="text-[10px] font-black text-slate-700 uppercase tracking-widest">👥 Roster Acara</h5>
-                                        <div class="flex items-center gap-2 text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
-                                            <span>Peserta: <strong class="text-emerald-700 font-black">{{ filteredPeserta.length }}</strong></span>
-                                            <span class="text-gray-300 font-light">|</span>
-                                            <span>Panitia: <strong class="text-indigo-700 font-black">{{ filteredPanitia.length }}</strong></span>
-                                        </div>
-                                    </div>
-                                    <div class="flex-1 border border-gray-100 rounded-xl overflow-hidden">
-                                        <div class="overflow-y-auto max-h-[60vh]">
-                                            <table class="min-w-full divide-y divide-gray-100 text-xs">
-                                                <thead class="bg-gray-50 sticky top-0 z-10">
-                                                    <tr>
-                                                        <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider w-6">#</th>
-                                                        <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Nama</th>
-                                                        <th class="px-3 py-2.5 text-center text-[9px] font-bold text-gray-500 uppercase tracking-wider w-16">Peran</th>
-                                                        <th class="px-3 py-2.5 text-center text-[9px] font-bold text-gray-500 uppercase tracking-wider w-16">NRP</th>
-                                                        <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Jabatan / Site</th>
-                                                        <th class="px-3 py-2.5 text-center text-[9px] font-bold text-gray-500 uppercase tracking-wider w-8">JK</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="bg-white divide-y divide-gray-50 text-gray-700">
-                                                    <tr v-if="!selectedDetailBooking?.participants || selectedDetailBooking.participants.length === 0">
-                                                        <td colspan="6" class="px-3 py-8 text-center text-gray-400 text-[11px] italic">Tidak ada data anggota roster.</td>
-                                                    </tr>
-                                                    <tr v-for="(p, idx) in sortedParticipants" :key="idx" class="hover:bg-gray-50">
-                                                        <td class="px-3 py-2 text-[10px] text-gray-400">{{ idx + 1 }}</td>
-                                                        <td class="px-3 py-2">
-                                                            <div class="font-bold text-gray-800 text-xs">{{ p.nama }}</div>
-                                                        </td>
-                                                        <td class="px-3 py-2 text-center select-none">
-                                                            <span v-if="p.tipe === 'panitia'" class="inline-flex items-center bg-indigo-50 text-indigo-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-indigo-100">
-                                                                Panitia
-                                                            </span>
-                                                            <span v-else class="inline-flex items-center bg-emerald-50 text-emerald-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-100">
-                                                                Peserta
-                                                            </span>
-                                                        </td>
-                                                        <td class="px-3 py-2 text-center">
-                                                            <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-0.5 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded text-[9px] text-gray-450 font-mono">
-                                                                N/A
-                                                                <span class="bg-gray-200/60 text-gray-550 font-normal px-0.5 py-0.2 rounded text-[7px] uppercase tracking-wider font-sans select-none">Eks</span>
-                                                            </span>
-                                                            <span v-else class="inline-flex bg-blue-50 text-blue-700 text-[10px] font-extrabold font-mono px-1.5 py-0.5 rounded border border-blue-100">
-                                                                {{ p.nrp }}
-                                                            </span>
-                                                        </td>
-                                                        <td class="px-3 py-2">
-                                                            <div class="font-semibold text-gray-600 text-[11px]">{{ p.jabatan || '-' }}</div>
-                                                            <div class="text-[9px] text-gray-450 mt-0.5 flex flex-wrap items-center gap-1">
-                                                                <span>📍 {{ p.site || '-' }}</span>
-                                                                <span v-if="p.no_hp" class="text-gray-300 font-light">|</span>
-                                                                <span v-if="p.no_hp" class="font-mono text-[8.5px] text-gray-500">📞 {{ p.no_hp }}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td class="px-3 py-2 text-center">
-                                                            <span class="text-xs font-black" :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-500'">
-                                                                {{ p.gender || '-' }}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Catatan Admin (jika ada) -->
-                                <div v-if="selectedDetailBooking?.catatan_admin" class="bg-red-50 rounded-xl p-4 border border-red-100">
-                                    <h6 class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2">📝 Catatan Admin</h6>
-                                    <p class="text-xs text-gray-700 leading-relaxed">{{ selectedDetailBooking.catatan_admin }}</p>
-                                </div>
-                            </div>
-
+                        <!-- Catatan Admin (jika ada) -->
+                        <div v-if="selectedDetailBooking?.catatan_admin" class="mt-3 bg-red-50 rounded-xl p-3.5 border border-red-100 shrink-0">
+                            <h6 class="text-[9.5px] font-black text-red-600 uppercase tracking-widest mb-1.5">📝 Catatan Admin</h6>
+                            <p class="text-xs text-gray-700 leading-relaxed">{{ selectedDetailBooking.catatan_admin }}</p>
                         </div>
-                        </div><!-- /Body -->
+
+                    </div>
 
                     <!-- ── Footer ── -->
-                    <div class="flex-shrink-0 px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <p class="text-[10px] text-gray-400">
-                                📅 Diajukan: {{ formatIndoDateTime(selectedDetailBooking?.created_at) }}
-                            </p>
+                    <div class="shrink-0 px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                        <p class="text-[10px] text-gray-400">
+                            📅 Diajukan: {{ formatIndoDateTime(selectedDetailBooking?.created_at) }}
+                        </p>
+                        <div class="flex items-center gap-2">
                             <a v-if="selectedDetailBooking"
                                :href="`/admin/bookings/${selectedDetailBooking.id}/export-detail`"
                                target="_blank"
-                               class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition shadow-sm cursor-pointer"
+                               class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold px-3 py-2 rounded-lg transition shadow-sm cursor-pointer"
                                title="Unduh Excel daftar peserta & panitia"
                             >
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 Ekspor Excel
                             </a>
+                            <button
+                                @click="closeDetailModal"
+                                class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
+                            >
+                                Tutup
+                            </button>
                         </div>
-                        <button
-                            @click="closeDetailModal"
-                            class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-5 py-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm"
-                        >
-                            Tutup
-                        </button>
                     </div>
 
                 </div>
