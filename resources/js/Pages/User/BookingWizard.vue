@@ -13,7 +13,7 @@ const currentStage = ref(1)
 
 // Stage 1 (Excel Upload & Kapasitas)
 const participants        = ref([
-    { nama: '', jabatan: '', site: '', gender: 'L' }
+    { nama: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
 ])
 const isManualInput       = ref(true)
 const uploadedFileName    = ref('Input Manual')
@@ -28,11 +28,11 @@ const stage1Error         = ref('')
 
 // Roster Panitia (array interaktif)
 const panitiaList = ref([
-    { nama: '', divisi: '', jabatan: '', site: '' }
+    { nama: '', divisi: '', jabatan: '', site: '', no_hp: '' }
 ])
 
 function addPanitia() {
-    panitiaList.value.push({ nama: '', divisi: '', jabatan: '', site: '' })
+    panitiaList.value.push({ nama: '', divisi: '', jabatan: '', site: '', no_hp: '' })
 }
 
 function removePanitia(index) {
@@ -44,7 +44,7 @@ function removePanitia(index) {
 const panitiaCount = computed(() => panitiaList.value.length)
 
 const panitiaValid = computed(() =>
-    panitiaList.value.every(p => p.nama.trim() !== '')
+    panitiaList.value.every(p => p.nama.trim() !== '' && p.no_hp.trim() !== '' && /^[0-9+]+$/.test(p.no_hp.trim()))
 )
 
 // Stage 2 (Kalender)
@@ -102,6 +102,8 @@ const participantsValid = computed(() =>
         p.nama.trim() !== '' && 
         p.jabatan.trim() !== '' && 
         p.site.trim() !== '' && 
+        p.no_hp.trim() !== '' && 
+        /^[0-9+]+$/.test(p.no_hp.trim()) &&
         (p.gender === 'L' || p.gender === 'P')
     )
 )
@@ -634,7 +636,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         class="bg-emerald-650 hover:bg-emerald-705 text-white text-xs font-black py-2 px-3.5 rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-3xs select-none">
                                         <span>📂 {{ isUploadingExcel ? 'Memproses...' : 'Impor dari Excel' }}</span>
                                     </label>
-                                    <a href="/user/booking/download-template"
+                                    <a :href="`/user/booking/download-template?v=${Date.now()}`"
                                         class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-[10px] font-extrabold py-2 px-3 rounded-xl transition inline-flex items-center gap-1.5 shadow-3xs select-none">
                                         📥 Template Excel
                                     </a>
@@ -698,6 +700,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3">Jabatan<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3">Site<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3">No. HP<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3 w-44 text-center">Gender<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3 w-12 text-center"></th>
                                         </tr>
@@ -719,6 +722,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                                 <input v-model="p.site" type="text" placeholder="Site..."
                                                     class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.site.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.no_hp" type="text" placeholder="Contoh: 0812..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.no_hp.trim() === '' || !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <select v-model="p.gender"
@@ -769,6 +777,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             <th class="px-4 py-3">Divisi</th>
                                             <th class="px-4 py-3">Jabatan</th>
                                             <th class="px-4 py-3">Site</th>
+                                            <th class="px-4 py-3">No. HP<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3 w-12 text-center"></th>
                                         </tr>
                                     </thead>
@@ -791,6 +800,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.site" type="text" placeholder="Site..."
                                                     class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.no_hp" type="text" placeholder="Contoh: 0812..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.no_hp.trim() === '' || !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <button @click="removePanitia(i)" :disabled="panitiaList.length === 1"
@@ -1303,6 +1317,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             <th class="px-4 py-2 font-bold text-gray-500 w-10 uppercase tracking-wider text-[10px]">#</th>
                                             <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Nama Lengkap</th>
                                             <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Site</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">No. HP</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100">
@@ -1310,6 +1325,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             <td class="px-4 py-2.5 text-gray-400 font-bold">{{ i + 1 }}</td>
                                             <td class="px-4 py-2.5 font-bold text-gray-800">{{ p.nama }} <span class="text-[10px] font-medium text-gray-400 block mt-0.5">{{ p.jabatan }}</span></td>
                                             <td class="px-4 py-2.5 text-gray-500">{{ p.site }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1331,6 +1347,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             <th class="px-4 py-2 font-bold text-gray-500 w-10 uppercase tracking-wider text-[10px]">#</th>
                                             <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Nama Lengkap</th>
                                             <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Site</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">No. HP</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100">
@@ -1338,6 +1355,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             <td class="px-4 py-2.5 text-gray-400 font-bold">{{ i + 1 }}</td>
                                             <td class="px-4 py-2.5 font-bold text-gray-800">{{ p.nama }} <span class="text-[10px] font-medium text-gray-400 block mt-0.5">{{ p.jabatan || p.divisi }}</span></td>
                                             <td class="px-4 py-2.5 text-gray-500">{{ p.site || '-' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
