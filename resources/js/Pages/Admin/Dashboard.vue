@@ -349,6 +349,14 @@ const filteredPanitia = computed(() => {
     return selectedDetailBooking.value?.participants?.filter(p => p.tipe === 'panitia') || []
 })
 
+const sortedParticipants = computed(() => {
+    const list = selectedDetailBooking.value?.participants || []
+    return [...list].sort((a, b) => {
+        if (a.tipe === b.tipe) return 0
+        return a.tipe === 'peserta' ? -1 : 1
+    })
+})
+
 // ============================================================
 // Status badge helper
 // ============================================================
@@ -993,108 +1001,72 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                             <!-- Kolom Kanan: Roster Peserta & Roster Panitia Menurun (Wider 2/3 width) -->
                             <div class="lg:col-span-2 space-y-6 flex flex-col min-w-0">
-                                <!-- Roster Peserta -->
+                                <!-- Roster Acara -->
                                 <div class="flex flex-col min-w-0">
                                     <div class="flex items-center justify-between mb-3">
-                                    <h5 class="text-[10px] font-black text-emerald-700 uppercase tracking-widest">👥 Roster Peserta</h5>
-                                    <div class="flex items-center gap-2 text-[10px] text-gray-500">
-                                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-400"></span>L: {{ filteredPeserta.filter(p => p.gender === 'L').length }}</span>
-                                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-pink-400"></span>P: {{ filteredPeserta.filter(p => p.gender === 'P').length }}</span>
+                                        <h5 class="text-[10px] font-black text-slate-700 uppercase tracking-widest">👥 Roster Acara</h5>
+                                        <div class="flex items-center gap-2 text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
+                                            <span>Peserta: <strong class="text-emerald-700 font-black">{{ filteredPeserta.length }}</strong></span>
+                                            <span class="text-gray-300 font-light">|</span>
+                                            <span>Panitia: <strong class="text-indigo-700 font-black">{{ filteredPanitia.length }}</strong></span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="flex-1 border border-gray-100 rounded-xl overflow-hidden">
-                                    <div class="overflow-y-auto max-h-[50vh]">
-                                        <table class="min-w-full divide-y divide-gray-100 text-xs">
-                                            <thead class="bg-gray-50 sticky top-0 z-10">
-                                                <tr>
-                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider w-6">#</th>
-                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Nama</th>
-                                                    <th class="px-3 py-2.5 text-center text-[9px] font-bold text-gray-500 uppercase tracking-wider w-16">NRP</th>
-                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Jabatan / Site</th>
-                                                    <th class="px-3 py-2.5 text-center text-[9px] font-bold text-gray-500 uppercase tracking-wider w-8">JK</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="bg-white divide-y divide-gray-50 text-gray-700">
-                                                <tr v-if="filteredPeserta.length === 0">
-                                                    <td colspan="5" class="px-3 py-8 text-center text-gray-400 text-[11px] italic">Tidak ada data peserta.</td>
-                                                </tr>
-                                                <tr v-for="(p, idx) in filteredPeserta" :key="idx" class="hover:bg-gray-50">
-                                                    <td class="px-3 py-2 text-[10px] text-gray-400">{{ idx + 1 }}</td>
-                                                    <td class="px-3 py-2">
-                                                        <div class="font-bold text-gray-800 text-xs">{{ p.nama }}</div>
-                                                    </td>
-                                                    <td class="px-3 py-2 text-center">
-                                                        <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-0.5 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded text-[9px] text-gray-450 font-mono">
-                                                            N/A
-                                                            <span class="bg-gray-200/60 text-gray-500 font-normal px-0.5 py-0.2 rounded text-[7px] uppercase tracking-wider font-sans select-none">Eks</span>
-                                                        </span>
-                                                        <span v-else class="inline-flex bg-blue-50 text-blue-700 text-[10px] font-extrabold font-mono px-1.5 py-0.5 rounded border border-blue-100">
-                                                            {{ p.nrp }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="px-3 py-2">
-                                                        <div class="font-semibold text-gray-600 text-[11px]">{{ p.jabatan || '-' }}</div>
-                                                        <div class="text-[9px] text-gray-450 mt-0.5 flex flex-wrap items-center gap-1">
-                                                            <span>📍 {{ p.site || '-' }}</span>
-                                                            <span v-if="p.no_hp" class="text-gray-300 font-light">|</span>
-                                                            <span v-if="p.no_hp" class="font-mono text-[8.5px] text-gray-500">📞 {{ p.no_hp }}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td class="px-3 py-2 text-center">
-                                                        <span class="text-xs font-black" :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-500'">
-                                                            {{ p.gender || '-' }}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-
-                                <!-- Roster Panitia -->
-                                <div class="flex flex-col min-w-0">
-                                    <h5 class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3">💼 Roster Panitia</h5>
-                                <div class="flex-1 border border-gray-100 rounded-xl overflow-hidden">
-                                    <div class="overflow-y-auto max-h-[50vh]">
-                                        <table class="min-w-full divide-y divide-gray-100 text-xs">
-                                            <thead class="bg-gray-50 sticky top-0 z-10">
-                                                <tr>
-                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider w-6">#</th>
-                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Nama</th>
-                                                    <th class="px-3 py-2.5 text-center text-[9px] font-bold text-gray-500 uppercase tracking-wider w-16">NRP</th>
-                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Jabatan / Site</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="bg-white divide-y divide-gray-50 text-gray-700">
-                                                <tr v-if="filteredPanitia.length === 0">
-                                                    <td colspan="4" class="px-3 py-8 text-center text-gray-400 text-[11px] italic">Tidak ada data panitia.</td>
-                                                </tr>
-                                                <tr v-for="(p, idx) in filteredPanitia" :key="idx" class="hover:bg-gray-50">
-                                                    <td class="px-3 py-2 text-[10px] text-gray-400">{{ idx + 1 }}</td>
-                                                    <td class="px-3 py-2">
-                                                        <div class="font-bold text-gray-800 text-xs">{{ p.nama }}</div>
-                                                    </td>
-                                                    <td class="px-3 py-2 text-center">
-                                                        <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-0.5 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded text-[9px] text-gray-400 font-mono">
-                                                            N/A
-                                                            <span class="bg-gray-200/60 text-gray-550 font-normal px-0.5 py-0.2 rounded text-[7px] uppercase tracking-wider font-sans select-none">Eks</span>
-                                                        </span>
-                                                        <span v-else class="inline-flex bg-blue-50 text-blue-700 text-[10px] font-extrabold font-mono px-1.5 py-0.5 rounded border border-blue-100">
-                                                            {{ p.nrp }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="px-3 py-2">
-                                                        <div class="font-semibold text-gray-600 text-[11px]">{{ p.jabatan || '-' }}</div>
-                                                        <div class="text-[9px] text-gray-455 mt-0.5 flex flex-wrap items-center gap-1">
-                                                            <span>📍 {{ p.site || '-' }}</span>
-                                                            <span v-if="p.no_hp" class="text-gray-300 font-light">|</span>
-                                                            <span v-if="p.no_hp" class="font-mono text-[8.5px] text-gray-500">📞 {{ p.no_hp }}</span>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                    <div class="flex-1 border border-gray-100 rounded-xl overflow-hidden">
+                                        <div class="overflow-y-auto max-h-[60vh]">
+                                            <table class="min-w-full divide-y divide-gray-100 text-xs">
+                                                <thead class="bg-gray-50 sticky top-0 z-10">
+                                                    <tr>
+                                                        <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider w-6">#</th>
+                                                        <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Nama</th>
+                                                        <th class="px-3 py-2.5 text-center text-[9px] font-bold text-gray-500 uppercase tracking-wider w-16">Peran</th>
+                                                        <th class="px-3 py-2.5 text-center text-[9px] font-bold text-gray-500 uppercase tracking-wider w-16">NRP</th>
+                                                        <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Jabatan / Site</th>
+                                                        <th class="px-3 py-2.5 text-center text-[9px] font-bold text-gray-500 uppercase tracking-wider w-8">JK</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-50 text-gray-700">
+                                                    <tr v-if="!selectedDetailBooking?.participants || selectedDetailBooking.participants.length === 0">
+                                                        <td colspan="6" class="px-3 py-8 text-center text-gray-400 text-[11px] italic">Tidak ada data anggota roster.</td>
+                                                    </tr>
+                                                    <tr v-for="(p, idx) in sortedParticipants" :key="idx" class="hover:bg-gray-50">
+                                                        <td class="px-3 py-2 text-[10px] text-gray-400">{{ idx + 1 }}</td>
+                                                        <td class="px-3 py-2">
+                                                            <div class="font-bold text-gray-800 text-xs">{{ p.nama }}</div>
+                                                        </td>
+                                                        <td class="px-3 py-2 text-center select-none">
+                                                            <span v-if="p.tipe === 'panitia'" class="inline-flex items-center bg-indigo-50 text-indigo-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-indigo-100">
+                                                                Panitia
+                                                            </span>
+                                                            <span v-else class="inline-flex items-center bg-emerald-50 text-emerald-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-100">
+                                                                Peserta
+                                                            </span>
+                                                        </td>
+                                                        <td class="px-3 py-2 text-center">
+                                                            <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-0.5 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded text-[9px] text-gray-450 font-mono">
+                                                                N/A
+                                                                <span class="bg-gray-200/60 text-gray-550 font-normal px-0.5 py-0.2 rounded text-[7px] uppercase tracking-wider font-sans select-none">Eks</span>
+                                                            </span>
+                                                            <span v-else class="inline-flex bg-blue-50 text-blue-700 text-[10px] font-extrabold font-mono px-1.5 py-0.5 rounded border border-blue-100">
+                                                                {{ p.nrp }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="px-3 py-2">
+                                                            <div class="font-semibold text-gray-600 text-[11px]">{{ p.jabatan || '-' }}</div>
+                                                            <div class="text-[9px] text-gray-450 mt-0.5 flex flex-wrap items-center gap-1">
+                                                                <span>📍 {{ p.site || '-' }}</span>
+                                                                <span v-if="p.no_hp" class="text-gray-300 font-light">|</span>
+                                                                <span v-if="p.no_hp" class="font-mono text-[8.5px] text-gray-500">📞 {{ p.no_hp }}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td class="px-3 py-2 text-center">
+                                                            <span class="text-xs font-black" :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-500'">
+                                                                {{ p.gender || '-' }}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1103,7 +1075,6 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                     <h6 class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2">📝 Catatan Admin</h6>
                                     <p class="text-xs text-gray-700 leading-relaxed">{{ selectedDetailBooking.catatan_admin }}</p>
                                 </div>
-                            </div>
                             </div>
 
                         </div>
