@@ -26,6 +26,10 @@ class Booking extends Model
         'is_hybrid',
         'is_flipchart',
         'catatan_admin',
+        'acc1_at',
+        'acc1_by',
+        'acc2_at',
+        'acc2_by',
     ];
 
     protected function casts(): array
@@ -36,6 +40,8 @@ class Booking extends Model
             'gabung_ruang' => 'boolean',
             'is_hybrid'    => 'boolean',
             'is_flipchart' => 'boolean',
+            'acc1_at'      => 'datetime',
+            'acc2_at'      => 'datetime',
         ];
     }
 
@@ -65,6 +71,14 @@ class Booking extends Model
     public function participants(): HasMany
     {
         return $this->hasMany(BookingParticipant::class);
+    }
+
+    /**
+     * Log aktivitas administratif pada booking ini.
+     */
+    public function logs(): HasMany
+    {
+        return $this->hasMany(BookingLog::class);
     }
 
     // =========================================================
@@ -108,6 +122,16 @@ class Booking extends Model
     public function isConfirmed(): bool
     {
         return $this->status === 'confirmed';
+    }
+
+    public function isFinalConfirmed(): bool
+    {
+        return $this->status === 'final_confirmed';
+    }
+
+    public function canBeAcc2(): bool
+    {
+        return $this->isConfirmed() && !$this->isFinalConfirmed();
     }
 
     public function isCancelled(): bool

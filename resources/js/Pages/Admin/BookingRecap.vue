@@ -73,50 +73,7 @@ function formatDate(d) {
     return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-// ── Approve / Reject ─────────────────────────────────────────────
-const showApproveModal = ref(false)
-const showRejectModal  = ref(false)
-const showAcc2Modal    = ref(false)
-const selectedBooking  = ref(null)
 
-const rejectForm  = useForm({ catatan_admin: '' })
-const approveForm = useForm({})
-const acc2Form    = useForm({})
-
-function confirmApprove(booking) {
-    selectedBooking.value = booking
-    showApproveModal.value = true
-}
-function confirmReject(booking) {
-    selectedBooking.value = booking
-    rejectForm.reset()
-    showRejectModal.value = true
-}
-function confirmAcc2(booking) {
-    selectedBooking.value = booking
-    showAcc2Modal.value = true
-}
-function submitApprove() {
-    if (!selectedBooking.value) return
-    approveForm.post(`/admin/bookings/${selectedBooking.value.id}/approve`, {
-        preserveScroll: true,
-        onSuccess: () => { showApproveModal.value = false; selectedBooking.value = null }
-    })
-}
-function submitReject() {
-    if (!selectedBooking.value) return
-    rejectForm.post(`/admin/bookings/${selectedBooking.value.id}/reject`, {
-        preserveScroll: true,
-        onSuccess: () => { showRejectModal.value = false; selectedBooking.value = null; rejectForm.reset() }
-    })
-}
-function submitAcc2() {
-    if (!selectedBooking.value) return
-    acc2Form.post(`/admin/bookings/${selectedBooking.value.id}/acc2`, {
-        preserveScroll: true,
-        onSuccess: () => { showAcc2Modal.value = false; selectedBooking.value = null }
-    })
-}
 
 // ── Detail Modal ─────────────────────────────────────────────────
 const showDetailModal = ref(false)
@@ -155,7 +112,10 @@ const layoutLabels = {
     custom:    'Custom (Lihat file)',
 }
 
-
+// ── Export Excel ─────────────────────────────────────────────────
+function exportExcel() {
+    window.open(`/admin/bookings/export?filter=${activeTab.value}`, '_blank')
+}
 </script>
 
 <template>
@@ -163,10 +123,20 @@ const layoutLabels = {
         <!-- ── Page Header ─────────────────────────────────────── -->
         <div class="mb-5 flex items-center justify-between">
             <div>
-                <h1 class="text-xl font-bold text-gray-900">⚙️ Manajemen Booking</h1>
-                <p class="text-sm text-gray-500 mt-1">Kelola dan proses pengajuan peminjaman ruangan</p>
+                <h1 class="text-xl font-bold text-gray-900">📋 Rekap Booking</h1>
+                <p class="text-sm text-gray-500 mt-1">Melihat riwayat dan merekap semua pengajuan peminjaman ruangan</p>
             </div>
-
+            <!-- Export Button -->
+            <button
+                @click="exportExcel"
+                class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
+                title="Unduh rekap sesuai tab aktif sebagai file Excel"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Unduh Rekap ({{ tabs.find(t => t.key === activeTab)?.label }})
+            </button>
         </div>
 
         <!-- Active filter banner -->
@@ -199,7 +169,6 @@ const layoutLabels = {
                         <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Peserta</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Fasilitas</th>
                         <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
@@ -260,29 +229,6 @@ const layoutLabels = {
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     Lihat Detail
                                 </button>
-                                <!-- Approve/Reject (only for waiting) -->
-                                <div v-if="b.status === 'waiting_confirmation'" class="flex gap-1.5">
-                                    <button @click="confirmApprove(b)"
-                                        class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1.5 px-2 rounded-lg transition">
-                                        ✓ Setujui
-                                    </button>
-                                    <button @click="confirmReject(b)"
-                                        class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold py-1.5 px-2 rounded-lg transition border border-red-200">
-                                        ✕ Tolak
-                                    </button>
-                                </div>
-                                <!-- ACC-2 (only for confirmed) -->
-                                <div v-if="b.status === 'confirmed'" class="flex gap-1.5">
-                                    <button @click="confirmAcc2(b)"
-                                        class="w-full flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-1.5 px-2 rounded-lg transition shadow-sm">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        Final Confirm
-                                    </button>
-                                </div>
-                                <!-- Catatan penolakan jika ditolak -->
-                                <div v-if="b.status === 'cancelled' && b.catatan_admin" class="text-xs text-red-600 italic max-w-[160px] truncate" :title="b.catatan_admin">
-                                    ⚠ {{ b.catatan_admin }}
-                                </div>
                             </div>
                         </td>
                     </tr>
@@ -625,33 +571,9 @@ const layoutLabels = {
 
                                 </div><!-- /Tab Content -->
 
-                                <!-- Panel Footer: Approve / Reject / ACC-2 Actions -->
-                                <div v-if="detailData.booking.status === 'waiting_confirmation'"
-                                     class="flex-shrink-0 border-t border-gray-100 px-6 py-4 bg-gray-50 flex gap-3">
-                                    <button @click="closeDetail(); confirmReject({ id: detailData.booking.id, nama_training: detailData.booking.nama_training })"
-                                        class="flex-1 px-4 py-2.5 bg-red-100 hover:bg-red-200 border border-red-200 text-red-700 rounded-lg text-sm font-semibold transition">
-                                        ✕ Tolak Booking
-                                    </button>
-                                    <button @click="closeDetail(); confirmApprove({ id: detailData.booking.id, nama_training: detailData.booking.nama_training, pemohon: detailData.booking.pemohon?.name, divisi: detailData.booking.pemohon?.divisi, ruangan: detailData.booking.ruangan?.nama_ruang ?? 'Ruang Gabungan', tgl_mulai: detailData.booking.tgl_mulai, tgl_selesai: detailData.booking.tgl_selesai })"
-                                        class="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition shadow-sm">
-                                        ✓ Setujui Booking
-                                    </button>
-                                </div>
-                                <div v-if="detailData.booking.status === 'confirmed'"
-                                     class="flex-shrink-0 border-t px-6 py-4 flex gap-3 flex-col"
-                                     :class="isPastH14(detailData.booking.tgl_mulai) ? 'border-red-100 bg-red-50' : 'border-emerald-100 bg-emerald-50'">
-                                    
-                                    <div v-if="isPastH14(detailData.booking.tgl_mulai)" class="text-xs text-red-700 font-semibold flex items-center gap-1.5 mb-1 bg-white px-3 py-2 rounded-md border border-red-200">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                        Booking ini sudah melewati batas waktu ACC-2 (H-14). Silakan segera proses manual.
-                                    </div>
-
-                                    <button @click="closeDetail(); confirmAcc2({ id: detailData.booking.id, nama_training: detailData.booking.nama_training })"
-                                        class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-white rounded-lg text-sm font-semibold transition shadow-sm"
-                                        :class="isPastH14(detailData.booking.tgl_mulai) ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        Beri Final Confirmation (ACC-2)
-                                    </button>
+                                <!-- Panel Footer: Read-only -->
+                                <div class="flex-shrink-0 border-t border-gray-100 px-6 py-4 bg-gray-50">
+                                    <p class="text-xs text-gray-500 text-center">Menampilkan detail rekap booking (Mode Read-Only)</p>
                                 </div>
 
                             </div><!-- /if detailData -->
@@ -662,117 +584,7 @@ const layoutLabels = {
         </Teleport>
 
 
-        <!-- ── Modal: Konfirmasi Approve ──────────────────────────── -->
-        <Teleport to="body">
-            <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <div v-if="showApproveModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-600 to-emerald-600">
-                            <h2 class="text-base font-bold text-white">Konfirmasi Persetujuan</h2>
-                            <p class="text-xs text-green-100 mt-1">Ruangan akan dikunci setelah booking disetujui.</p>
-                        </div>
-                        <div class="px-6 py-4 space-y-3 bg-gray-50">
-                            <div><span class="text-xs text-gray-500 block">Nama Training</span><span class="text-sm font-semibold text-gray-800">{{ selectedBooking?.nama_training }}</span></div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><span class="text-xs text-gray-500 block">Pemohon</span><span class="text-sm text-gray-800">{{ selectedBooking?.pemohon }} ({{ selectedBooking?.divisi }})</span></div>
-                                <div><span class="text-xs text-gray-500 block">Ruangan</span><span class="text-sm text-gray-800">{{ selectedBooking?.ruangan }}</span></div>
-                            </div>
-                            <div><span class="text-xs text-gray-500 block">Jadwal</span><span class="text-sm text-gray-800">{{ selectedBooking?.tgl_mulai }} – {{ selectedBooking?.tgl_selesai }}</span></div>
-                        </div>
-                        <div class="mt-6 flex justify-end gap-3 px-6 pb-6">
-                            <button @click="showApproveModal = false" :disabled="approveForm.processing" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50">Batal</button>
-                            <button @click="submitApprove" :disabled="approveForm.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition shadow-sm disabled:opacity-50">
-                                <span v-if="approveForm.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                Setujui Booking
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
 
-        <!-- ── Modal: Konfirmasi ACC-2 (Final Confirm) ──────────────────────────── -->
-        <Teleport to="body">
-            <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0 scale-95"
-                enter-to-class="opacity-100 scale-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100 scale-100"
-                leave-to-class="opacity-0 scale-95"
-            >
-                <div v-if="showAcc2Modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative overflow-hidden" @click.stop>
-                        <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
-                        <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-900">Final Confirmation (ACC-2)</h3>
-                                <p class="text-sm text-gray-500 mt-1">Anda akan memberikan Final Confirmation untuk acara <strong class="text-gray-800">"{{ selectedBooking?.nama_training }}"</strong>.</p>
-                                <p class="text-xs text-gray-500 mt-2 bg-emerald-50 p-2 rounded border border-emerald-100">Pastikan persiapan ruangan dan logistik sudah siap sesuai kebutuhan.</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 flex justify-end gap-3">
-                            <button @click="showAcc2Modal = false" :disabled="acc2Form.processing" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50">Batal</button>
-                            <button @click="submitAcc2" :disabled="acc2Form.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm disabled:opacity-50">
-                                <span v-if="acc2Form.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                Final Confirm
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
-
-        <!-- ── Modal: Konfirmasi Tolak ──────────────────────────── -->
-        <Teleport to="body">
-            <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <div v-if="showRejectModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-red-600 to-rose-600">
-                            <h2 class="text-base font-bold text-white">Penolakan Booking</h2>
-                            <p class="text-xs text-red-100 mt-1">Booking <strong>{{ selectedBooking?.nama_training }}</strong> akan dibatalkan.</p>
-                        </div>
-                        <form @submit.prevent="submitReject" class="px-6 py-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
-                            <textarea
-                                v-model="rejectForm.catatan_admin"
-                                required
-                                rows="3"
-                                placeholder="Contoh: Jadwal bentrok, ruangan sedang direnovasi..."
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                            ></textarea>
-                            <p v-if="rejectForm.errors.catatan_admin" class="text-xs text-red-500 mt-1">{{ rejectForm.errors.catatan_admin }}</p>
-
-                            <div class="mt-5 flex gap-3">
-                                <button type="button" @click="showRejectModal = false" class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
-                                <button type="submit" :disabled="rejectForm.processing || !rejectForm.catatan_admin"
-                                    class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg text-sm font-semibold">
-                                    {{ rejectForm.processing ? 'Menyimpan...' : '✕ Tolak Booking' }}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
 
     </AdminLayout>
 </template>

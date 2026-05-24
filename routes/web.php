@@ -54,13 +54,23 @@ Route::middleware(['auth', 'user'])->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
     Route::get('/bookings', [BookingApprovalController::class, 'index'])->name('bookings.index');
+    Route::get('/booking-recap', [BookingApprovalController::class, 'recap'])->name('bookings.recap');
+    Route::get('/bookings/export', [BookingApprovalController::class, 'export'])->name('bookings.export');
+    Route::get('/bookings/{booking}/details', [BookingApprovalController::class, 'showDetails'])->name('bookings.details');
     Route::post('/bookings/{booking}/approve', [BookingApprovalController::class, 'approve'])->name('bookings.approve');
+    Route::post('/bookings/{booking}/acc2', [BookingApprovalController::class, 'acc2'])->name('bookings.acc2');
     Route::post('/bookings/{booking}/reject', [BookingApprovalController::class, 'reject'])->name('bookings.reject');
 
     // Booking Window management
     Route::get('/booking-windows', [\App\Http\Controllers\Admin\BookingWindowController::class, 'index'])->name('booking-windows.index');
     Route::post('/booking-window/open', [\App\Http\Controllers\Admin\BookingWindowController::class, 'open'])->name('booking-window.open');
     Route::post('/booking-window/close', [\App\Http\Controllers\Admin\BookingWindowController::class, 'close'])->name('booking-window.close');
+
+    // Master Data Ruangan
+    Route::get('/rooms', [\App\Http\Controllers\Admin\RoomController::class, 'index'])->name('rooms.index');
+    Route::post('/rooms', [\App\Http\Controllers\Admin\RoomController::class, 'store'])->name('rooms.store');
+    Route::put('/rooms/{room}', [\App\Http\Controllers\Admin\RoomController::class, 'update'])->name('rooms.update');
+    Route::delete('/rooms/{room}', [\App\Http\Controllers\Admin\RoomController::class, 'destroy'])->name('rooms.destroy');
 });
 
 // Default: redirect root ke halaman login

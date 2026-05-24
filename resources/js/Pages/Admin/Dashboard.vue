@@ -789,161 +789,261 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             </div>
         </Teleport>
 
-        <!-- Modal: Detail Booking Training -->
+        <!-- Modal: Detail Booking Training (Diperkaya Selengkap Mungkin) -->
         <Teleport to="body">
+            <Transition
+                enter-active-class="transition-all duration-200 ease-out"
+                enter-from-class="opacity-0 scale-95"
+                enter-to-class="opacity-100 scale-100"
+                leave-active-class="transition-all duration-150 ease-in"
+                leave-from-class="opacity-100 scale-100"
+                leave-to-class="opacity-0 scale-95"
+            >
             <div
                 v-if="detailModalOpen"
-                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
+                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
                 @click.self="closeDetailModal"
             >
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl overflow-hidden flex flex-col border border-gray-100 transition-all max-h-[90vh]">
-                    
-                    <!-- Header -->
-                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-xl">ℹ️</span>
-                            <div>
-                                <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">Detail Pemesanan Lengkap (Admin)</h4>
-                            </div>
-                        </div>
-                        <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer focus:outline-none">&times;</button>
-                    </div>
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col border border-gray-100 max-h-[92vh]">
 
-                    <!-- Body (Three Columns: Info, Roster Peserta, Roster Panitia) -->
-                    <div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto min-h-0">
-                        
-                        <!-- Kolom 1: Informasi Umum -->
-                        <div class="space-y-4 pr-0 lg:pr-6 border-r-0 lg:border-r border-gray-100 text-xs text-gray-700">
-                            <h5 class="text-[10px] font-black text-blue-900 uppercase tracking-wider mb-2">📋 Rincian Acara & Jadwal</h5>
-                            
-                            <div>
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Nama Acara / Training</span>
-                                <span class="font-bold text-gray-800 text-sm leading-snug block mt-0.5">{{ selectedDetailBooking?.nama_training }}</span>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Ruangan</span>
-                                    <div class="flex items-center gap-1.5 mt-0.5">
-                                        <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking?.ruangan_id).bg }"></span>
-                                        <span class="font-bold text-gray-800">{{ selectedDetailBooking?.nama_ruang }}</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Gabung Ruangan</span>
-                                    <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.gabung_ruang ? 'Ya (2 Ruangan)' : 'Tidak' }}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="border-t border-gray-100 pt-3">
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Tanggal Pelaksanaan</span>
-                                <span class="font-bold text-gray-800 block mt-0.5">{{ formatDateRange(selectedDetailBooking?.tgl_mulai, selectedDetailBooking?.tgl_selesai) }}</span>
-                            </div>
-
-                            <div class="border-t border-gray-100 pt-3">
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Waktu Pembuatan Booking (Created At)</span>
-                                <span class="font-bold text-gray-800 block mt-0.5">{{ formatIndoDateTime(selectedDetailBooking?.created_at) }}</span>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Pemohon</span>
-                                    <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pemohon }}</span>
-                                    <span class="text-[9px] text-gray-400 block mt-0.5">Divisi: {{ selectedDetailBooking?.divisi }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">PIC Acara</span>
-                                    <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pic || '-' }}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Jenis Pemesanan</span>
-                                    <span class="font-bold text-gray-800 block mt-0.5 capitalize">{{ selectedDetailBooking?.fase }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Status Booking</span>
-                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase mt-1 tracking-wider" :class="STATUS_STYLE[selectedDetailBooking?.status] || 'bg-gray-150 text-gray-700'">
+                        <!-- ── Modal Header ── -->
+                        <div class="flex-shrink-0 px-6 py-4 bg-gradient-to-r from-slate-800 to-slate-700 flex items-center justify-between">
+                            <div class="flex-1 min-w-0 pr-4">
+                                <div class="flex items-center gap-2.5 flex-wrap">
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Detail Pemesanan</span>
+                                    <span
+                                        class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
+                                        :class="{
+                                            'bg-yellow-300/20 text-yellow-300 border border-yellow-400/30': selectedDetailBooking?.status === 'waiting_confirmation',
+                                            'bg-emerald-300/20 text-emerald-300 border border-emerald-400/30': selectedDetailBooking?.status === 'confirmed',
+                                            'bg-red-300/20 text-red-300 border border-red-400/30': selectedDetailBooking?.status === 'cancelled',
+                                            'bg-blue-300/20 text-blue-300 border border-blue-400/30': selectedDetailBooking?.status === 'plotting',
+                                        }"
+                                    >
                                         {{ statusLabel(selectedDetailBooking?.status) }}
                                     </span>
+                                    <span v-if="selectedDetailBooking?.gabung_ruang" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-300/20 text-teal-300 border border-teal-400/30">🔗 Gabung Ruang</span>
+                                </div>
+                                <h4 class="text-base font-black text-white mt-1.5 leading-tight truncate">
+                                    {{ selectedDetailBooking?.nama_training }}
+                                </h4>
+                                <p class="text-xs text-slate-400 mt-0.5">
+                                    {{ formatDateRange(selectedDetailBooking?.tgl_mulai, selectedDetailBooking?.tgl_selesai) }}
+                                </p>
+                            </div>
+                            <button @click="closeDetailModal" class="text-slate-400 hover:text-white transition-colors flex-shrink-0 ml-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- ── Stats Bar ── -->
+                        <div class="flex-shrink-0 grid grid-cols-4 divide-x divide-gray-100 border-b border-gray-100 bg-gray-50">
+                            <div class="px-4 py-3 text-center">
+                                <p class="text-xl font-black text-blue-700">{{ filteredPeserta.length }}</p>
+                                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">Peserta</p>
+                            </div>
+                            <div class="px-4 py-3 text-center">
+                                <p class="text-xl font-black text-amber-600">{{ filteredPanitia.length }}</p>
+                                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">Panitia</p>
+                            </div>
+                            <div class="px-4 py-3 text-center">
+                                <p class="text-xl font-black">
+                                    <span class="text-blue-500">{{ filteredPeserta.filter(p => p.gender === 'L').length }}</span>
+                                    <span class="text-gray-300 font-light mx-0.5">/</span>
+                                    <span class="text-pink-500">{{ filteredPeserta.filter(p => p.gender === 'P').length }}</span>
+                                </p>
+                                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">L / P Peserta</p>
+                            </div>
+                            <div class="px-4 py-3 text-center">
+                                <p class="text-xl font-black text-gray-700">{{ filteredPeserta.length + filteredPanitia.length }}</p>
+                                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">Total Orang</p>
+                            </div>
+                        </div>
+
+                        <!-- ── Body (3 Columns) ── -->
+                        <div class="flex-1 overflow-y-auto">
+                        <div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                            <!-- Kolom 1: Informasi Umum & Konfigurasi -->
+                            <div class="space-y-4 lg:border-r border-gray-100 lg:pr-6">
+                                <!-- Pemohon & PIC -->
+                                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-3">
+                                    <h5 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">👤 Pemohon & PIC</h5>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Pemohon</span>
+                                            <span class="text-sm font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pemohon || '-' }}</span>
+                                            <span class="text-[10px] text-blue-600 font-semibold block mt-0.5">{{ selectedDetailBooking?.divisi || '-' }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">PIC Acara</span>
+                                            <span class="text-sm font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pic || '-' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Ruangan & Jadwal -->
+                                <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100 space-y-3">
+                                    <h5 class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">🏢 Ruangan & Jadwal</h5>
+                                    <div>
+                                        <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Ruangan</span>
+                                        <div class="flex items-center gap-2 mt-0.5">
+                                            <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking?.ruangan_id).bg }"></span>
+                                            <span class="text-sm font-bold text-gray-800">
+                                                {{ selectedDetailBooking?.gabung_ruang ? 'Ruang Gabungan (2+3)' : (selectedDetailBooking?.nama_ruang || '-') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Tanggal Mulai</span>
+                                            <span class="text-sm font-bold text-gray-800 block mt-0.5">{{ formatIndoDateShort(selectedDetailBooking?.tgl_mulai) }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Tanggal Selesai</span>
+                                            <span class="text-sm font-bold text-gray-800 block mt-0.5">{{ formatIndoDateShort(selectedDetailBooking?.tgl_selesai) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Fasilitas & Layout -->
+                                <div class="bg-purple-50 rounded-xl p-4 border border-purple-100 space-y-3">
+                                    <h5 class="text-[10px] font-black text-purple-600 uppercase tracking-widest">⚙️ Konfigurasi & Fasilitas</h5>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Jenis</span>
+                                            <span class="text-sm font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.fase === 'reguler' ? '📋 Reguler' : '📊 Plotting' }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">Layout</span>
+                                            <span class="text-sm font-bold text-gray-800 block mt-0.5 capitalize">{{ selectedDetailBooking?.layout_preferensi || '-' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-4">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-3 h-3 rounded-full" :class="selectedDetailBooking?.is_hybrid ? 'bg-purple-500' : 'bg-gray-300'"></span>
+                                            <span class="text-xs text-gray-700">Hybrid</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-3 h-3 rounded-full" :class="selectedDetailBooking?.is_flipchart ? 'bg-orange-500' : 'bg-gray-300'"></span>
+                                            <span class="text-xs text-gray-700">Flipchart</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Distribusi Site -->
+                                <div v-if="filteredPeserta.length > 0" class="bg-teal-50 rounded-xl p-4 border border-teal-100">
+                                    <h5 class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-3">📍 Distribusi Site Peserta</h5>
+                                    <div class="space-y-1.5">
+                                        <div
+                                            v-for="(count, site) in Object.fromEntries(
+                                                [...filteredPeserta.reduce((acc, p) => {
+                                                    acc.set(p.site || '-', (acc.get(p.site || '-') || 0) + 1);
+                                                    return acc;
+                                                }, new Map())].sort((a, b) => b[1] - a[1])
+                                            )"
+                                            :key="site"
+                                            class="flex items-center justify-between text-xs"
+                                        >
+                                            <span class="text-gray-700 font-medium truncate">{{ site }}</span>
+                                            <span class="ml-2 px-2 py-0.5 bg-teal-100 text-teal-700 rounded-full font-bold flex-shrink-0">{{ count }}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            <!-- Kolom 2: Roster Peserta -->
+                            <div class="flex flex-col min-w-0 lg:border-r border-gray-100 lg:pr-6">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h5 class="text-[10px] font-black text-emerald-700 uppercase tracking-widest">👥 Roster Peserta</h5>
+                                    <div class="flex items-center gap-2 text-[10px] text-gray-500">
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-400"></span>L: {{ filteredPeserta.filter(p => p.gender === 'L').length }}</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-pink-400"></span>P: {{ filteredPeserta.filter(p => p.gender === 'P').length }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1 border border-gray-100 rounded-xl overflow-hidden">
+                                    <div class="overflow-y-auto max-h-[50vh]">
+                                        <table class="min-w-full divide-y divide-gray-100 text-xs">
+                                            <thead class="bg-gray-50 sticky top-0 z-10">
+                                                <tr>
+                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider w-6">#</th>
+                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Nama</th>
+                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Jabatan / Site</th>
+                                                    <th class="px-3 py-2.5 text-center text-[9px] font-bold text-gray-500 uppercase tracking-wider w-8">JK</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-50 text-gray-700">
+                                                <tr v-if="filteredPeserta.length === 0">
+                                                    <td colspan="4" class="px-3 py-8 text-center text-gray-400 text-[11px] italic">Tidak ada data peserta.</td>
+                                                </tr>
+                                                <tr v-for="(p, idx) in filteredPeserta" :key="idx" class="hover:bg-gray-50">
+                                                    <td class="px-3 py-2 text-[10px] text-gray-400">{{ idx + 1 }}</td>
+                                                    <td class="px-3 py-2">
+                                                        <div class="font-bold text-gray-800 text-xs">{{ p.nama }}</div>
+                                                    </td>
+                                                    <td class="px-3 py-2">
+                                                        <div class="font-semibold text-gray-600 text-[11px]">{{ p.jabatan || '-' }}</div>
+                                                        <div class="text-[9px] text-gray-400 mt-0.5">{{ p.site || '-' }}</div>
+                                                    </td>
+                                                    <td class="px-3 py-2 text-center">
+                                                        <span class="text-xs font-black" :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-500'">
+                                                            {{ p.gender || '-' }}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kolom 3: Roster Panitia -->
+                            <div class="flex flex-col min-w-0">
+                                <h5 class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3">💼 Roster Panitia</h5>
+                                <div class="flex-1 border border-gray-100 rounded-xl overflow-hidden">
+                                    <div class="overflow-y-auto max-h-[50vh]">
+                                        <table class="min-w-full divide-y divide-gray-100 text-xs">
+                                            <thead class="bg-gray-50 sticky top-0 z-10">
+                                                <tr>
+                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider w-6">#</th>
+                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Nama</th>
+                                                    <th class="px-3 py-2.5 text-left text-[9px] font-bold text-gray-500 uppercase tracking-wider">Jabatan / Site</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-50 text-gray-700">
+                                                <tr v-if="filteredPanitia.length === 0">
+                                                    <td colspan="3" class="px-3 py-8 text-center text-gray-400 text-[11px] italic">Tidak ada data panitia.</td>
+                                                </tr>
+                                                <tr v-for="(p, idx) in filteredPanitia" :key="idx" class="hover:bg-gray-50">
+                                                    <td class="px-3 py-2 text-[10px] text-gray-400">{{ idx + 1 }}</td>
+                                                    <td class="px-3 py-2">
+                                                        <div class="font-bold text-gray-800 text-xs">{{ p.nama }}</div>
+                                                    </td>
+                                                    <td class="px-3 py-2">
+                                                        <div class="font-semibold text-gray-600 text-[11px]">{{ p.jabatan || '-' }}</div>
+                                                        <div class="text-[9px] text-gray-400 mt-0.5">{{ p.site || '-' }}</div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Catatan Admin (jika ada) -->
+                                <div v-if="selectedDetailBooking?.catatan_admin" class="mt-4 bg-red-50 rounded-xl p-4 border border-red-100">
+                                    <h6 class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2">📝 Catatan Admin</h6>
+                                    <p class="text-xs text-gray-700 leading-relaxed">{{ selectedDetailBooking.catatan_admin }}</p>
+                                </div>
+                            </div>
+
                         </div>
+                        </div><!-- /Body -->
 
-                        <!-- Kolom 2: Roster Peserta -->
-                        <div class="space-y-3 flex flex-col min-w-0 pr-0 lg:pr-6 border-r-0 lg:border-r border-gray-100">
-                            <div class="flex items-center justify-between">
-                                <h5 class="text-[10px] font-black text-emerald-905 uppercase tracking-wider">👥 Roster Peserta ({{ filteredPeserta.length }} Orang)</h5>
-                            </div>
-                            
-                            <div class="flex-1 overflow-y-auto border border-gray-100 rounded-lg max-h-[40vh] lg:max-h-[none]">
-                                <table class="min-w-full divide-y divide-gray-100 text-xs">
-                                    <thead class="bg-gray-50 sticky top-0">
-                                        <tr>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider text-[9px]">Nama</th>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider text-[9px]">Jabatan / Site</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-100 text-gray-700">
-                                        <tr v-if="filteredPeserta.length === 0">
-                                            <td colspan="2" class="px-3 py-6 text-center text-gray-400 text-[11px] italic">Tidak ada data peserta.</td>
-                                        </tr>
-                                        <tr v-for="(p, idx) in filteredPeserta" :key="idx" class="hover:bg-gray-50">
-                                            <td class="px-3 py-2">
-                                                <div class="font-bold text-gray-800">{{ p.nama }}</div>
-                                                <div class="text-[9px] text-gray-400 font-semibold">{{ p.gender === 'L' ? 'Laki-laki' : p.gender === 'P' ? 'Perempuan' : '-' }}</div>
-                                            </td>
-                                            <td class="px-3 py-2">
-                                                <div class="font-semibold text-gray-600">{{ p.jabatan || '-' }}</div>
-                                                <div class="text-[9px] text-gray-400">{{ p.site || '-' }}</div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Kolom 3: Roster Panitia -->
-                        <div class="space-y-3 flex flex-col min-w-0">
-                            <div class="flex items-center justify-between">
-                                <h5 class="text-[10px] font-black text-indigo-905 uppercase tracking-wider">💼 Roster Panitia ({{ filteredPanitia.length }} Orang)</h5>
-                            </div>
-                            
-                            <div class="flex-1 overflow-y-auto border border-gray-100 rounded-lg max-h-[40vh] lg:max-h-[none]">
-                                <table class="min-w-full divide-y divide-gray-100 text-xs">
-                                    <thead class="bg-gray-50 sticky top-0">
-                                        <tr>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider text-[9px]">Nama</th>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider text-[9px]">Jabatan / Site</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-100 text-gray-700">
-                                        <tr v-if="filteredPanitia.length === 0">
-                                            <td colspan="2" class="px-3 py-6 text-center text-gray-400 text-[11px] italic">Tidak ada data panitia.</td>
-                                        </tr>
-                                        <tr v-for="(p, idx) in filteredPanitia" :key="idx" class="hover:bg-gray-50">
-                                            <td class="px-3 py-2">
-                                                <div class="font-bold text-gray-800">{{ p.nama }}</div>
-                                                <div class="text-[9px] text-gray-400 font-semibold">{{ p.gender === 'L' ? 'Laki-laki' : p.gender === 'P' ? 'Perempuan' : '-' }}</div>
-                                            </td>
-                                            <td class="px-3 py-2">
-                                                <div class="font-semibold text-gray-600">{{ p.jabatan || '-' }}</div>
-                                                <div class="text-[9px] text-gray-400">{{ p.site || '-' }}</div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
-                        <button 
-                            @click="closeDetailModal" 
-                            class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
+                    <!-- ── Footer ── -->
+                    <div class="flex-shrink-0 px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                        <p class="text-[10px] text-gray-400">
+                            📅 Diajukan: {{ formatIndoDateTime(selectedDetailBooking?.created_at) }}
+                        </p>
+                        <button
+                            @click="closeDetailModal"
+                            class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-5 py-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm"
                         >
                             Tutup
                         </button>
@@ -951,6 +1051,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                 </div>
             </div>
+            </Transition>
         </Teleport>
 
     </AdminLayout>
