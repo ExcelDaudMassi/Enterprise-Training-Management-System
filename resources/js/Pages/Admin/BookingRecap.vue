@@ -547,7 +547,7 @@ function exportExcel() {
                                                     <tr>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase w-8">No</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama Lengkap</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NRP</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">NRP</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Jabatan</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
@@ -559,7 +559,7 @@ function exportExcel() {
                                                     <tr v-for="(p, i) in detailData.peserta" :key="i" class="hover:bg-gray-50">
                                                         <td class="px-3 py-2 text-xs text-gray-400">{{ i + 1 }}</td>
                                                         <td class="px-3 py-2 text-xs font-semibold text-gray-800">{{ p.nama }}</td>
-                                                        <td class="px-3 py-2 text-xs">
+                                                        <td class="px-3 py-2 text-xs text-center">
                                                             <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-1 bg-gray-50 border border-gray-250/30 px-2 py-0.5 rounded text-[11px] text-gray-400 font-mono">
                                                                 N/A
                                                                 <span class="bg-gray-200/60 text-gray-500 font-normal px-1 py-0.2 rounded-[4px] text-[8px] uppercase tracking-wider font-sans select-none scale-90">Eksternal</span>
@@ -602,7 +602,7 @@ function exportExcel() {
                                                     <tr>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase w-8">No</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama Lengkap</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NRP</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">NRP</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Jabatan</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
@@ -614,7 +614,7 @@ function exportExcel() {
                                                     <tr v-for="(p, i) in detailData.panitia" :key="i" class="hover:bg-gray-50">
                                                         <td class="px-3 py-2 text-xs text-gray-400">{{ i + 1 }}</td>
                                                         <td class="px-3 py-2 text-xs font-semibold text-gray-800">{{ p.nama }}</td>
-                                                        <td class="px-3 py-2 text-xs">
+                                                        <td class="px-3 py-2 text-xs text-center">
                                                             <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-1 bg-gray-50 border border-gray-250/30 px-2 py-0.5 rounded text-[11px] text-gray-400 font-mono">
                                                                 N/A
                                                                 <span class="bg-gray-200/60 text-gray-500 font-normal px-1 py-0.2 rounded-[4px] text-[8px] uppercase tracking-wider font-sans select-none scale-90">Eksternal</span>
