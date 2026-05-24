@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed, watch } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { router } from '@inertiajs/vue3'
@@ -847,7 +847,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 class="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4"
                 @click.self="closeDetailModal"
             >
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col border border-gray-100 h-[88vh] min-h-[520px]">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-100 h-[85vh] min-h-[550px]">
 
                     <!-- ── Header (sama gaya dengan Gantt modal) ── -->
                     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
@@ -929,7 +929,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                         <div class="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden flex flex-col flex-1 min-h-0">
                             <div class="overflow-y-auto flex-1">
                                 <table class="min-w-full divide-y divide-gray-100 text-xs">
-                                    <thead class="bg-gray-50/50 sticky top-0 z-10">
+                                    <thead class="bg-white sticky top-0 z-10 border-b border-gray-100">
                                         <tr>
                                             <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider w-8">#</th>
                                             <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider">Nama</th>
