@@ -173,6 +173,16 @@ function toggleSidebar() {
                 >
                     <span class="text-base">🏢</span> Master Ruangan
                 </Link>
+
+                <div class="px-3 py-2 text-[10px] text-gray-600 uppercase tracking-wider mt-2">Sistem</div>
+
+                <Link
+                    href="/admin/settings"
+                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    :class="isActive('/admin/settings') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
+                >
+                    <span class="text-base">⚙️</span> Pengaturan
+                </Link>
             </nav>
 
             <!-- Bottom Actions -->

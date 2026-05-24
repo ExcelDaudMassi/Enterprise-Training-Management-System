@@ -10,3 +10,7 @@ Artisan::command('inspire', function () {
 
 // Jalankan auto-reject setiap hari
 Schedule::command('app:auto-reject-bookings')->daily();
+
+// Jalankan auto-process H-14 setiap menit
+Schedule::command('app:scan-h14-bookings')->everyMinute();
+
