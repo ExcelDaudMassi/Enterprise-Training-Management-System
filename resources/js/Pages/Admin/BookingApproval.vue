@@ -602,6 +602,7 @@ const layoutLabels = {
                                                     <tr>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase w-8">No</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama Lengkap</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NRP</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Jabatan</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
@@ -612,6 +613,7 @@ const layoutLabels = {
                                                     <tr v-for="(p, i) in detailData.peserta" :key="i" class="hover:bg-gray-50">
                                                         <td class="px-3 py-2 text-xs text-gray-400">{{ i + 1 }}</td>
                                                         <td class="px-3 py-2 text-xs font-semibold text-gray-800">{{ p.nama }}</td>
+                                                        <td class="px-3 py-2 text-xs font-mono text-gray-700 bg-gray-50/50 px-1 rounded">{{ p.nrp || 'N/A' }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600">{{ p.jabatan || '-' }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600">{{ p.site || '-' }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600 font-mono">{{ p.no_hp || '-' }}</td>
@@ -639,16 +641,27 @@ const layoutLabels = {
                                                     <tr>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase w-8">No</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama Lengkap</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NRP</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Jabatan</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">JK</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-50">
                                                     <tr v-for="(p, i) in detailData.panitia" :key="i" class="hover:bg-gray-50">
                                                         <td class="px-3 py-2 text-xs text-gray-400">{{ i + 1 }}</td>
                                                         <td class="px-3 py-2 text-xs font-semibold text-gray-800">{{ p.nama }}</td>
+                                                        <td class="px-3 py-2 text-xs font-mono text-gray-700 bg-gray-50/50 px-1 rounded">{{ p.nrp || 'N/A' }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600">{{ p.jabatan || '-' }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600">{{ p.site || '-' }}</td>
+                                                        <td class="px-3 py-2 text-xs text-gray-600 font-mono">{{ p.no_hp || '-' }}</td>
+                                                        <td class="px-3 py-2 text-center">
+                                                            <span class="text-xs font-bold"
+                                                                  :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-600'">
+                                                                {{ p.gender || '-' }}
+                                                            </span>
+                                                        </td>
                                                     </tr>
                                                 </tbody>
                                             </table>

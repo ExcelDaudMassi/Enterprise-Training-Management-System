@@ -172,24 +172,40 @@ class BookingManageController extends Controller
                 $highestRow  = $sheet->getHighestRow();
 
                 $pesertaBaru = [];
+                $trackedNrps = [];
                 for ($row = 5; $row <= $highestRow; $row++) {
                     $nama    = trim((string) $sheet->getCell("A{$row}")->getValue());
-                    $jabatan = trim((string) $sheet->getCell("B{$row}")->getValue());
-                    $site    = trim((string) $sheet->getCell("C{$row}")->getValue());
-                    $jk      = strtoupper(trim((string) $sheet->getCell("D{$row}")->getValue()));
+                    $nrp     = trim((string) $sheet->getCell("B{$row}")->getValue());
+                    $jabatan = trim((string) $sheet->getCell("C{$row}")->getValue());
+                    $site    = trim((string) $sheet->getCell("D{$row}")->getValue());
+                    $noHp    = trim((string) $sheet->getCell("E{$row}")->getValue());
+                    $jk      = strtoupper(trim((string) $sheet->getCell("F{$row}")->getValue()));
 
                     if (empty($nama)) continue;
 
+                    // Validasi duplikasi NRP (Jika NRP bukan "N/A")
+                    if (!empty($nrp) && strtoupper($nrp) !== 'N/A') {
+                        if (in_array($nrp, $trackedNrps)) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => "Gagal: Baris ke-{$row}. NRP '{$nrp}' terdeteksi ganda dalam file Excel!",
+                            ], 422);
+                        }
+                        $trackedNrps[] = $nrp;
+                    }
+
                     $pesertaBaru[] = [
                         'nama'    => $nama,
+                        'nrp'     => $nrp ?: 'N/A',
                         'jabatan' => $jabatan,
                         'site'    => $site,
+                        'no_hp'   => $noHp,
                         'gender'  => in_array($jk, ['L', 'P']) ? $jk : null,
                     ];
                 }
                 $validated['peserta'] = $pesertaBaru;
             } catch (\Exception $e) {
-                return response()->json(['success' => false, 'message' => 'Gagal membaca file Excel.'], 422);
+                return response()->json(['success' => false, 'message' => 'Gagal membaca file Excel: ' . $e->getMessage()], 422);
             }
         }
 
@@ -204,8 +220,10 @@ class BookingManageController extends Controller
                     'booking_id' => $booking->id,
                     'tipe'       => 'peserta',
                     'nama'       => $p['nama'],
+                    'nrp'        => $p['nrp'] ?? 'N/A',
                     'jabatan'    => $p['jabatan'] ?? null,
                     'site'       => $p['site'] ?? null,
+                    'no_hp'      => $p['no_hp'] ?? null,
                     'gender'     => $p['gender'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -217,9 +235,11 @@ class BookingManageController extends Controller
                     'booking_id' => $booking->id,
                     'tipe'       => 'panitia',
                     'nama'       => $p['nama'],
+                    'nrp'        => $p['nrp'] ?? 'N/A',
                     'jabatan'    => $p['jabatan'] ?? null,
                     'site'       => $p['site'] ?? null,
-                    'gender'     => null,
+                    'no_hp'      => $p['no_hp'] ?? null,
+                    'gender'     => $p['gender'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];

@@ -28,18 +28,15 @@ class BookingWizardController extends Controller
         return Inertia::render('User/BookingWizard');
     }
 
-    /**
-     * Membuat dan mengunduh berkas template Excel asli (.xlsx) secara dinamis.
-     */
     public function downloadTemplate()
     {
-        $filePath = base_path('template_peserta_baru_kosong.xlsx');
+        $filePath = base_path('template_peserta_nrp_kosong.xlsx');
 
         if (!file_exists($filePath)) {
             abort(404, 'File template fisik tidak ditemukan di sistem.');
         }
 
-        return response()->download($filePath, 'template_peserta_baru_kosong.xlsx', [
+        return response()->download($filePath, 'template_peserta_nrp_kosong.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
@@ -78,55 +75,73 @@ class BookingWizardController extends Controller
 
         $dataPeserta   = [];
         $jumlahPeserta = 0;
+        $trackedNrps   = []; // Tracker duplikasi NRP di memori
 
         // 3. Perulangan per baris dimulai dari baris ke-5 (karena baris 1-4 adalah header & info)
         for ($row = 5; $row <= $highestRow; $row++) {
-            // 4. Baca per kolom menggunakan koordinat huruf (A, B, C, D, E) dan pastikan di-cast menjadi string
+            // 4. Baca per kolom menggunakan koordinat huruf (A, B, C, D, E, F) dan pastikan di-cast menjadi string
             $nama         = trim((string) $sheet->getCell("A" . $row)->getValue());
-            $jabatan      = trim((string) $sheet->getCell("B" . $row)->getValue());
-            $site         = trim((string) $sheet->getCell("C" . $row)->getValue());
-            $noHp         = trim((string) $sheet->getCell("D" . $row)->getValue());
-            $jenisKelamin = trim((string) $sheet->getCell("E" . $row)->getValue());
+            $nrp          = trim((string) $sheet->getCell("B" . $row)->getValue());
+            $jabatan      = trim((string) $sheet->getCell("C" . $row)->getValue());
+            $site         = trim((string) $sheet->getCell("D" . $row)->getValue());
+            $noHp         = trim((string) $sheet->getCell("E" . $row)->getValue());
+            $jenisKelamin = trim((string) $sheet->getCell("F" . $row)->getValue());
 
             // Abaikan jika barisnya benar-benar kosong
-            if (empty($nama) && empty($jabatan) && empty($site) && empty($noHp) && empty($jenisKelamin)) {
+            if (empty($nama) && empty($nrp) && empty($jabatan) && empty($site) && empty($noHp) && empty($jenisKelamin)) {
                 continue;
             }
 
-            // 5. Validasi data Wajib (Kolom A, B, C)
+            // 5. Validasi data Wajib (Kolom A, B, C, D)
             if (empty($nama)) {
                 return response()->json([
                     'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Nama Lengkap (A) wajib diisi!",
                 ], 422);
             }
+            if (empty($nrp)) {
+                return response()->json([
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom NRP (B) wajib diisi, ketik 'N/A' jika tidak ada!",
+                ], 422);
+            }
             if (empty($jabatan)) {
                 return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jabatan (B) wajib diisi!",
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jabatan (C) wajib diisi!",
                 ], 422);
             }
             if (empty($site)) {
                 return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Site (C) wajib diisi!",
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Site (D) wajib diisi!",
                 ], 422);
             }
             
-            // Validasi Nomor HP (Kolom D) - Wajib berisi angka
+            // Validasi Nomor HP (Kolom E) - Wajib berisi angka
             if (empty($noHp) || !preg_match('/^[0-9+]+$/', $noHp)) {
                 return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom No. HP (D) wajib diisi dan minimal berisi angka!",
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom No. HP (E) wajib diisi dan minimal berisi angka!",
                 ], 422);
             }
 
-            // Validasi Jenis Kelamin (Kolom E)
+            // Validasi Jenis Kelamin (Kolom F)
             $jk = strtoupper(trim($jenisKelamin));
             if ($jk !== 'L' && $jk !== 'P') {
                 return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jenis Kelamin (E) harus berisi L atau P!",
+                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jenis Kelamin (F) harus berisi L atau P!",
                 ], 422);
+            }
+
+            // Validasi duplikasi NRP (Jika NRP bukan "N/A")
+            if (strtoupper($nrp) !== 'N/A') {
+                if (in_array($nrp, $trackedNrps)) {
+                    return response()->json([
+                        'error' => "Pemberitahuan: Baris ke-{$row} Gagal. NRP '{$nrp}' terdeteksi ganda dalam file Excel!",
+                    ], 422);
+                }
+                $trackedNrps[] = $nrp;
             }
 
             $dataPeserta[] = [
                 'nama'    => $nama,
+                'nrp'     => $nrp,
                 'jabatan' => $jabatan,
                 'site'    => $site,
                 'no_hp'   => $noHp,
@@ -457,6 +472,7 @@ class BookingWizardController extends Controller
                     'booking_id' => $booking->id,
                     'tipe'       => 'peserta',
                     'nama'       => $p['nama'],
+                    'nrp'        => $p['nrp'] ?? 'N/A',
                     'jabatan'    => $p['jabatan'] ?? null,
                     'site'       => $p['site'] ?? null,
                     'no_hp'      => $p['no_hp'] ?? null,
@@ -471,6 +487,7 @@ class BookingWizardController extends Controller
                     'booking_id' => $booking->id,
                     'tipe'       => 'panitia',
                     'nama'       => $p['nama'],
+                    'nrp'        => $p['nrp'] ?? 'N/A',
                     'jabatan'    => $p['jabatan'] ?? null,
                     'site'       => $p['site'] ?? null,
                     'no_hp'      => $p['no_hp'] ?? null,

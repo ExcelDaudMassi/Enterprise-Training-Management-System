@@ -10,6 +10,7 @@ class BookingParticipant extends Model
         'booking_id',
         'tipe',
         'nama',
+        'nrp',
         'jabatan',
         'site',
         'no_hp',

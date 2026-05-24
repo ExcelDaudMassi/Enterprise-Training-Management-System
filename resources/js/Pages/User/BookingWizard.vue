@@ -13,7 +13,7 @@ const currentStage = ref(1)
 
 // Stage 1 (Excel Upload & Kapasitas)
 const participants        = ref([
-    { nama: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
+    { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
 ])
 const isManualInput       = ref(true)
 const uploadedFileName    = ref('Input Manual')
@@ -28,11 +28,11 @@ const stage1Error         = ref('')
 
 // Roster Panitia (array interaktif)
 const panitiaList = ref([
-    { nama: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
+    { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
 ])
 
 function addPanitia() {
-    panitiaList.value.push({ nama: '', jabatan: '', site: '', no_hp: '', gender: 'L' })
+    panitiaList.value.push({ nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' })
 }
 
 function removePanitia(index) {
@@ -46,6 +46,7 @@ const panitiaCount = computed(() => panitiaList.value.length)
 const panitiaValid = computed(() =>
     panitiaList.value.every(p => 
         p.nama.trim() !== '' && 
+        p.nrp.trim() !== '' &&
         (p.no_hp.trim() === '' || /^[0-9+]+$/.test(p.no_hp.trim()))
     )
 )
@@ -103,6 +104,7 @@ const participantsValid = computed(() =>
     participants.value.length > 0 &&
     participants.value.every(p => 
         p.nama.trim() !== '' && 
+        p.nrp.trim() !== '' &&
         p.jabatan.trim() !== '' && 
         p.site.trim() !== '' && 
         p.no_hp.trim() !== '' && 
@@ -171,13 +173,13 @@ function startManualInput() {
     isManualInput.value    = true
     uploadedFileName.value = 'Input Manual'
     participants.value     = [
-        { nama: '', jabatan: '', site: '', gender: 'L' }
+        { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
     ]
     stage1Error.value      = ''
 }
 
 function addParticipant() {
-    participants.value.push({ nama: '', jabatan: '', site: '', gender: 'L' })
+    participants.value.push({ nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' })
 }
 
 function removeParticipant(index) {
@@ -190,7 +192,7 @@ function removeParticipant(index) {
 
 function resetExcel() {
     participants.value        = [
-        { nama: '', jabatan: '', site: '', gender: 'L' }
+        { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
     ]
     uploadedFileName.value    = 'Input Manual'
     excelSuccessMessage.value = ''
@@ -701,6 +703,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         <tr>
                                             <th class="px-4 py-3 w-12 text-center">#</th>
                                             <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3">NRP<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3">Jabatan<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3">Site<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3">No. HP<span class="text-red-400">*</span></th>
@@ -715,6 +718,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                                 <input v-model="p.nama" type="text" placeholder="Ketik nama lengkap..."
                                                     class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.nrp" type="text" placeholder="Ketik NRP atau 'N/A'..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.nrp.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
@@ -777,6 +785,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         <tr>
                                             <th class="px-4 py-3 w-12 text-center">#</th>
                                             <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3">NRP<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3">Jabatan</th>
                                             <th class="px-4 py-3">Site</th>
                                             <th class="px-4 py-3">No. HP</th>
@@ -791,6 +800,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                                 <input v-model="p.nama" type="text" placeholder="Nama lengkap..."
                                                     class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.nrp" type="text" placeholder="Ketik NRP atau 'N/A'..."
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.nrp.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
@@ -824,8 +838,8 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                             
                             <!-- Footer hint validasi panitia -->
                             <div class="bg-gray-50 border-t border-gray-200 px-4 py-2.5 flex items-center gap-2 shrink-0">
-                                <span class="text-[10px] text-gray-500 font-semibold">Kolom <strong>Nama*</strong> wajib diisi semua baris.</span>
-                                <span v-if="!panitiaValid" class="text-[10px] text-red-500 font-extrabold ml-auto">⚠️ Ada nama yang belum diisi</span>
+                                <span class="text-[10px] text-gray-500 font-semibold">Kolom <strong>Nama*</strong> dan <strong>NRP*</strong> wajib diisi semua baris (NRP boleh diisi "N/A").</span>
+                                <span v-if="!panitiaValid" class="text-[10px] text-red-500 font-extrabold ml-auto">⚠️ Ada nama atau NRP yang belum diisi</span>
                                 <span v-else class="text-[10px] text-green-600 font-extrabold ml-auto">✓ Roster panitia valid</span>
                             </div>
                         </div>
@@ -1322,6 +1336,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         <tr>
                                             <th class="px-4 py-2 font-bold text-gray-500 w-10 uppercase tracking-wider text-[10px]">#</th>
                                             <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Nama Lengkap</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">NRP</th>
                                             <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Site</th>
                                             <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">No. HP</th>
                                         </tr>
@@ -1330,6 +1345,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         <tr v-for="(p, i) in participants" :key="i" class="hover:bg-blue-50/30 transition-colors">
                                             <td class="px-4 py-2.5 text-gray-400 font-bold">{{ i + 1 }}</td>
                                             <td class="px-4 py-2.5 font-bold text-gray-800">{{ p.nama }} <span class="text-[10px] font-medium text-gray-400 block mt-0.5">{{ p.jabatan }}</span></td>
+                                            <td class="px-4 py-2.5 font-mono text-gray-700">{{ p.nrp || 'N/A' }}</td>
                                             <td class="px-4 py-2.5 text-gray-500">{{ p.site }}</td>
                                             <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
                                         </tr>
@@ -1352,6 +1368,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         <tr>
                                             <th class="px-4 py-2 font-bold text-gray-500 w-10 uppercase tracking-wider text-[10px]">#</th>
                                             <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Nama Lengkap</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">NRP</th>
                                             <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Site</th>
                                             <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">No. HP</th>
                                         </tr>
@@ -1360,6 +1377,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         <tr v-for="(p, i) in panitiaList" :key="i" class="hover:bg-amber-50/30 transition-colors">
                                             <td class="px-4 py-2.5 text-gray-400 font-bold">{{ i + 1 }}</td>
                                             <td class="px-4 py-2.5 font-bold text-gray-800">{{ p.nama }} <span class="text-[10px] font-medium text-gray-400 block mt-0.5">{{ p.jabatan }}</span></td>
+                                            <td class="px-4 py-2.5 font-mono text-gray-700">{{ p.nrp || 'N/A' }}</td>
                                             <td class="px-4 py-2.5 text-gray-500">{{ p.site || '-' }}</td>
                                             <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
                                         </tr>

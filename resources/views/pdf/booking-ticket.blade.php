@@ -54,6 +54,7 @@
             <tr>
                 <th>No</th>
                 <th>Nama Lengkap</th>
+                <th>NRP</th>
                 <th>Jabatan</th>
                 <th>Site</th>
                 <th>No HP</th>
@@ -65,6 +66,7 @@
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $p->nama }}</td>
+                <td>{{ $p->nrp ?? 'N/A' }}</td>
                 <td>{{ $p->jabatan ?? '-' }}</td>
                 <td>{{ $p->site ?? '-' }}</td>
                 <td>{{ $p->no_hp ?? '-' }}</td>
@@ -72,7 +74,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6" style="text-align: center;">Tidak ada data peserta</td>
+                <td colspan="7" style="text-align: center;">Tidak ada data peserta</td>
             </tr>
             @endforelse
         </tbody>

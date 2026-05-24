@@ -110,6 +110,7 @@ async function submitCancel() {
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NRP</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipe</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jabatan</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Site</th>
@@ -119,10 +120,11 @@ async function submitCancel() {
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr v-if="!booking.participants || booking.participants.length === 0">
-                                <td colspan="6" class="px-6 py-8 text-center text-gray-500">Tidak ada data peserta.</td>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">Tidak ada data peserta.</td>
                             </tr>
                             <tr v-for="p in booking.participants" :key="p.id" class="hover:bg-gray-50">
                                 <td class="px-6 py-3 whitespace-nowrap font-medium text-gray-900">{{ p.nama }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-gray-600 font-mono text-xs">{{ p.nrp || 'N/A' }}</td>
                                 <td class="px-6 py-3 whitespace-nowrap capitalize">
                                     <span :class="p.tipe === 'panitia' ? 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs' : 'text-gray-600'">{{ p.tipe }}</span>
                                 </td>

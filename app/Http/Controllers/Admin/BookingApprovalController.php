@@ -283,15 +283,16 @@ class BookingApprovalController extends Controller
             'A' => 'No.',
             'B' => 'Tipe',
             'C' => 'Nama Lengkap',
-            'D' => 'Jabatan',
-            'E' => 'Site',
-            'F' => 'No HP',
-            'G' => 'Gender',
+            'D' => 'NRP',
+            'E' => 'Jabatan',
+            'F' => 'Site',
+            'G' => 'No HP',
+            'H' => 'Gender',
         ];
         foreach ($headers as $col => $label) {
             $sheet->setCellValue($col . $headerRow, $label);
         }
-        $sheet->getStyle('A' . $headerRow . ':G' . $headerRow)->applyFromArray([
+        $sheet->getStyle('A' . $headerRow . ':H' . $headerRow)->applyFromArray([
             'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
             'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF2563EB']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
@@ -302,10 +303,11 @@ class BookingApprovalController extends Controller
         $sheet->getColumnDimension('A')->setWidth(5);
         $sheet->getColumnDimension('B')->setWidth(12);
         $sheet->getColumnDimension('C')->setWidth(30);
-        $sheet->getColumnDimension('D')->setWidth(22);
-        $sheet->getColumnDimension('E')->setWidth(18);
+        $sheet->getColumnDimension('D')->setWidth(18);
+        $sheet->getColumnDimension('E')->setWidth(22);
         $sheet->getColumnDimension('F')->setWidth(18);
-        $sheet->getColumnDimension('G')->setWidth(10);
+        $sheet->getColumnDimension('G')->setWidth(18);
+        $sheet->getColumnDimension('H')->setWidth(10);
 
         // ── Baris Data ──
         $all = collect();
@@ -325,14 +327,15 @@ class BookingApprovalController extends Controller
             $sheet->setCellValue('A' . $dataRow, $i + 1);
             $sheet->setCellValue('B' . $dataRow, $tipe);
             $sheet->setCellValue('C' . $dataRow, $p->nama ?: 'N/A');
-            $sheet->setCellValue('D' . $dataRow, $p->jabatan ?: 'N/A');
-            $sheet->setCellValue('E' . $dataRow, $p->site ?: 'N/A');
-            $sheet->setCellValue('F' . $dataRow, $p->no_hp ?: 'N/A');
-            $sheet->setCellValue('G' . $dataRow, $p->gender ?: 'N/A');
+            $sheet->setCellValue('D' . $dataRow, $p->nrp ?: 'N/A');
+            $sheet->setCellValue('E' . $dataRow, $p->jabatan ?: 'N/A');
+            $sheet->setCellValue('F' . $dataRow, $p->site ?: 'N/A');
+            $sheet->setCellValue('G' . $dataRow, $p->no_hp ?: 'N/A');
+            $sheet->setCellValue('H' . $dataRow, $p->gender ?: 'N/A');
 
             // Zebra
             if ($isEven) {
-                $sheet->getStyle('A' . $dataRow . ':G' . $dataRow)->applyFromArray([
+                $sheet->getStyle('A' . $dataRow . ':H' . $dataRow)->applyFromArray([
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFF0F9FF']],
                 ]);
             }
@@ -350,7 +353,7 @@ class BookingApprovalController extends Controller
             }
 
             $sheet->getStyle('A' . $dataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('G' . $dataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('H' . $dataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
             $dataRow++;
         }
@@ -358,14 +361,14 @@ class BookingApprovalController extends Controller
         // ── Row Total ──
         $sheet->setCellValue('A' . $dataRow, 'TOTAL');
         $sheet->setCellValue('C' . $dataRow, $all->count() . ' orang');
-        $sheet->getStyle('A' . $dataRow . ':G' . $dataRow)->applyFromArray([
+        $sheet->getStyle('A' . $dataRow . ':H' . $dataRow)->applyFromArray([
             'font' => ['bold' => true],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFE2E8F0']],
         ]);
 
         // ── Border ──
         if ($dataRow > $headerRow + 1) {
-            $sheet->getStyle('A' . $headerRow . ':G' . ($dataRow))->applyFromArray([
+            $sheet->getStyle('A' . $headerRow . ':H' . ($dataRow))->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
