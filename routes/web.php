@@ -71,6 +71,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/bookings/export', [BookingApprovalController::class, 'export'])->name('bookings.export');
     Route::get('/bookings/{booking}/details', [BookingApprovalController::class, 'showDetails'])->name('bookings.details');
     Route::get('/bookings/{booking}/export-detail', [BookingApprovalController::class, 'exportDetail'])->name('bookings.export-detail');
+    Route::put('/participants/{participant}', [BookingApprovalController::class, 'updateParticipant'])->name('bookings.update-participant');
 
     // Tahap 1 — ACC Awal
     Route::post('/bookings/{booking}/approve', [BookingApprovalController::class, 'approve'])->name('bookings.approve');

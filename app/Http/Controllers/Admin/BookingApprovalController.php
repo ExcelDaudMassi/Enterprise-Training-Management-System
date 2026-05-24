@@ -819,6 +819,67 @@ class BookingApprovalController extends Controller
         return back()->with('success', "Usulan perubahan tanggal Booking #{$booking->id} ditolak. Tanggal lama tetap berlaku.");
     }
 
+    /**
+     * Memperbarui data satu peserta/panitia oleh Admin.
+     */
+    public function updateParticipant(Request $request, BookingParticipant $participant)
+    {
+        $validated = $request->validate([
+            'nama'    => 'required|string|max:100',
+            'nrp'     => 'required|string|max:50',
+            'jabatan' => 'nullable|string|max:100',
+            'site'    => 'nullable|string|max:100',
+            'no_hp'   => 'nullable|string|max:20',
+            'gender'  => 'required|in:L,P',
+        ], [
+            'nama.required'   => 'Nama lengkap wajib diisi.',
+            'nrp.required'    => 'NRP wajib diisi (ketik N/A jika tidak ada).',
+            'gender.required' => 'Jenis kelamin wajib dipilih.',
+            'gender.in'       => 'Jenis kelamin harus L atau P.',
+        ]);
+
+        $nrpUpper = strtoupper(trim($validated['nrp']));
+
+        // Validasi duplikasi NRP: Jika NRP yang baru bukan "N/A" dan berubah,
+        // pastikan tidak ada peserta lain di booking yang sama dengan NRP tersebut.
+        if ($nrpUpper !== 'N/A') {
+            $duplicateExists = BookingParticipant::where('booking_id', $participant->booking_id)
+                ->where('id', '!=', $participant->id)
+                ->whereRaw('UPPER(nrp) = ?', [$nrpUpper])
+                ->exists();
+
+            if ($duplicateExists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "NRP '{$validated['nrp']}' sudah terdaftar pada peserta/panitia lain di acara ini.",
+                ], 422);
+            }
+        }
+
+        $participant->update([
+            'nama'    => trim($validated['nama']),
+            'nrp'     => $nrpUpper,
+            'jabatan' => trim($validated['jabatan'] ?? ''),
+            'site'    => trim($validated['site'] ?? ''),
+            'no_hp'   => trim($validated['no_hp'] ?? ''),
+            'gender'  => $validated['gender'],
+        ]);
+
+        // Catat log aktivitas admin mengedit peserta
+        \App\Models\BookingLog::create([
+            'booking_id' => $participant->booking_id,
+            'user_id'    => auth()->id(),
+            'action'     => 'Admin Edit Participant',
+            'message'    => "Admin mengubah data {$participant->tipe} bernama '{$participant->nama}'.",
+        ]);
+
+        $res = $this->showDetails($participant->booking);
+        $data = $res->getData(true);
+        $data['success'] = true;
+        $data['message'] = 'Data peserta berhasil diperbarui oleh Admin.';
+        return response()->json($data);
+    }
+
     // ============================================================
     // PRIVATE HELPERS
     // ============================================================

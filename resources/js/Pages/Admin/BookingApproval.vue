@@ -204,6 +204,60 @@ function closeDetail() {
     detailData.value = null
 }
 
+// ── Edit Participant ──────────────────────────────────────────────
+const showEditParticipantModal = ref(false)
+const editParticipantProcessing = ref(false)
+const editParticipantErrors = ref({})
+const editParticipantForm = ref({
+    id: null,
+    nama: '',
+    nrp: '',
+    jabatan: '',
+    site: '',
+    no_hp: '',
+    gender: 'L',
+    tipe: 'peserta'
+})
+
+function openEditParticipantModal(p) {
+    editParticipantErrors.value = {}
+    editParticipantForm.value = {
+        id: p.id,
+        nama: p.nama || '',
+        nrp: p.nrp || '',
+        jabatan: p.jabatan || '',
+        site: p.site || '',
+        no_hp: p.no_hp || '',
+        gender: p.gender || 'L',
+        tipe: p.tipe || 'peserta'
+    }
+    showEditParticipantModal.value = true
+}
+
+async function submitEditParticipant() {
+    editParticipantProcessing.value = true
+    editParticipantErrors.value = {}
+
+    try {
+        const res = await axios.put(`/admin/participants/${editParticipantForm.value.id}`, editParticipantForm.value)
+        if (res.data.success) {
+            // Update detail data dynamically
+            detailData.value = res.data
+            showEditParticipantModal.value = false
+        }
+    } catch (e) {
+        if (e.response && e.response.status === 422) {
+            editParticipantErrors.value = e.response.data.errors || { general: e.response.data.message }
+        } else if (e.response && e.response.data && e.response.data.message) {
+            editParticipantErrors.value = { general: e.response.data.message }
+        } else {
+            editParticipantErrors.value = { general: 'Gagal memperbarui data peserta. Silakan coba lagi.' }
+        }
+    } finally {
+        editParticipantProcessing.value = false
+    }
+}
+
 const layoutLabels = {
     classroom: 'Classroom',
     'u-shape': 'U-Shape',
@@ -607,13 +661,22 @@ const layoutLabels = {
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
                                                         <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">JK</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase w-12">Aksi</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-50">
                                                     <tr v-for="(p, i) in detailData.peserta" :key="i" class="hover:bg-gray-50">
                                                         <td class="px-3 py-2 text-xs text-gray-400">{{ i + 1 }}</td>
                                                         <td class="px-3 py-2 text-xs font-semibold text-gray-800">{{ p.nama }}</td>
-                                                        <td class="px-3 py-2 text-xs font-mono text-gray-700 bg-gray-50/50 px-1 rounded">{{ p.nrp || 'N/A' }}</td>
+                                                        <td class="px-3 py-2 text-xs">
+                                                            <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-1 bg-gray-50 border border-gray-250/30 px-2 py-0.5 rounded text-[11px] text-gray-400 font-mono">
+                                                                N/A
+                                                                <span class="bg-gray-200/60 text-gray-500 font-normal px-1 py-0.2 rounded-[4px] text-[8px] uppercase tracking-wider font-sans select-none scale-90">Eksternal</span>
+                                                            </span>
+                                                            <span v-else class="inline-flex bg-blue-50 text-blue-750 text-[11px] font-extrabold font-mono px-2 py-0.5 rounded border border-blue-100">
+                                                                {{ p.nrp }}
+                                                            </span>
+                                                        </td>
                                                         <td class="px-3 py-2 text-xs text-gray-600">{{ p.jabatan || '-' }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600">{{ p.site || '-' }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600 font-mono">{{ p.no_hp || '-' }}</td>
@@ -622,6 +685,13 @@ const layoutLabels = {
                                                                   :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-600'">
                                                                 {{ p.gender || '-' }}
                                                             </span>
+                                                        </td>
+                                                        <td class="px-3 py-2 text-center">
+                                                            <button @click="openEditParticipantModal(p)" class="p-1 text-gray-450 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Edit Data">
+                                                                <svg class="w-3.5 h-3.5 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                                                </svg>
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -646,13 +716,22 @@ const layoutLabels = {
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
                                                         <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">JK</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase w-12">Aksi</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-50">
                                                     <tr v-for="(p, i) in detailData.panitia" :key="i" class="hover:bg-gray-50">
                                                         <td class="px-3 py-2 text-xs text-gray-400">{{ i + 1 }}</td>
                                                         <td class="px-3 py-2 text-xs font-semibold text-gray-800">{{ p.nama }}</td>
-                                                        <td class="px-3 py-2 text-xs font-mono text-gray-700 bg-gray-50/50 px-1 rounded">{{ p.nrp || 'N/A' }}</td>
+                                                        <td class="px-3 py-2 text-xs">
+                                                            <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-1 bg-gray-50 border border-gray-250/30 px-2 py-0.5 rounded text-[11px] text-gray-400 font-mono">
+                                                                N/A
+                                                                <span class="bg-gray-200/60 text-gray-500 font-normal px-1 py-0.2 rounded-[4px] text-[8px] uppercase tracking-wider font-sans select-none scale-90">Eksternal</span>
+                                                            </span>
+                                                            <span v-else class="inline-flex bg-blue-50 text-blue-750 text-[11px] font-extrabold font-mono px-2 py-0.5 rounded border border-blue-100">
+                                                                {{ p.nrp }}
+                                                            </span>
+                                                        </td>
                                                         <td class="px-3 py-2 text-xs text-gray-600">{{ p.jabatan || '-' }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600">{{ p.site || '-' }}</td>
                                                         <td class="px-3 py-2 text-xs text-gray-600 font-mono">{{ p.no_hp || '-' }}</td>
@@ -661,6 +740,13 @@ const layoutLabels = {
                                                                   :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-600'">
                                                                 {{ p.gender || '-' }}
                                                             </span>
+                                                        </td>
+                                                        <td class="px-3 py-2 text-center">
+                                                            <button @click="openEditParticipantModal(p)" class="p-1 text-gray-450 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Edit Data">
+                                                                <svg class="w-3.5 h-3.5 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                                                </svg>
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -945,6 +1031,130 @@ const layoutLabels = {
                     </form>
                 </div>
             </div>
+        </Teleport>
+
+        <!-- ── Modal: Edit Peserta/Panitia oleh Admin ──────────────────────────── -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition-all duration-200 ease-out"
+                enter-from-class="opacity-0 scale-95"
+                enter-to-class="opacity-100 scale-100"
+                leave-active-class="transition-all duration-150 ease-in"
+                leave-from-class="opacity-100 scale-100"
+                leave-to-class="opacity-0 scale-95"
+            >
+                <div v-if="showEditParticipantModal" class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative overflow-hidden" @click.stop>
+                        <div class="absolute top-0 left-0 w-full h-1.5 bg-blue-500"></div>
+                        <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-2">
+                            <h3 class="text-base font-bold text-gray-900">
+                                ✏️ Edit Data {{ editParticipantForm.tipe === 'panitia' ? 'Panitia' : 'Peserta' }}
+                            </h3>
+                            <button @click="showEditParticipantModal = false" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Error Banner (General) -->
+                        <div v-if="editParticipantErrors.general" class="mb-4 bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg p-2.5 flex items-start gap-2">
+                            <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span>{{ editParticipantErrors.general }}</span>
+                        </div>
+
+                        <form @submit.prevent="submitEditParticipant" class="space-y-4">
+                            <!-- Nama Lengkap -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                                <input
+                                    v-model="editParticipantForm.nama"
+                                    type="text"
+                                    required
+                                    placeholder="Masukkan nama lengkap"
+                                    class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                />
+                                <p v-if="editParticipantErrors.nama" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.nama[0] }}</p>
+                            </div>
+
+                            <!-- NRP -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">NRP <span class="text-red-500">*</span></label>
+                                <input
+                                    v-model="editParticipantForm.nrp"
+                                    type="text"
+                                    required
+                                    placeholder="NRP (contoh: 10425, atau ketik 'N/A' jika eksternal)"
+                                    class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                />
+                                <p v-if="editParticipantErrors.nrp" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.nrp[0] }}</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- Jabatan -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Jabatan</label>
+                                    <input
+                                        v-model="editParticipantForm.jabatan"
+                                        type="text"
+                                        placeholder="Staff, Manager, dll."
+                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    />
+                                    <p v-if="editParticipantErrors.jabatan" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.jabatan[0] }}</p>
+                                </div>
+
+                                <!-- Site -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Site</label>
+                                    <input
+                                        v-model="editParticipantForm.site"
+                                        type="text"
+                                        placeholder="Site kerja"
+                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    />
+                                    <p v-if="editParticipantErrors.site" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.site[0] }}</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- No HP -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">No HP</label>
+                                    <input
+                                        v-model="editParticipantForm.no_hp"
+                                        type="text"
+                                        placeholder="081234567..."
+                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    />
+                                    <p v-if="editParticipantErrors.no_hp" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.no_hp[0] }}</p>
+                                </div>
+
+                                <!-- Jenis Kelamin -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Jenis Kelamin <span class="text-red-500">*</span></label>
+                                    <select
+                                        v-model="editParticipantForm.gender"
+                                        required
+                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white font-sans"
+                                    >
+                                        <option value="L">Laki-laki (L)</option>
+                                        <option value="P">Perempuan (P)</option>
+                                    </select>
+                                    <p v-if="editParticipantErrors.gender" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.gender[0] }}</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
+                                <button type="button" @click="showEditParticipantModal = false" :disabled="editParticipantProcessing" class="px-4 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50">
+                                    Batal
+                                </button>
+                                <button type="submit" :disabled="editParticipantProcessing" class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm disabled:opacity-50">
+                                    <span v-if="editParticipantProcessing" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                    Simpan Perubahan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </Transition>
         </Teleport>
     </AdminLayout>
 </template>
