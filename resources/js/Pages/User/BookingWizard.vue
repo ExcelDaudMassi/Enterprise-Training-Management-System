@@ -28,11 +28,11 @@ const stage1Error         = ref('')
 
 // Roster Panitia (array interaktif)
 const panitiaList = ref([
-    { nama: '', divisi: '', jabatan: '', site: '', no_hp: '' }
+    { nama: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
 ])
 
 function addPanitia() {
-    panitiaList.value.push({ nama: '', divisi: '', jabatan: '', site: '', no_hp: '' })
+    panitiaList.value.push({ nama: '', jabatan: '', site: '', no_hp: '', gender: 'L' })
 }
 
 function removePanitia(index) {
@@ -44,7 +44,14 @@ function removePanitia(index) {
 const panitiaCount = computed(() => panitiaList.value.length)
 
 const panitiaValid = computed(() =>
-    panitiaList.value.every(p => p.nama.trim() !== '' && p.no_hp.trim() !== '' && /^[0-9+]+$/.test(p.no_hp.trim()))
+    panitiaList.value.every(p => 
+        p.nama.trim() !== '' && 
+        p.jabatan.trim() !== '' && 
+        p.site.trim() !== '' && 
+        p.no_hp.trim() !== '' && 
+        /^[0-9+]+$/.test(p.no_hp.trim()) &&
+        (p.gender === 'L' || p.gender === 'P')
+    )
 )
 
 // Stage 2 (Kalender)
@@ -774,10 +781,10 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         <tr>
                                             <th class="px-4 py-3 w-12 text-center">#</th>
                                             <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">Divisi</th>
-                                            <th class="px-4 py-3">Jabatan</th>
-                                            <th class="px-4 py-3">Site</th>
+                                            <th class="px-4 py-3">Jabatan<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3">Site<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3">No. HP<span class="text-red-400">*</span></th>
+                                            <th class="px-4 py-3 w-44 text-center">Gender<span class="text-red-400">*</span></th>
                                             <th class="px-4 py-3 w-12 text-center"></th>
                                         </tr>
                                     </thead>
@@ -790,21 +797,26 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                                     :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
-                                                <input v-model="p.divisi" type="text" placeholder="Divisi..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
-                                            </td>
-                                            <td class="px-4 py-2.5">
                                                 <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.jabatan.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.site" type="text" placeholder="Site..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.site.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.no_hp" type="text" placeholder="Contoh: 0812..."
                                                     class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.no_hp.trim() === '' || !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <select v-model="p.gender"
+                                                    class="text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white min-w-[120px] select-gender appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.65em_auto] bg-[right_0.75rem_center] bg-no-repeat">
+                                                    <option value="L">♂ Laki-laki</option>
+                                                    <option value="P">♀ Perempuan</option>
+                                                </select>
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <button @click="removePanitia(i)" :disabled="panitiaList.length === 1"
@@ -1353,7 +1365,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                     <tbody class="divide-y divide-gray-100">
                                         <tr v-for="(p, i) in panitiaList" :key="i" class="hover:bg-amber-50/30 transition-colors">
                                             <td class="px-4 py-2.5 text-gray-400 font-bold">{{ i + 1 }}</td>
-                                            <td class="px-4 py-2.5 font-bold text-gray-800">{{ p.nama }} <span class="text-[10px] font-medium text-gray-400 block mt-0.5">{{ p.jabatan || p.divisi }}</span></td>
+                                            <td class="px-4 py-2.5 font-bold text-gray-800">{{ p.nama }} <span class="text-[10px] font-medium text-gray-400 block mt-0.5">{{ p.jabatan }}</span></td>
                                             <td class="px-4 py-2.5 text-gray-500">{{ p.site || '-' }}</td>
                                             <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
                                         </tr>

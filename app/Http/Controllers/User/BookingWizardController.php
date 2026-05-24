@@ -474,7 +474,7 @@ class BookingWizardController extends Controller
                     'jabatan'    => $p['jabatan'] ?? null,
                     'site'       => $p['site'] ?? null,
                     'no_hp'      => $p['no_hp'] ?? null,
-                    'gender'     => null,
+                    'gender'     => $p['gender'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
