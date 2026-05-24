@@ -85,6 +85,7 @@ const isSubmitting = ref(false)
 const submitError = ref('')
 const submitSuccess = ref(false)
 const bookingId = ref(null)
+const termsAccepted = ref(false)
 
 // ============================================================
 // COMPUTED
@@ -1170,34 +1171,207 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                             class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-xs font-black py-2.5 px-4 rounded-xl transition shadow-3xs">
                             ← Kembali Edit
                         </button>
-                        <button @click="submitFinal" :disabled="isSubmitting"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs flex items-center gap-2">
-                            <span v-if="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            {{ isSubmitting ? 'Ajukan...' : 'Ajukan Booking Sekarang' }}
-                        </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-5 rounded-2xl border border-gray-150">
-                    <div>
-                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Informasi Acara</p>
-                        <p class="text-sm font-bold text-gray-800 mt-1.5">{{ formStage4.nama_training }}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">PIC: {{ formStage4.nama_pic }}</p>
+                <div class="flex flex-col gap-6">
+                    <!-- Row 1: Acara & Ruangan -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Card: Informasi Acara -->
+                        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -mr-4 -mt-4"></div>
+                            <div class="flex items-center gap-2.5 mb-4">
+                                <span class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-black border border-blue-100 shadow-3xs">📝</span>
+                                <h3 class="text-sm font-black text-gray-800 uppercase tracking-wider">Informasi Acara</h3>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Nama Training / Acara</p>
+                                    <p class="text-base font-black text-gray-900 leading-tight">{{ formStage4.nama_training || '-' }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">PIC Divisi</p>
+                                    <p class="text-sm font-bold text-gray-800">{{ formStage4.nama_pic || '-' }}</p>
+                                </div>
+                                <div v-if="formStage4.catatan">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Catatan Tambahan</p>
+                                    <p class="text-xs text-gray-700 italic bg-gray-50 border border-gray-100 p-2.5 rounded-lg">{{ formStage4.catatan }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card: Jadwal & Ruangan -->
+                        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full -mr-4 -mt-4"></div>
+                            <div class="flex items-center gap-2.5 mb-4">
+                                <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-black border border-emerald-100 shadow-3xs">🏫</span>
+                                <h3 class="text-sm font-black text-gray-800 uppercase tracking-wider">Jadwal & Ruangan</h3>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Ruangan Terpilih</p>
+                                    <div class="flex items-start gap-3">
+                                        <!-- Thumbnail Ruangan Placeholder -->
+                                        <div class="w-12 h-12 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center flex-shrink-0">
+                                            <span class="text-xl opacity-50">🖼️</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-base font-black text-gray-900 leading-tight">{{ selectedRoom?.nama_ruang || '-' }}</p>
+                                            <p class="text-[11px] text-gray-500 mt-0.5">{{ selectedRoom?.lokasi_gedung || '-' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Tanggal Pelaksanaan</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-bold text-gray-900 bg-gray-50 px-2.5 py-1 rounded border border-gray-100">{{ formatDate(startDate) }}</span>
+                                        <span class="text-xs text-gray-400 font-bold">s/d</span>
+                                        <span class="text-sm font-bold text-gray-900 bg-gray-50 px-2.5 py-1 rounded border border-gray-100">{{ formatDate(endDate) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Jadwal & Ruangan</p>
-                        <p class="text-sm font-bold text-gray-800 mt-1.5">{{ selectedRoom?.nama_ruang }}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">{{ formatDate(startDate) }} - {{ formatDate(endDate) }}</p>
+
+                    <!-- Row 2: Layout & Kapasitas -->
+                    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-amber-50 rounded-bl-full -mr-4 -mt-4"></div>
+                        <div class="flex items-center gap-2.5 mb-5">
+                            <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-black border border-amber-100 shadow-3xs">⚙️</span>
+                            <h3 class="text-sm font-black text-gray-800 uppercase tracking-wider">Kapasitas & Setup Ruangan</h3>
+                        </div>
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- Kolom 1: Total Peserta -->
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Total Orang</p>
+                                <p class="text-base font-black text-blue-600">{{ totalOrang }} Orang</p>
+                                <p class="text-[10px] text-gray-500 mt-1">{{ participantCount }} Peserta, {{ panitiaCount }} Panitia</p>
+                            </div>
+                            
+                            <!-- Kolom 2: Layout -->
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Layout Preferensi</p>
+                                <p class="text-base font-black text-gray-900 capitalize">{{ formStage4.layout_preferensi }}</p>
+                                <p v-if="formStage4.layout_preferensi === 'custom' && uploadedCustomFileName" class="text-[10px] text-blue-600 font-bold mt-1 flex items-center gap-1 truncate" :title="uploadedCustomFileName">
+                                    <span class="flex-shrink-0">📎</span> <span class="truncate">{{ uploadedCustomFileName }}</span>
+                                </p>
+                            </div>
+                            
+                            <!-- Kolom 3: Hybrid -->
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Opsi Hybrid</p>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="w-5 h-5 rounded flex items-center justify-center text-[10px]" :class="formStage4.hybrid ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'">
+                                        {{ formStage4.hybrid ? '✓' : '✗' }}
+                                    </span>
+                                    <p class="text-sm font-bold" :class="formStage4.hybrid ? 'text-gray-900' : 'text-gray-500'">
+                                        {{ formStage4.hybrid ? 'Kamera & Mic' : 'Tidak Perlu' }}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Kolom 4: Flipchart -->
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Opsi Flipchart</p>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="w-5 h-5 rounded flex items-center justify-center text-[10px]" :class="formStage4.flipchart ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'">
+                                        {{ formStage4.flipchart ? '✓' : '✗' }}
+                                    </span>
+                                    <p class="text-sm font-bold" :class="formStage4.flipchart ? 'text-gray-900' : 'text-gray-500'">
+                                        {{ formStage4.flipchart ? 'Papan Tulis' : 'Tidak Perlu' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Kapasitas & Layout</p>
-                        <p class="text-sm font-bold text-gray-800 mt-1.5">{{ totalOrang }} Orang ({{ participantCount }} Peserta, {{ panitiaCount }} Panitia)</p>
-                        <p class="text-xs text-gray-500 capitalize mt-0.5">Layout: {{ formStage4.layout_preferensi }}</p>
+
+                    <!-- Row 3: Roster List -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Roster Peserta -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex flex-col bg-white">
+                            <div class="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                                <span class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                                    <span>📋</span> Daftar Peserta
+                                </span>
+                                <span class="bg-white border border-gray-200 text-gray-700 text-[10px] font-black px-2 py-0.5 rounded-full shadow-3xs">{{ participantCount }}</span>
+                            </div>
+                            <!-- Menggunakan class khusus custom-scrollbar yang akan didefinisikan di style -->
+                            <div class="overflow-y-auto max-h-56 p-0 custom-scrollbar">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-white sticky top-0 border-b border-gray-100 shadow-3xs z-10">
+                                        <tr>
+                                            <th class="px-4 py-2 font-bold text-gray-500 w-10 uppercase tracking-wider text-[10px]">#</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Nama Lengkap</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Site</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr v-for="(p, i) in participants" :key="i" class="hover:bg-blue-50/30 transition-colors">
+                                            <td class="px-4 py-2.5 text-gray-400 font-bold">{{ i + 1 }}</td>
+                                            <td class="px-4 py-2.5 font-bold text-gray-800">{{ p.nama }} <span class="text-[10px] font-medium text-gray-400 block mt-0.5">{{ p.jabatan }}</span></td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.site }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Roster Panitia -->
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex flex-col bg-white">
+                            <div class="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                                <span class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                                    <span>👥</span> Daftar Panitia
+                                </span>
+                                <span class="bg-white border border-gray-200 text-gray-700 text-[10px] font-black px-2 py-0.5 rounded-full shadow-3xs">{{ panitiaCount }}</span>
+                            </div>
+                            <div class="overflow-y-auto max-h-56 p-0 custom-scrollbar">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-white sticky top-0 border-b border-gray-100 shadow-3xs z-10">
+                                        <tr>
+                                            <th class="px-4 py-2 font-bold text-gray-500 w-10 uppercase tracking-wider text-[10px]">#</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Nama Lengkap</th>
+                                            <th class="px-4 py-2 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Site</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr v-for="(p, i) in panitiaList" :key="i" class="hover:bg-amber-50/30 transition-colors">
+                                            <td class="px-4 py-2.5 text-gray-400 font-bold">{{ i + 1 }}</td>
+                                            <td class="px-4 py-2.5 font-bold text-gray-800">{{ p.nama }} <span class="text-[10px] font-medium text-gray-400 block mt-0.5">{{ p.jabatan || p.divisi }}</span></td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.site || '-' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Logistik</p>
-                        <p class="text-xs text-gray-800 mt-1.5">Hybrid: <span class="font-bold text-gray-700">{{ formStage4.hybrid ? 'Ya' : 'Tidak' }}</span></p>
-                        <p class="text-xs text-gray-800 mt-0.5">Flipchart: <span class="font-bold text-gray-700">{{ formStage4.flipchart ? 'Ya' : 'Tidak' }}</span></p>
+
+                    <!-- Konfirmasi & Submit Box -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm mt-2">
+                        <div class="flex-1">
+                            <label class="flex items-start gap-3 cursor-pointer select-none group">
+                                <div class="relative flex items-center mt-0.5">
+                                    <input type="checkbox" v-model="termsAccepted" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer peer" />
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-gray-800 group-hover:text-blue-700 transition-colors block">
+                                        Saya memastikan data pemesanan sudah benar
+                                    </span>
+                                    <span class="text-xs text-gray-500 block mt-0.5">
+                                        Dengan mencentang kotak ini, saya menyetujui syarat penggunaan ruangan dan bertanggung jawab atas kelengkapan data.
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="w-full md:w-auto text-right flex flex-col md:items-end">
+                            <button @click="submitFinal" :disabled="isSubmitting || !termsAccepted"
+                                class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-8 rounded-xl text-sm transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <span v-if="isSubmitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                {{ isSubmitting ? 'Mengirim Data...' : 'Ajukan Booking Sekarang' }}
+                            </button>
+                            <p class="text-[10px] text-gray-400 font-semibold mt-2.5 bg-white border border-gray-200 py-1 px-2.5 rounded-lg inline-flex items-center gap-1.5 shadow-3xs mx-auto md:mx-0">
+                                <span>⏱️</span> Pengajuan akan direview admin maks. 1x24 jam kerja
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1223,3 +1397,21 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
         </div>
     </UserLayout>
 </template>
+
+<style scoped>
+/* Custom Scrollbar for the tables */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1; /* tailwind slate-300 */
+    border-radius: 20px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8; /* tailwind slate-400 */
+}
+</style>
