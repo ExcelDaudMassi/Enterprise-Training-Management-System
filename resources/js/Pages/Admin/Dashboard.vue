@@ -676,7 +676,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <Teleport to="body">
             <div
                 v-if="modalOpen"
-                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 animate-fade-in"
+                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
                 @click.self="closeModal"
             >
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-100 h-[85vh] min-h-[550px] transition-all">
@@ -834,14 +834,6 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
         <!-- Modal: Detail Booking Training (Diperkaya Selengkap Mungkin) -->
         <Teleport to="body">
-            <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0 scale-95"
-                enter-to-class="opacity-100 scale-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100 scale-100"
-                leave-to-class="opacity-0 scale-95"
-            >
             <div
                 v-if="detailModalOpen"
                 class="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4"
@@ -999,9 +991,11 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 </div>
                             </div>
 
-                            <!-- Kolom 2: Roster Peserta -->
-                            <div class="flex flex-col min-w-0 lg:border-r border-gray-100 lg:pr-6">
-                                <div class="flex items-center justify-between mb-3">
+                            <!-- Kolom Kanan: Roster Peserta & Roster Panitia Menurun (Wider 2/3 width) -->
+                            <div class="lg:col-span-2 space-y-6 flex flex-col min-w-0">
+                                <!-- Roster Peserta -->
+                                <div class="flex flex-col min-w-0">
+                                    <div class="flex items-center justify-between mb-3">
                                     <h5 class="text-[10px] font-black text-emerald-700 uppercase tracking-widest">👥 Roster Peserta</h5>
                                     <div class="flex items-center gap-2 text-[10px] text-gray-500">
                                         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-400"></span>L: {{ filteredPeserta.filter(p => p.gender === 'L').length }}</span>
@@ -1058,9 +1052,9 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 </div>
                             </div>
 
-                            <!-- Kolom 3: Roster Panitia -->
-                            <div class="flex flex-col min-w-0">
-                                <h5 class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3">💼 Roster Panitia</h5>
+                                <!-- Roster Panitia -->
+                                <div class="flex flex-col min-w-0">
+                                    <h5 class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3">💼 Roster Panitia</h5>
                                 <div class="flex-1 border border-gray-100 rounded-xl overflow-hidden">
                                     <div class="overflow-y-auto max-h-[50vh]">
                                         <table class="min-w-full divide-y divide-gray-100 text-xs">
@@ -1105,10 +1099,11 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 </div>
 
                                 <!-- Catatan Admin (jika ada) -->
-                                <div v-if="selectedDetailBooking?.catatan_admin" class="mt-4 bg-red-50 rounded-xl p-4 border border-red-100">
+                                <div v-if="selectedDetailBooking?.catatan_admin" class="bg-red-50 rounded-xl p-4 border border-red-100">
                                     <h6 class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2">📝 Catatan Admin</h6>
                                     <p class="text-xs text-gray-700 leading-relaxed">{{ selectedDetailBooking.catatan_admin }}</p>
                                 </div>
+                            </div>
                             </div>
 
                         </div>
@@ -1140,7 +1135,6 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                 </div>
             </div>
-            </Transition>
         </Teleport>
 
     </AdminLayout>
