@@ -78,7 +78,7 @@ class HandleInertiaRequests extends Middleware
 
                 // b) Urgent H-14
                 $urgentBookings = \App\Models\Booking::with('user')
-                    ->where('status', 'waiting_confirmation')
+                    ->where('status', \App\Models\Booking::STATUS_CONFIRMED)
                     ->where('tgl_mulai', '<=', $h14Cutoff)
                     ->where('tgl_mulai', '>=', $today)
                     ->orderBy('tgl_mulai', 'asc')

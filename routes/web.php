@@ -7,6 +7,7 @@ use App\Http\Controllers\User\BookingHistoryController;
 use App\Http\Controllers\User\BookingManageController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\BookingApprovalController;
+use App\Http\Controllers\Admin\SettingController;
 use Illuminate\Support\Facades\Route;
 
 // ============================================================
@@ -98,6 +99,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/rooms', [\App\Http\Controllers\Admin\RoomController::class, 'store'])->name('rooms.store');
     Route::put('/rooms/{room}', [\App\Http\Controllers\Admin\RoomController::class, 'update'])->name('rooms.update');
     Route::delete('/rooms/{room}', [\App\Http\Controllers\Admin\RoomController::class, 'destroy'])->name('rooms.destroy');
+
+    // ─── Settings ──────────────────────────────────────────────
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::get('/api/settings/h14-mode', [SettingController::class, 'getH14Mode'])->name('api.settings.h14-mode.get');
+    Route::post('/api/settings/h14-mode', [SettingController::class, 'updateH14Mode'])->name('api.settings.h14-mode.update');
 });
 
 // Default: redirect root ke halaman login
