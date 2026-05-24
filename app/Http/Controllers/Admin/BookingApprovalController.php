@@ -421,7 +421,6 @@ class BookingApprovalController extends Controller
                 if ($booking->gabung_ruang && $booking->ruangan && $booking->ruangan->pasangan_ruang_id) {
                     $roomIds[] = $booking->ruangan->pasangan_ruang_id;
                 }
->>>>>>> admin
 
                 // Pessimistic locking pada baris ruangan di database
                 \App\Models\Ruangan::whereIn('id', $roomIds)->lockForUpdate()->get();
