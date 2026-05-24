@@ -815,8 +815,12 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
 
             <!-- ======================================================= -->
             <!-- STAGE 2: Kalender Ketersediaan -->
-            <!-- ======================================================= -->
-            <div v-if="currentStage === 2" class="space-y-4">
+                    <div v-if="currentStage === 2" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 space-y-6">
+                <div>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 2: Kalender Ketersediaan</h2>
+                    <p class="text-xs text-gray-500 mb-4">Pilih rentang tanggal mulai dan selesai pada kalender di bawah untuk melihat ketersediaan ruangan.</p>
+                </div>
+
                 <!-- Top bar Stage 2: status + info + aksi -->
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4">
                     <!-- Left side: Capacity indicator & Date Selection status -->
@@ -907,7 +911,12 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
             <!-- ======================================================= -->
             <!-- STAGE 3: Pilih Ruangan -->
             <!-- ======================================================= -->
-            <div v-if="currentStage === 3" class="space-y-4">
+            <div v-if="currentStage === 3" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 space-y-6">
+                <div>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 3: Opsi Ruangan</h2>
+                    <p class="text-xs text-gray-500 mb-4">Pilih salah satu opsi ruangan yang tersedia untuk kapasitas peserta dan rentang tanggal yang telah Anda tentukan.</p>
+                </div>
+
                 <!-- Top bar Stage 3: status + info + aksi -->
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4">
                     <!-- Left side: Range & Selected Room indicator -->
@@ -921,7 +930,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                         <!-- Room choice status -->
                         <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
                             <span class="w-2.5 h-2.5 rounded-full" :class="isRoomSelected ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'"></span>
-                            <span class="text-xs font-bold text-gray-750">Ruangan:</span>
+                            <span class="text-xs font-bold text-gray-755">Ruangan:</span>
                             <span class="text-xs font-semibold" :class="isRoomSelected ? 'text-green-600 font-bold' : 'text-gray-400'">
                                 {{ isRoomSelected ? selectedRoom.nama_ruang : 'Pilih salah satu ruangan di bawah' }}
                             </span>
@@ -1026,6 +1035,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
             <!-- STAGE 4: Detail Booking -->
             <!-- ======================================================= -->
             <div v-if="currentStage === 4" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 space-y-6">
+                <div>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 4: Detail Informasi Acara</h2>
+                    <p class="text-xs text-gray-500 mb-4">Lengkapi informasi utama acara seperti nama training/acara, nama PIC divisi, kebutuhan layout ruangan, serta logistik tambahan.</p>
+                </div>
+
                 <!-- Top bar Stage 4: status + info + aksi -->
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4 mb-4">
                     <!-- Left side: Summary of selection -->
@@ -1061,8 +1075,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                 </div>
 
                 <div>
-                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 4: Informasi Utama Acara</h2>
-                    <p class="text-xs text-gray-500 mb-4">Lengkapi detail acara dan penanggung jawab.</p>
+                    <h2 class="text-sm font-bold text-gray-800 mb-3 uppercase tracking-wider text-blue-900/80">Informasi Utama</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-750 mb-1">Nama Training / Acara <span class="text-red-500">*</span></label>
@@ -1132,6 +1145,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
             <!-- STAGE 5: Review & Submit -->
             <!-- ======================================================= -->
             <div v-if="currentStage === 5 && !submitSuccess" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 space-y-6">
+                <div>
+                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 5: Review & Finalisasi</h2>
+                    <p class="text-xs text-gray-500 mb-4">Tinjau kembali seluruh data pemesanan ruangan Anda sebelum diajukan ke admin untuk proses persetujuan.</p>
+                </div>
+
                 <!-- Top bar Stage 5: status + info + aksi -->
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-50 border border-gray-150 rounded-2xl px-5 py-4 mb-4">
                     <!-- Left side: Review status -->
@@ -1145,7 +1163,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
 
                     <!-- Right side: Actions -->
                     <div class="flex flex-wrap items-center gap-3">
-                        <div v-if="submitError" class="text-xs text-red-650 bg-red-50 border border-red-200 rounded px-2.5 py-1">
+                        <div v-if="submitError" class="text-xs text-red-655 bg-red-50 border border-red-200 rounded px-2.5 py-1">
                             ⚠️ {{ submitError }}
                         </div>
                         <button @click="currentStage = 4" :disabled="isSubmitting"
@@ -1158,11 +1176,6 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                             {{ isSubmitting ? 'Ajukan...' : 'Ajukan Booking Sekarang' }}
                         </button>
                     </div>
-                </div>
-
-                <div>
-                    <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 5: Review & Finalisasi</h2>
-                    <p class="text-xs text-gray-500 mb-4">Pastikan semua informasi sudah benar sebelum diajukan.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-5 rounded-2xl border border-gray-150">
