@@ -3,6 +3,8 @@ import UserLayout from '@/Layouts/UserLayout.vue'
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 
+defineOptions({ layout: UserLayout })
+
 const props = defineProps({
     auth: Object,
     bookings: Array,
@@ -64,8 +66,7 @@ async function submitCancel() {
 </script>
 
 <template>
-    <UserLayout :auth="auth">
-        <div class="w-full space-y-6">
+    <div class="w-full space-y-6">
 
             <!-- Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -240,5 +241,4 @@ async function submitCancel() {
                 </div>
             </div>
         </Teleport>
-    </UserLayout>
 </template>

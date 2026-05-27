@@ -3,6 +3,8 @@ import UserLayout from '@/Layouts/UserLayout.vue'
 import { ref, computed } from 'vue'
 import { useForm, Link } from '@inertiajs/vue3'
 
+defineOptions({ layout: UserLayout })
+
 defineProps({
     auth: Object,
 })
@@ -37,8 +39,7 @@ function submit() {
 </script>
 
 <template>
-    <UserLayout :auth="auth">
-        <div class="max-w-xl mx-auto space-y-6">
+    <div class="max-w-xl mx-auto space-y-6">
 
             <!-- Header -->
             <div class="flex items-center gap-3">
@@ -205,5 +206,4 @@ function submit() {
             </div>
 
         </div>
-    </UserLayout>
 </template>

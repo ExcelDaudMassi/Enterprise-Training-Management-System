@@ -3,6 +3,8 @@ import { ref, computed, watch } from 'vue'
 import { router, useForm, Link, usePage } from '@inertiajs/vue3'
 import UserLayout from '@/Layouts/UserLayout.vue'
 
+defineOptions({ layout: UserLayout })
+
 // ============================================================
 // Props dari controller
 // ============================================================
@@ -359,7 +361,6 @@ function statusLabel(status) {
 </script>
 
 <template>
-    <UserLayout :auth="auth">
 
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">
@@ -764,5 +765,4 @@ function statusLabel(status) {
             </div>
         </Teleport>
 
-    </UserLayout>
 </template>

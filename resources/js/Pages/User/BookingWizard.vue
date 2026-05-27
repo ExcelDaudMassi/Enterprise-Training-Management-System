@@ -4,6 +4,9 @@ import { Link } from '@inertiajs/vue3'
 import UserLayout from '@/Layouts/UserLayout.vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
+
+defineOptions({ layout: UserLayout })
+
 const props = defineProps({ auth: Object })
 
 // ============================================================
@@ -852,8 +855,7 @@ const getLayoutDesc = (layout) => {
 </script>
 
 <template>
-    <UserLayout :auth="auth">
-        <div class="w-full">
+    <div class="w-full">
 
             <!-- ======================================================= -->
             <!-- Header & Progress Bar -->
@@ -1865,7 +1867,6 @@ const getLayoutDesc = (layout) => {
             </div>
 
         </div>
-    </UserLayout>
 </template>
 
 <style>

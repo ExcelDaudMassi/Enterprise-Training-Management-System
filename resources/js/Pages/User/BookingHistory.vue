@@ -3,6 +3,8 @@ import UserLayout from '@/Layouts/UserLayout.vue'
 import { useForm, usePage, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 
+defineOptions({ layout: UserLayout })
+
 const props = defineProps({
     auth:     Object,
     bookings: Array
@@ -109,8 +111,7 @@ async function submitDateChange() {
 </script>
 
 <template>
-    <UserLayout :auth="auth">
-        <div class="max-w-6xl mx-auto space-y-6">
+    <div class="max-w-6xl mx-auto space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
@@ -365,5 +366,4 @@ async function submitDateChange() {
             </div>
         </Teleport>
 
-    </UserLayout>
 </template>
