@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import UserLayout from '@/Layouts/UserLayout.vue'
 import axios from 'axios'
-
+import Swal from 'sweetalert2'
 const props = defineProps({ auth: Object })
 
 // ============================================================
@@ -127,52 +127,70 @@ const stateToSave = computed(() => {
     }
 })
 
+const storageKey = computed(() => 'booking_wizard_state_' + (props.auth?.user?.id || 'guest'))
+
 // Langkah A: Auto-save form ke localStorage setiap kali ada perubahan
 watch(stateToSave, (newState) => {
     // Jangan simpan jika form telah berhasil diajukan
     if (submitSuccess.value) return
     
     if (typeof window !== 'undefined') {
-        localStorage.setItem('booking_wizard_state', JSON.stringify(newState))
+        localStorage.setItem(storageKey.value, JSON.stringify(newState))
     }
 }, { deep: true })
 
 // Langkah B: Restore form dari localStorage saat pertama kali dimuat
 onMounted(() => {
     if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('booking_wizard_state')
+        const saved = localStorage.getItem(storageKey.value)
         if (saved) {
-            try {
-                const data = JSON.parse(saved)
-                
-                if (data.currentStage !== undefined) currentStage.value = data.currentStage
-                if (data.participants !== undefined) participants.value = data.participants
-                if (data.isManualInput !== undefined) isManualInput.value = data.isManualInput
-                if (data.uploadedFileName !== undefined) uploadedFileName.value = data.uploadedFileName
-                if (data.excelSuccessMessage !== undefined) excelSuccessMessage.value = data.excelSuccessMessage
-                if (data.eligibleRooms !== undefined) eligibleRooms.value = data.eligibleRooms
-                if (data.isCombined !== undefined) isCombined.value = data.isCombined
-                if (data.activeYear !== undefined) activeYear.value = data.activeYear
-                if (data.totalOrang !== undefined) totalOrang.value = data.totalOrang
-                if (data.panitiaList !== undefined) panitiaList.value = data.panitiaList
-                if (data.startDate !== undefined) startDate.value = data.startDate
-                if (data.endDate !== undefined) endDate.value = data.endDate
-                if (data.availableRooms !== undefined) availableRooms.value = data.availableRooms
-                if (data.selectedRoom !== undefined) selectedRoom.value = data.selectedRoom
-                if (data.uploadedCustomFileName !== undefined) uploadedCustomFileName.value = data.uploadedCustomFileName
-                
-                if (data.formStage4 !== undefined) {
-                    formStage4.value.nama_training = data.formStage4.nama_training || ''
-                    formStage4.value.nama_pic = data.formStage4.nama_pic || ''
-                    formStage4.value.no_hp_pic = data.formStage4.no_hp_pic || ''
-                    formStage4.value.layout_preferensi = data.formStage4.layout_preferensi || 'classroom'
-                    formStage4.value.hybrid = data.formStage4.hybrid || false
-                    formStage4.value.flipchart = data.formStage4.flipchart || false
-                    formStage4.value.catatan = data.formStage4.catatan || ''
+            Swal.fire({
+                title: 'Lanjutkan Isian?',
+                text: 'Anda memiliki data isian form booking yang belum selesai. Apakah Anda ingin melanjutkannya?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Buat Baru',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const data = JSON.parse(saved)
+                        
+                        if (data.currentStage !== undefined) currentStage.value = data.currentStage
+                        if (data.participants !== undefined) participants.value = data.participants
+                        if (data.isManualInput !== undefined) isManualInput.value = data.isManualInput
+                        if (data.uploadedFileName !== undefined) uploadedFileName.value = data.uploadedFileName
+                        if (data.excelSuccessMessage !== undefined) excelSuccessMessage.value = data.excelSuccessMessage
+                        if (data.eligibleRooms !== undefined) eligibleRooms.value = data.eligibleRooms
+                        if (data.isCombined !== undefined) isCombined.value = data.isCombined
+                        if (data.activeYear !== undefined) activeYear.value = data.activeYear
+                        if (data.totalOrang !== undefined) totalOrang.value = data.totalOrang
+                        if (data.panitiaList !== undefined) panitiaList.value = data.panitiaList
+                        if (data.startDate !== undefined) startDate.value = data.startDate
+                        if (data.endDate !== undefined) endDate.value = data.endDate
+                        if (data.availableRooms !== undefined) availableRooms.value = data.availableRooms
+                        if (data.selectedRoom !== undefined) selectedRoom.value = data.selectedRoom
+                        if (data.uploadedCustomFileName !== undefined) uploadedCustomFileName.value = data.uploadedCustomFileName
+                        
+                        if (data.formStage4 !== undefined) {
+                            formStage4.value.nama_training = data.formStage4.nama_training || ''
+                            formStage4.value.nama_pic = data.formStage4.nama_pic || ''
+                            formStage4.value.no_hp_pic = data.formStage4.no_hp_pic || ''
+                            formStage4.value.layout_preferensi = data.formStage4.layout_preferensi || 'classroom'
+                            formStage4.value.hybrid = data.formStage4.hybrid || false
+                            formStage4.value.flipchart = data.formStage4.flipchart || false
+                            formStage4.value.catatan = data.formStage4.catatan || ''
+                        }
+                    } catch (e) {
+                        console.error('Gagal memulihkan state formulir:', e)
+                    }
+                } else {
+                    clearSavedState()
                 }
-            } catch (e) {
-                console.error('Gagal memulihkan state formulir:', e)
-            }
+            })
         }
     }
     
@@ -182,7 +200,7 @@ onMounted(() => {
 
 function clearSavedState() {
     if (typeof window !== 'undefined') {
-        localStorage.removeItem('booking_wizard_state')
+        localStorage.removeItem(storageKey.value)
     }
 }
 
