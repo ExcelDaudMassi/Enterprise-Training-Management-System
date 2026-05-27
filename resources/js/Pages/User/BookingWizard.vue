@@ -108,6 +108,7 @@ const stateToSave = computed(() => {
         eligibleRooms: eligibleRooms.value,
         isCombined: isCombined.value,
         activeYear: activeYear.value,
+        blockedDates: blockedDates.value,
         totalOrang: totalOrang.value,
         panitiaList: panitiaList.value,
         startDate: startDate.value,
@@ -167,6 +168,7 @@ onMounted(() => {
                         if (data.eligibleRooms !== undefined) eligibleRooms.value = data.eligibleRooms
                         if (data.isCombined !== undefined) isCombined.value = data.isCombined
                         if (data.activeYear !== undefined) activeYear.value = data.activeYear
+                        if (data.blockedDates !== undefined) blockedDates.value = data.blockedDates
                         if (data.totalOrang !== undefined) totalOrang.value = data.totalOrang
                         if (data.panitiaList !== undefined) panitiaList.value = data.panitiaList
                         if (data.startDate !== undefined) startDate.value = data.startDate
