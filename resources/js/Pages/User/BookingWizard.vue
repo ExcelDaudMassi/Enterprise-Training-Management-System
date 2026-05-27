@@ -1733,23 +1733,24 @@ const getLayoutDesc = (layout) => {
                             {{ submitError }}
                         </div>
 
-                        <div class="flex flex-col items-end gap-1">
-                            <div class="flex items-center gap-2">
-                                <button @click="currentStage = 4" :disabled="isSubmitting"
-                                    class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none h-[38px]">
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-                                    Kembali Edit
-                                </button>
-                                <button @click="submitFinal" :disabled="isSubmitting || !termsAccepted"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-md text-xs transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap select-none h-[38px]">
-                                    <span v-if="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                    <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
-                                    {{ isSubmitting ? 'Mengajukan...' : 'Ajukan Booking' }}
-                                </button>
-                            </div>
-                            <span class="text-[9px] text-gray-400 select-none mr-1">Direview admin maks. 1×24 jam</span>
+                        <div class="flex items-center gap-2">
+                            <button @click="currentStage = 4" :disabled="isSubmitting"
+                                class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none h-[38px]">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                                Kembali Edit
+                            </button>
+                            <button @click="submitFinal" :disabled="isSubmitting || !termsAccepted"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-md text-xs transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap select-none h-[38px]">
+                                <span v-if="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+                                {{ isSubmitting ? 'Mengajukan...' : 'Ajukan Booking' }}
+                            </button>
                         </div>
                     </div>
+                </div>
+                <!-- Sub-teks panduan admin diletakkan di luar box bar agar vertikal centering di dalam box bar 100% presisi -->
+                <div class="text-right mt-1.5 mr-1">
+                    <span class="text-[9px] text-gray-400 select-none">Direview admin maks. 1×24 jam</span>
                 </div>
             </div>
             </div>
