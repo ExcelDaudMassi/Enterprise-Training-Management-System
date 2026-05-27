@@ -199,11 +199,6 @@ provide('isWindowActive', isWindowActive)
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Dashboard
                 </Link>
 
-                <!-- Divider Label -->
-                <div class="pt-2 pb-1 px-3">
-                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Booking</p>
-                </div>
-
                 <!-- Buat Booking -->
                 <div v-if="!isWindowActive"
                      class="flex items-center justify-between px-3 py-2 text-sm text-gray-400 bg-gray-50 rounded cursor-not-allowed border border-gray-100"
@@ -230,13 +225,32 @@ provide('isWindowActive', isWindowActive)
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Booking Aktif
                 </Link>
 
+                <!-- Detail Booking (Sub-menu reaktif dengan animasi slide down dari Booking Aktif) -->
+                <Transition
+                    enter-active-class="transition-all duration-300 ease-out"
+                    enter-from-class="max-h-0 opacity-0 -translate-y-1 overflow-hidden"
+                    enter-to-class="max-h-[44px] opacity-100 translate-y-0 overflow-hidden"
+                    leave-active-class="transition-all duration-200 ease-in"
+                    leave-from-class="max-h-[44px] opacity-100 translate-y-0 overflow-hidden"
+                    leave-to-class="max-h-0 opacity-0 -translate-y-1 overflow-hidden"
+                >
+                    <div v-if="currentUrl.includes('/detail')" class="pl-6 pr-1 my-0.5 shrink-0">
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs bg-blue-50/75 text-blue-700 font-bold border-l-2 border-blue-500 shadow-2xs select-none">
+                            <svg class="w-3.5 h-3.5 shrink-0 text-blue-500/70" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Detail Booking
+                        </div>
+                    </div>
+                </Transition>
+
                 <!-- Riwayat Booking -->
                 <Link
                     href="/user/booking/history"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
                     :class="isActive('/user/booking/history') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Riwayat Booking
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z"/></svg> Riwayat Booking
                 </Link>
 
                 <!-- Pengaturan Password -->
@@ -247,12 +261,6 @@ provide('isWindowActive', isWindowActive)
                 >
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Pengaturan Password
                 </Link>
-
-                <!-- Detail Booking (hanya muncul saat user sedang di halaman detail) -->
-                <div v-if="currentUrl.includes('/detail')"
-                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm bg-blue-50 text-blue-700 font-semibold border-l-2 border-blue-500 ml-2">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Detail Booking
-                </div>
 
             </nav>
 
