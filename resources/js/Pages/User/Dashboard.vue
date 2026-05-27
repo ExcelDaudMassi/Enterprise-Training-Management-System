@@ -79,11 +79,16 @@ function getStatusColor(status) {
 const filterYear = ref(props.selectedYear)
 const filterRuangan = ref(props.selectedRuangan)
 const isFilterOpen = ref(false)
+const isYearOpen = ref(false)
 const filterRef = ref(null)
+const yearRef = ref(null)
 
 function handleFilterClickOutside(e) {
     if (filterRef.value && !filterRef.value.contains(e.target)) {
         isFilterOpen.value = false
+    }
+    if (yearRef.value && !yearRef.value.contains(e.target)) {
+        isYearOpen.value = false
     }
 }
 
@@ -446,7 +451,7 @@ function statusLabel(status) {
             <div class="px-5 py-4 flex flex-wrap items-end gap-4">
 
                 <!-- Tahun Select -->
-                <div class="flex flex-col gap-1.5 min-w-[130px]">
+                <div ref="yearRef" class="flex flex-col gap-1.5 min-w-[130px]">
                     <label class="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                         <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -454,15 +459,54 @@ function statusLabel(status) {
                         Tahun
                     </label>
                     <div class="relative">
-                        <select
-                            v-model="filterYear"
-                            class="w-full h-9 pl-3 pr-8 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-800 font-semibold appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 cursor-pointer transition"
+                        <!-- Trigger Display -->
+                        <div
+                            @click="isYearOpen = !isYearOpen"
+                            class="w-full h-9 pl-3 pr-8 bg-gray-50 border border-gray-200 rounded-md text-sm font-semibold flex items-center gap-2 cursor-pointer select-none transition"
+                            :class="isYearOpen ? 'ring-2 ring-blue-500 border-blue-400' : 'hover:border-gray-300'"
                         >
-                            <option v-for="y in YEAR_OPTIONS" :key="y" :value="y">{{ y }}</option>
-                        </select>
-                        <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                        </svg>
+                            <span class="w-5 h-5 rounded-md bg-blue-100 flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </span>
+                            <span class="text-gray-800">{{ filterYear }}</span>
+                            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none transition-transform" :class="isYearOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                        <!-- Dropdown -->
+                        <Transition
+                            enter-active-class="transition-all duration-200 ease-out"
+                            enter-from-class="opacity-0 translate-y-1 scale-98"
+                            enter-to-class="opacity-100 translate-y-0 scale-100"
+                            leave-active-class="transition-all duration-150 ease-in"
+                            leave-from-class="opacity-100 translate-y-0 scale-100"
+                            leave-to-class="opacity-0 translate-y-1 scale-98"
+                        >
+                            <div
+                                v-if="isYearOpen"
+                                class="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1 overflow-hidden"
+                            >
+                                <button
+                                    v-for="y in YEAR_OPTIONS"
+                                    :key="y"
+                                    @click="filterYear = y; isYearOpen = false"
+                                    class="w-full flex items-center gap-3 px-3 py-2 text-sm transition text-left hover:bg-gray-50"
+                                    :class="filterYear === y ? 'bg-blue-50 font-bold text-blue-700' : 'text-gray-700 font-medium'"
+                                >
+                                    <span class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center"
+                                        :style="filterYear === y ? 'background:#dbeafe' : 'background:#f3f4f6'"
+                                    >
+                                        <svg class="w-3 h-3" :class="filterYear === y ? 'text-blue-600' : 'text-gray-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </span>
+                                    <span>{{ y }}</span>
+                                    <svg v-if="filterYear === y" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                </button>
+                            </div>
+                        </Transition>
                     </div>
                 </div>
 
@@ -481,11 +525,19 @@ function statusLabel(status) {
                             class="w-full h-9 pl-3 pr-8 bg-gray-50 border border-gray-200 rounded-md text-sm font-semibold flex items-center gap-2 cursor-pointer select-none transition"
                             :class="isFilterOpen ? 'ring-2 ring-blue-500 border-blue-400' : 'hover:border-gray-300'"
                         >
+                            <!-- Icon box — dot warna jika ruangan dipilih, grid icon jika semua -->
                             <span
                                 v-if="selectedRuanganColor"
-                                class="w-2.5 h-2.5 rounded-full shrink-0"
-                                :style="{ backgroundColor: selectedRuanganColor }"
-                            ></span>
+                                class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center"
+                                :style="{ backgroundColor: selectedRuanganColor + '22' }"
+                            >
+                                <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: selectedRuanganColor }"></span>
+                            </span>
+                            <span v-else class="w-5 h-5 rounded-md bg-gray-100 flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                </svg>
+                            </span>
                             <span class="text-gray-800 truncate">{{ selectedRuanganLabel }}</span>
                             <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none transition-transform" :class="isFilterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
@@ -510,7 +562,11 @@ function statusLabel(status) {
                                     class="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-gray-50 transition text-left"
                                     :class="filterRuangan === null ? 'bg-blue-50 font-bold text-blue-700' : 'text-gray-700 font-medium'"
                                 >
-                                    <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+                                    <span class="w-5 h-5 rounded-md bg-gray-100 flex items-center justify-center shrink-0">
+                                        <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                        </svg>
+                                    </span>
                                     <span>Semua Ruangan</span>
                                     <svg v-if="filterRuangan === null" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                                 </button>
@@ -524,9 +580,14 @@ function statusLabel(status) {
                                     :class="filterRuangan === r.id ? 'bg-blue-50 font-bold text-blue-700' : 'text-gray-700 font-medium'"
                                 >
                                     <span
-                                        class="w-2.5 h-2.5 rounded-full shrink-0"
-                                        :style="{ backgroundColor: ROOM_COLORS[idx % ROOM_COLORS.length].bg }"
-                                    ></span>
+                                        class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center"
+                                        :style="{ backgroundColor: ROOM_COLORS[idx % ROOM_COLORS.length].light }"
+                                    >
+                                        <span
+                                            class="w-2.5 h-2.5 rounded-full"
+                                            :style="{ backgroundColor: ROOM_COLORS[idx % ROOM_COLORS.length].bg }"
+                                        ></span>
+                                    </span>
                                     <span>{{ r.nama_ruang }}</span>
                                     <svg v-if="filterRuangan === r.id" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                                 </button>
