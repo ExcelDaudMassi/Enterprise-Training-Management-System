@@ -59,10 +59,12 @@ const rangeError        = ref('')
 const isLoadingCalendar = ref(false)
 
 // Stage 3 (Room Cards)
-const availableRooms   = ref([])
-const selectedRoom     = ref(null)
-const isLoadingRooms   = ref(false)
-const stage3Error      = ref('')
+const availableRooms      = ref([])
+const selectedRoom        = ref(null)
+const isLoadingRooms      = ref(false)
+const stage3Error         = ref('')
+const isAutoFetchingRooms = ref(false)
+const autoFetchRoomsError = ref('')
 
 // Stage 4 (Detail)
 const formStage4 = ref({
@@ -169,6 +171,11 @@ onMounted(() => {
             }
         }
     }
+    
+    // Smart Defaults: Isi Nama PIC secara otomatis jika kosong
+    if (!formStage4.value.nama_pic && props.auth?.user?.name) {
+        formStage4.value.nama_pic = props.auth.user.name
+    }
 })
 
 function clearSavedState() {
@@ -209,6 +216,38 @@ const isStage1Valid = computed(() =>
 const isRangeSelected = computed(() => startDate.value && endDate.value)
 
 const isRoomSelected = computed(() => selectedRoom.value !== null)
+
+// ============================================================
+// EARLY CONFLICT DETECTION (Background Check)
+// ============================================================
+watch([startDate, endDate], async ([newStart, newEnd]) => {
+    if (newStart && newEnd && validateRange()) {
+        isAutoFetchingRooms.value = true
+        autoFetchRoomsError.value = ''
+        try {
+            const res = await axios.post('/api/booking/get-available-rooms', {
+                start_date: newStart,
+                end_date: newEnd,
+                total_orang: totalOrang.value,
+            })
+            if (res.data.success) {
+                availableRooms.value = res.data.rooms
+                // Clear selected room if it's no longer available
+                if (selectedRoom.value) {
+                    const stillAvailable = availableRooms.value.find(r => r.id === selectedRoom.value.id && r.is_available)
+                    if (!stillAvailable) selectedRoom.value = null
+                }
+            }
+        } catch (err) {
+            autoFetchRoomsError.value = 'Gagal mengecek ruangan otomatis.'
+        } finally {
+            isAutoFetchingRooms.value = false
+        }
+    } else {
+        availableRooms.value = []
+        selectedRoom.value = null
+    }
+})
 
 // ============================================================
 // STAGE 1: EXCEL & MANUAL ACTIONS
@@ -478,10 +517,15 @@ function validateRange() {
 
 async function proceedToStage3() {
     if (!isRangeSelected.value) return
+    
+    // Jika data ruangan sudah di-fetch otomatis di background, langsung gunakan
+    if (availableRooms.value.length > 0 && !isAutoFetchingRooms.value) {
+        currentStage.value = 3
+        return
+    }
+
     isLoadingRooms.value = true
     stage3Error.value    = ''
-    selectedRoom.value   = null
-    availableRooms.value = []
 
     try {
         const res = await axios.post('/api/booking/get-available-rooms', {
@@ -727,8 +771,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                     <input type="file" id="excel-upload-bar" class="hidden" accept=".xlsx"
                                         @change="handleExcelUpload" :disabled="isUploadingExcel" />
                                     <label for="excel-upload-bar"
-                                        class="bg-emerald-650 hover:bg-emerald-705 text-white text-xs font-black py-2 px-3.5 rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-3xs select-none">
-                                        <span>📂 {{ isUploadingExcel ? 'Memproses...' : 'Impor dari Excel' }}</span>
+                                        class="bg-emerald-650 hover:bg-emerald-705 text-white text-xs font-black py-2 px-3.5 rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-3xs select-none"
+                                        :class="{ 'opacity-70 cursor-not-allowed': isUploadingExcel }">
+                                        <span v-if="isUploadingExcel" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                        <span v-else>📂</span>
+                                        <span>{{ isUploadingExcel ? 'Memproses Excel...' : 'Impor dari Excel' }}</span>
                                     </label>
                                     <a :href="`/user/booking/download-template?v=${Date.now()}`"
                                         class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-[10px] font-extrabold py-2 px-3 rounded-xl transition inline-flex items-center gap-1.5 shadow-3xs select-none">
@@ -762,8 +809,9 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
 
                             <!-- CTA -->
                             <button @click="checkEligibility" :disabled="!isStage1Valid || isChecking"
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs">
-                                {{ isChecking ? '⏳ Mengecek...' : 'Cari Ruangan →' }}
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs flex items-center gap-2">
+                                <span v-if="isChecking" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                {{ isChecking ? 'Mengecek Kapasitas...' : 'Cari Ruangan →' }}
                             </button>
                         </div>
                     </div>
@@ -966,6 +1014,14 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                 <template v-else>Rentang: <strong class="text-green-600">{{ formatDate(startDate) }}</strong> s/d <strong class="text-green-600">{{ formatDate(endDate) }}</strong></template>
                             </span>
                         </div>
+
+                        <!-- Early Conflict Detection (Auto-fetch status) -->
+                        <div v-if="isRangeSelected" class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs transition-all">
+                            <span v-if="isAutoFetchingRooms" class="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
+                            <span v-else-if="availableRooms.length > 0 && availableRooms.some(r => r.is_available)" class="text-[10px] text-green-600 font-black">✅ {{ availableRooms.filter(r => r.is_available).length }} Ruangan Siap</span>
+                            <span v-else-if="availableRooms.length > 0" class="text-[10px] text-red-500 font-black">❌ Semua Penuh</span>
+                            <span v-else class="text-[10px] text-gray-400 font-semibold">Mengecek ketersediaan...</span>
+                        </div>
                     </div>
 
                     <!-- Right side: Actions -->
@@ -989,8 +1045,9 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                             ← Kembali
                         </button>
                         <button @click="proceedToStage3" :disabled="!isRangeSelected || isLoadingRooms"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs">
-                            {{ isLoadingRooms ? '⏳ Memproses...' : 'Pilih Ruangan →' }}
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs flex items-center gap-2">
+                            <span v-if="isLoadingRooms" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            {{ isLoadingRooms ? 'Memproses Opsi...' : 'Pilih Ruangan →' }}
                         </button>
                     </div>
                 </div>
@@ -1130,21 +1187,27 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                 </div>
 
                                 <div v-if="room.is_available">
-                                    <span class="inline-flex items-center gap-1 text-green-700 text-xs font-black bg-green-50 px-2.5 py-1 rounded-lg">
+                                    <span class="inline-flex items-center gap-1 text-green-700 text-xs font-black bg-green-50 px-2.5 py-1 rounded-lg shadow-3xs">
                                         <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
                                         Tersedia
                                     </span>
                                 </div>
                                 <div v-else>
-                                    <span class="inline-flex items-center gap-1 text-red-500 text-xs font-black bg-red-50 px-2.5 py-1 rounded-lg">
+                                    <span class="inline-flex items-center gap-1 text-red-500 text-xs font-black bg-red-50 px-2.5 py-1 rounded-lg shadow-3xs">
                                         <span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>
                                         Penuh
                                     </span>
                                 </div>
                             </div>
-                            <p v-if="!room.is_available" class="text-[10px] text-red-500 font-semibold mt-2 text-center">
-                                Tidak tersedia pada tanggal yang dipilih
-                            </p>
+                            
+                            <div class="mt-3">
+                                <p v-if="isRoomSelected_(room)" class="text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-lg p-2 font-black text-center shadow-3xs">
+                                    ✅ Ruangan ini siap dipesan untuk {{ totalOrang }} orang!
+                                </p>
+                                <p v-else-if="!room.is_available" class="text-[10px] text-red-500 font-semibold text-center bg-red-50 border border-red-100 rounded-lg py-1.5">
+                                    Tidak tersedia pada rentang tanggal ini.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1192,9 +1255,19 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                             ← Kembali
                         </button>
                         <button @click="proceedToStage5" :disabled="!isStage4Valid || isSavingStage4"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs">
-                            {{ isSavingStage4 ? '⏳ Menyimpan...' : 'Lanjut ke Review →' }}
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs flex items-center gap-2">
+                            <span v-if="isSavingStage4" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            {{ isSavingStage4 ? 'Menyimpan Detail...' : 'Lanjut ke Review →' }}
                         </button>
+                    </div>
+                </div>
+
+                <!-- Smart Defaults / Assistant Banner -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 flex items-center gap-4 shadow-sm mb-6 transition-all hover:shadow-md">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-3xs border border-blue-100 flex-shrink-0 text-xl">🤖</div>
+                    <div>
+                        <p class="text-xs font-black text-blue-900 mb-0.5">Halo, {{ auth?.user?.name || 'User' }}!</p>
+                        <p class="text-[11px] text-blue-700 leading-tight">Asisten pintar kami telah mengisi profil Anda sebagai penanggung jawab acara. Anda tetap dapat mengeditnya jika mewakilkan pihak lain.</p>
                     </div>
                 </div>
 
@@ -1479,9 +1552,9 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                     <!-- Konfirmasi & Submit Box -->
                     <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm mt-2">
                         <div class="flex-1">
-                            <label class="flex items-start gap-3 cursor-pointer select-none group">
+                            <label class="flex items-start gap-3 select-none group" :class="isSubmitting ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'">
                                 <div class="relative flex items-center mt-0.5">
-                                    <input type="checkbox" v-model="termsAccepted" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer peer" />
+                                    <input type="checkbox" v-model="termsAccepted" :disabled="isSubmitting" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 peer" :class="isSubmitting ? 'cursor-not-allowed' : 'cursor-pointer'" />
                                 </div>
                                 <div>
                                     <span class="text-sm font-bold text-gray-800 group-hover:text-blue-700 transition-colors block">
@@ -1495,9 +1568,9 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                         </div>
                         <div class="w-full md:w-auto text-right flex flex-col md:items-end">
                             <button @click="submitFinal" :disabled="isSubmitting || !termsAccepted"
-                                class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-8 rounded-xl text-sm transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-8 rounded-xl text-sm transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                                 <span v-if="isSubmitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                {{ isSubmitting ? 'Mengirim Data...' : 'Ajukan Booking Sekarang' }}
+                                {{ isSubmitting ? 'Mengamankan Ruangan...' : 'Ajukan Booking Sekarang' }}
                             </button>
                             <p class="text-[10px] text-gray-400 font-semibold mt-2.5 bg-white border border-gray-200 py-1 px-2.5 rounded-lg inline-flex items-center gap-1.5 shadow-3xs mx-auto md:mx-0">
                                 <span>⏱️</span> Pengajuan akan direview admin maks. 1x24 jam kerja
@@ -1510,17 +1583,23 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
             <!-- ======================================================= -->
             <!-- SUCCESS PAGE -->
             <!-- ======================================================= -->
-            <div v-if="submitSuccess" class="bg-white rounded-lg shadow p-10 text-center space-y-4">
-                <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-3xl">✓</div>
-                <h2 class="text-2xl font-bold text-gray-800">Booking Berhasil Diajukan!</h2>
-                <p class="text-gray-500 text-sm max-w-md mx-auto">Pengajuan ruangan Anda telah tersimpan dengan aman dan saat ini sedang menunggu persetujuan dari Admin.</p>
-                <div class="bg-gray-50 p-4 rounded inline-block mx-auto border border-gray-200 mt-4">
-                    <p class="text-xs text-gray-400 uppercase">ID Referensi</p>
-                    <p class="text-lg font-mono font-bold text-blue-700">#{{ String(bookingId).padStart(5, '0') }}</p>
+            <div v-if="submitSuccess" class="bg-white rounded-3xl shadow-xl border border-gray-100 p-12 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-emerald-500"></div>
+                <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-5xl mb-6 shadow-inner animate-[bounce_1s_ease-in-out_1]">
+                    <span class="animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_1_reverse] absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-20"></span>
+                    <span class="relative">✨</span>
                 </div>
-                <div class="pt-6">
-                    <Link href="/user/booking/history" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded text-sm transition inline-block">
-                        Lihat Riwayat Booking
+                <h2 class="text-3xl font-black text-gray-900 mb-3 tracking-tight">Booking Berhasil Terkirim!</h2>
+                <p class="text-gray-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">Luar biasa! Pengajuan ruangan Anda telah masuk ke sistem dan diamankan. Tim kami akan segera meninjau pesanan Anda.</p>
+                
+                <div class="bg-gradient-to-br from-gray-50 to-white p-6 rounded-2xl inline-block mx-auto border border-gray-200 shadow-sm mb-8 w-full max-w-xs">
+                    <p class="text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-1">ID Referensi Anda</p>
+                    <p class="text-3xl font-mono font-black text-blue-700 tracking-tight">#{{ String(bookingId).padStart(5, '0') }}</p>
+                </div>
+                
+                <div>
+                    <Link href="/user/booking/history" class="bg-green-600 hover:bg-green-700 text-white font-black py-3 px-8 rounded-xl text-sm transition shadow-lg hover:shadow-xl inline-flex items-center gap-2 transform hover:-translate-y-0.5">
+                        Lihat Riwayat Booking →
                     </Link>
                 </div>
             </div>
