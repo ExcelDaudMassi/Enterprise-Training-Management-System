@@ -487,11 +487,35 @@ const layoutLabels = {
                                 </div>
                             </div>
 
-                            <!-- ── Loading State ── -->
-                            <div v-if="detailLoading" class="flex-1 flex items-center justify-center">
-                                <div class="text-center">
-                                    <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                                    <p class="text-sm text-gray-500">Memuat detail booking...</p>
+                            <!-- ── Loading State (Skeleton) ── -->
+                            <div v-if="detailLoading" class="flex-1 flex flex-col p-6 animate-pulse">
+                                <!-- Tabs Skeleton -->
+                                <div class="flex gap-4 mb-6 border-b border-gray-100 pb-2">
+                                    <div class="h-8 w-24 bg-gray-200 rounded"></div>
+                                    <div class="h-8 w-24 bg-gray-200 rounded"></div>
+                                    <div class="h-8 w-24 bg-gray-200 rounded"></div>
+                                </div>
+                                
+                                <!-- Content Box 1 Skeleton -->
+                                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-5">
+                                    <div class="h-4 w-48 bg-gray-200 rounded mb-4"></div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div v-for="i in 4" :key="i">
+                                            <div class="h-3 w-16 bg-gray-200 rounded mb-2"></div>
+                                            <div class="h-4 w-32 bg-gray-200 rounded"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Content Box 2 Skeleton -->
+                                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <div class="h-4 w-40 bg-gray-200 rounded mb-4"></div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div v-for="i in 6" :key="'sec'+i">
+                                            <div class="h-3 w-16 bg-gray-200 rounded mb-2"></div>
+                                            <div class="h-4 w-28 bg-gray-200 rounded"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

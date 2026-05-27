@@ -1,6 +1,7 @@
 <script setup>
 import { Link, useForm, usePage, router } from '@inertiajs/vue3'
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import Swal from 'sweetalert2'
 
 const props = defineProps({
     auth: Object,
@@ -95,6 +96,35 @@ function toggleSidebar() {
         localStorage.setItem('admin_sidebar_open', isSidebarOpen.value)
     }
 }
+
+watch(() => page.props.flash, (newVal) => {
+    if (newVal) {
+        if (newVal.success) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: newVal.success,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                customClass: { popup: 'colored-toast' }
+            })
+        }
+        if (newVal.error) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: newVal.error,
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                customClass: { popup: 'colored-toast' }
+            })
+        }
+    }
+}, { immediate: true, deep: true })
 </script>
 
 <template>
@@ -349,16 +379,6 @@ function toggleSidebar() {
 
             <!-- Page Slot -->
             <main class="flex-1 p-6 overflow-auto">
-                <!-- Flash Alert Messages -->
-                <div v-if="$page.props.flash?.error" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800 flex items-start justify-between">
-                    <span>{{ $page.props.flash.error }}</span>
-                    <button @click="$page.props.flash.error = null" class="text-red-500 hover:text-red-700 font-semibold ml-2">✕</button>
-                </div>
-                <div v-if="$page.props.flash?.success" class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 flex items-start justify-between">
-                    <span>{{ $page.props.flash.success }}</span>
-                    <button @click="$page.props.flash.success = null" class="text-emerald-500 hover:text-emerald-700 font-semibold ml-2">✕</button>
-                </div>
-
                 <slot />
             </main>
         </div>

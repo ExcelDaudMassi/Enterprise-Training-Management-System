@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { router } from '@inertiajs/vue3'
+import VueApexCharts from 'vue3-apexcharts'
 
 const props = defineProps({
     auth:          Object,
@@ -454,6 +455,51 @@ function formatDate(d) {
     return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+// ============================================================
+// Chart State
+// ============================================================
+const chartSeries = computed(() => {
+    let waiting = 0, confirmed = 0, plotting = 0, cancelled = 0
+    props.bookings.forEach(b => {
+        if (b.status === 'waiting_confirmation') waiting++
+        else if (b.status === 'confirmed' || b.status === 'final') confirmed++
+        else if (b.status === 'plotting') plotting++
+        else if (b.status === 'cancelled') cancelled++
+    })
+    return [waiting, confirmed, plotting, cancelled]
+})
+
+const chartOptions = computed(() => {
+    return {
+        chart: { type: 'donut', fontFamily: 'inherit' },
+        labels: ['Menunggu ACC', 'Disetujui', 'Plotting', 'Dibatalkan'],
+        colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'], // Blue, Emerald, Amber, Red
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '72%',
+                    labels: {
+                        show: true,
+                        name: { show: true, offsetY: -10, color: '#6b7280' },
+                        value: { show: true, fontSize: '28px', fontWeight: '800', color: '#1f2937', offsetY: 5 },
+                        total: {
+                            show: true,
+                            label: 'Total',
+                            color: '#9ca3af',
+                            formatter: function (w) {
+                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        dataLabels: { enabled: false },
+        legend: { position: 'bottom', fontSize: '12px', markers: { radius: 12 } },
+        stroke: { width: 0 }
+    }
+})
+
 const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 </script>
 
@@ -623,9 +669,25 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             </div>
         </div>
 
-        <!-- ── Notification Summary ──────────────────────────────────── -->
-        <div v-if="notifications && notifications.length > 0"
-             class="bg-white rounded-lg border border-gray-150 shadow-sm overflow-hidden mb-6">
+        <!-- ── Chart & Notification Summary ────────────────────────────── -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            
+            <!-- Chart Box -->
+            <div class="bg-white rounded-lg border border-gray-150 shadow-sm p-5 flex flex-col items-center justify-center">
+                <h3 class="text-sm font-semibold text-gray-800 mb-6 flex items-center gap-1.5 w-full">
+                    <span>📊</span> Statistik Proporsi Booking
+                </h3>
+                <div class="w-full flex-1 flex items-center justify-center" v-if="props.bookings.length > 0">
+                    <VueApexCharts type="donut" width="100%" height="280" :options="chartOptions" :series="chartSeries" />
+                </div>
+                <div v-else class="text-gray-400 text-xs italic flex-1 flex items-center">
+                    Belum ada data booking tahun ini
+                </div>
+            </div>
+
+            <!-- Notifications List -->
+            <div v-if="notifications && notifications.length > 0"
+                 class="lg:col-span-2 bg-white rounded-lg border border-gray-150 shadow-sm overflow-hidden flex flex-col">
             <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
                 <h2 class="text-sm font-semibold text-gray-800">Notifikasi Terbaru</h2>
                 <span class="text-xs bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full">
@@ -669,13 +731,14 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     Lihat {{ notifications.length - 6 }} notifikasi lainnya →
                 </button>
             </div>
-        </div>
+            </div>
 
-        <!-- Empty state kalau tidak ada notifikasi -->
-        <div v-else class="bg-white rounded-lg border border-gray-150 shadow-sm px-5 py-8 text-center text-gray-400 text-sm mb-6">
-            <p class="text-2xl mb-2">🎉</p>
-            <p class="font-medium text-gray-600">Semua aman!</p>
-            <p class="text-xs mt-1">Tidak ada booking yang menunggu perhatian saat ini.</p>
+            <!-- Empty state kalau tidak ada notifikasi -->
+            <div v-else class="lg:col-span-2 bg-white rounded-lg border border-gray-150 shadow-sm px-5 py-8 text-center text-gray-400 text-sm flex flex-col items-center justify-center">
+                <p class="text-3xl mb-3">🎉</p>
+                <p class="font-medium text-gray-600 text-base">Semua aman!</p>
+                <p class="text-xs mt-1">Tidak ada booking yang menunggu perhatian saat ini.</p>
+            </div>
         </div>
 
         <!-- ============================================================ -->

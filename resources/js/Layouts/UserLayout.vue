@@ -1,6 +1,7 @@
 <script setup>
 import { Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted, provide, watch } from 'vue'
+import Swal from 'sweetalert2'
 
 defineProps({
     auth: Object,
@@ -53,8 +54,30 @@ const flashError = ref('')
 
 watch(() => page.props.flash, (newVal) => {
     if (newVal) {
-        flashSuccess.value = newVal.success ?? ''
-        flashError.value = newVal.error ?? ''
+        if (newVal.success) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: newVal.success,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                customClass: { popup: 'colored-toast' }
+            })
+        }
+        if (newVal.error) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: newVal.error,
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                customClass: { popup: 'colored-toast' }
+            })
+        }
     }
 }, { immediate: true, deep: true })
 
@@ -323,16 +346,6 @@ provide('isWindowActive', isWindowActive)
 
             <!-- Page Slot -->
             <main class="flex-1 p-6 overflow-auto">
-                <!-- Flash Alert Messages -->
-                <div v-if="flashError" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800 flex items-start justify-between">
-                    <span>{{ flashError }}</span>
-                    <button @click="flashError = ''" class="text-red-500 hover:text-red-700 font-semibold ml-2">✕</button>
-                </div>
-                <div v-if="flashSuccess" class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 flex items-start justify-between">
-                    <span>{{ flashSuccess }}</span>
-                    <button @click="flashSuccess = ''" class="text-emerald-500 hover:text-emerald-700 font-semibold ml-2">✕</button>
-                </div>
-
                 <slot />
             </main>
         </div>
