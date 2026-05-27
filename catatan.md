@@ -2,6 +2,28 @@
 
 ---
 
+## 🚀 Pembaruan Fitur & Perbaikan Terbaru
+
+Berikut adalah ringkasan perubahan yang telah selesai diimplementasikan pada branch `storage-float` dan telah digabungkan (*merge*) ke `develop`. Catatan ini sangat berguna untuk bahan presentasi perkembangan proyek:
+
+### 1. 💾 Fitur State Persistence (Penyimpanan Sementara) pada Form Pemesanan
+* **Masalah:** Sebelumnya, jika user sedang mengisi formulir booking yang panjang atau mengunggah manifest peserta (Excel) di `BookingWizard.vue` dan tidak sengaja melakukan *refresh* halaman (F5), semua data yang telah diinputkan akan langsung hilang (amnesia data).
+* **Solusi:** Kami mengimplementasikan sistem penyimpanan sementara berbasis `localStorage` di sisi browser.
+* **Cara Kerja & Manfaat:**
+  * Setiap data yang dimasukkan (form fields) dan status upload file manifest Excel akan disimpan secara otomatis di *local storage* browser secara *real-time*.
+  * Ketika halaman di-*refresh*, aplikasi Vue secara otomatis memulihkan (*restore*) data yang tersimpan, sehingga user bisa melanjutkan pengisian tanpa harus mengulang dari awal.
+  * Setelah pendaftaran berhasil disubmit (*form submitted*), penyimpanan sementara akan dibersihkan secara otomatis untuk menjaga keamanan data.
+
+### 2. 🔄 Standarisasi Alur Status Booking & Pembaruan Antarmuka (UI)
+* **Masalah:** Terjadi tumpang tindih status antara `final` dan `final_confirmed` di dalam sistem, serta beberapa dampak fungsional di layar pengguna (seperti booking berstatus `final` menghilang dari dashboard aktif dan tidak adanya informasi persiapan ruangan).
+* **Solusi & Implementasi:**
+  * **Penyatuan Status:** Menyinkronkan dan menstandarkan alur kerja status booking menjadi `final` di seluruh database dan logika backend.
+  * **Perbaikan Tampilan Aktif User:** Memastikan booking dengan status `final` tetap muncul di halaman "Booking Aktif" di dashboard user, bukan hanya di riwayat masa lalu.
+  * **Banner Informasi Dinamis:** Menambahkan banner peringatan otomatis di halaman detail booking user: *"⚠️ Ruangan sedang dipersiapkan Tim Lapangan (Housekeeping & Security)"* ketika status berubah menjadi `final`. Ini memberikan kepastian visual bagi pemohon.
+  * **Penyempurnaan Dashboard Admin:** Memperbarui panel kontrol persetujuan admin (`BookingApprovalController.php` dan `BookingApproval.vue`) agar proses transisi status berjalan mulus tanpa merusak fungsi pengeksporan NRP dan rekapitulasi.
+
+---
+
 ## 🧠 Gap Analysis — Sistem H-14 vs Skenario Operasional Nyata
 
 **Kesimpulan:** Fondasi alur H-14 sudah ada, namun terdapat beberapa *gap* fungsional yang perlu diperhatikan.
@@ -94,15 +116,16 @@ Tambahkan baris ini ke **crontab** server:
 
 ## 📌 TODO — Yang Perlu Dikerjakan Berikutnya
 
-- [ ] **Booking Aktif User:** Masukkan status `final` ke query booking aktif di `BookingHistoryController::active()` agar acara tidak hilang dari dashboard user setelah di-ACC Final
-- [ ] **Banner Peringatan Final:** Tambahkan pesan `⚠️ Ruangan sedang dipersiapkan Tim Lapangan` di `BookingDetail.vue` saat status `final`
-- [ ] **Standarisasi Status:** Satukan penggunaan `final` vs `final_confirmed` di seluruh codebase
-- [ ] **Integrasi WhatsApp:** Kirim notifikasi otomatis ke Grup WhatsApp Tim Housekeeping & Security saat booking di-ACC Final (saat ini masih `// TODO` di controller)
-- [ ] **Ganti frekuensi scheduler** dari `everyMinute()` → `hourly()` sebelum deploy ke production
+- [x] **Booking Aktif User:** Masukkan status `final` ke query booking aktif di `BookingHistoryController::active()` agar acara tidak hilang dari dashboard user setelah di-ACC Final (Selesai pada `fe1949c`)
+- [x] **Banner Peringatan Final:** Tambahkan pesan `⚠️ Ruangan sedang dipersiapkan Tim Lapangan` di `BookingDetail.vue` saat status `final` (Selesai pada `fe1949c`)
+- [x] **Standarisasi Status:** Satukan penggunaan `final` vs `final_confirmed` di seluruh codebase (Selesai pada `fe1949c`)
+- [ ] **Integrasi WhatsApp:** Kirim notifikasi otomatis ke Grup WhatsApp Tim Housekeeping & Security saat booking di-ACC Final (Ditunda sementara - belum fokus ke sini)
+- [ ] **Ganti frekuensi scheduler** dari `everyMinute()` → `hourly()` sebelum deploy ke production (Ditunda sementara - belum fokus ke sini)
 
 ---
 
 ## 🌿 Branching & Git Strategy
 
-- Branch aktif: `feature/admin-settings` → merge ke `develop` → merge ke `main`
+- Branch saat ini: `feature/ux-improvement` (terbaru, dicabangkan dari `develop`)
+- Alur kerja branch: `fitur/perbaikan` → merge ke `develop` → merge ke `main`
 - Selalu stay di `main` untuk production
