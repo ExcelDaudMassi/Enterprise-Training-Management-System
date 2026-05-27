@@ -34,25 +34,28 @@ class DashboardController extends Controller
         }
 
         $bookings = $bookingQuery->get()->map(function ($booking) {
+            $isOwner = $booking->user_id === Auth::id();
             return [
                 'id'            => $booking->id,
                 'ruangan_id'    => $booking->ruangan_id,
                 'nama_ruang'    => $booking->ruangan?->nama_ruang,
-                'nama_training' => $booking->nama_training,
-                'divisi'        => $booking->user?->divisi,
-                'pemohon'       => $booking->user?->name,
-                'pic'           => $booking->pic,
+                // Sembunyikan detail sensitif booking milik departemen lain
+                'nama_training' => $isOwner ? $booking->nama_training : '[Sudah Dipesan]',
+                'divisi'        => $isOwner ? ($booking->user?->divisi) : null,
+                'pemohon'       => $isOwner ? ($booking->user?->name) : null,
+                'pic'           => $isOwner ? $booking->pic : null,
                 'fase'          => $booking->fase,
                 'gabung_ruang'  => (bool) $booking->gabung_ruang,
                 'tgl_mulai'     => $booking->tgl_mulai->toDateString(),
                 'tgl_selesai'   => $booking->tgl_selesai->toDateString(),
                 'status'        => $booking->status,
+                'is_owner'      => $isOwner,
             ];
         });
 
-        // My Bookings: booking dari divisi user yang login
+        // My Bookings: hanya booking milik akun yang sedang login (isolasi ketat per user_id)
         $myBookings = Booking::with('ruangan:id,nama_ruang')
-            ->whereHas('user', fn($q) => $q->where('divisi', Auth::user()->divisi))
+            ->where('user_id', Auth::id())
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($booking) {
