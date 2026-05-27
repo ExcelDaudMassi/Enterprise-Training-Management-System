@@ -18,7 +18,7 @@ test('regular user cannot access admin routes and gets redirected to user dashbo
         ->get(route('admin.dashboard'));
 
     $response->assertRedirect(route('user.dashboard'));
-    $response->assertSessionHas('error', 'User tidak diperbolehkan mengakses halaman Admin.');
+    $response->assertSessionHas('error', 'Akses ditolak. Halaman tersebut hanya untuk Admin.');
 });
 
 test('admin cannot access user routes and gets redirected to admin dashboard with error', function () {
@@ -34,7 +34,7 @@ test('admin cannot access user routes and gets redirected to admin dashboard wit
         ->get(route('user.dashboard'));
 
     $response->assertRedirect(route('admin.dashboard'));
-    $response->assertSessionHas('error', 'Admin tidak diperbolehkan mengakses halaman User.');
+    $response->assertSessionHas('error', 'Akses ditolak. Halaman tersebut hanya untuk User.');
 });
 
 test('unauthenticated user is redirected to login page when accessing protected routes', function () {
