@@ -365,12 +365,14 @@ function statusLabel(status) {
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-bold text-gray-800">User Dashboard</h2>
             <div v-if="!isWindowActive"
-                 class="bg-gray-300 text-gray-500 text-sm font-medium px-4 py-2 rounded cursor-not-allowed border border-gray-400"
+                 class="bg-gray-250 text-gray-400 text-sm font-medium px-4 py-2 rounded-lg cursor-not-allowed border border-gray-300 flex items-center gap-1.5 select-none"
                  title="Window Booking sedang ditutup oleh Admin.">
-                + Create New Booking (Tutup)
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>Create New Booking (Tutup)</span>
             </div>
-            <Link v-else href="/user/booking/create" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded">
-                + Create New Booking
+            <Link v-else href="/user/booking/create" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>Create New Booking</span>
             </Link>
         </div>
 
@@ -532,7 +534,7 @@ function statusLabel(status) {
                     <!-- Header -->
                     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
                         <div class="flex items-center gap-3">
-                            <span class="text-xl">📊</span>
+                            <svg class="w-5 h-5 text-gray-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/></svg>
                             <div>
                                 <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">{{ modalDate }}</h4>
                                 <p class="text-[10px] text-gray-400 font-semibold mt-1.5 uppercase tracking-wider">Diagram Gantt Jadwal Penggunaan Ruangan</p>
@@ -559,8 +561,9 @@ function statusLabel(status) {
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                 <span>Disetujui</span>
                             </div>
-                            <div class="ml-auto text-[10px] text-gray-400 font-bold hidden md:block">
-                                💡 Arahkan kursor (hover) pada bar diagram untuk melihat detail lengkap.
+                            <div class="ml-auto text-[10px] text-gray-400 font-bold hidden md:block flex items-center gap-1 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
+                                <svg class="w-3.5 h-3.5 text-amber-500 shrink-0 inline-block mr-0.5 align-text-bottom" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                <span>Arahkan kursor (hover) pada bar diagram untuk melihat detail lengkap.</span>
                             </div>
                         </div>
                         
@@ -691,7 +694,7 @@ function statusLabel(status) {
                     <!-- Header -->
                     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
                         <div class="flex items-center gap-3">
-                            <span class="text-xl">ℹ️</span>
+                            <svg class="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <div>
                                 <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">Detail Pemesanan</h4>
                             </div>

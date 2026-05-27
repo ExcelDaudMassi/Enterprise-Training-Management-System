@@ -22,6 +22,24 @@ Berikut adalah ringkasan perubahan yang telah selesai diimplementasikan pada bra
   * **Banner Informasi Dinamis:** Menambahkan banner peringatan otomatis di halaman detail booking user: *"⚠️ Ruangan sedang dipersiapkan Tim Lapangan (Housekeeping & Security)"* ketika status berubah menjadi `final`. Ini memberikan kepastian visual bagi pemohon.
   * **Penyempurnaan Dashboard Admin:** Memperbarui panel kontrol persetujuan admin (`BookingApprovalController.php` dan `BookingApproval.vue`) agar proses transisi status berjalan mulus tanpa merusak fungsi pengeksporan NRP dan rekapitulasi.
 
+### 3. 🎨 Pembaruan Desain UI/UX Modern Halaman User (Branch `feature/user-ui-improvement`)
+* **Penyempurnaan Font Global:**
+  * Mengintegrasikan font modern dan minimalis **'Plus Jakarta Sans'** dari Google Fonts ke dalam layout utama (`resources/views/app.blade.php`).
+  * Memperbarui konfigurasi desain Tailwind CSS v4 (`resources/css/app.css`) dengan mengatur variabel `--font-sans` agar default mengarah ke font baru yang lebih bersih, elegan, dan estetis.
+* **Eliminasi Total Emojis & Transisi ke Ikon SVG Stroke Modern:**
+  * Mengganti semua emotikon berwarna (emojis) di seluruh antarmuka pengguna dengan ikon garis/stroke SVG minimalis (menggunakan standar stroke-width `2` / `1.75`).
+  * Halaman yang diperbarui secara menyeluruh meliputi:
+    * **`UserLayout.vue` (Sidebar & Bottom Actions):** Ikon navigasi Dashboard, Booking Aktif, Riwayat, Settings, dan Logout kini menggunakan line SVGs modern.
+    * **`Dashboard.vue`:** Ikon kalender, agenda harian, ringkasan data, dan informasi status dirancang ulang dengan visual profesional.
+    * **`BookingActive.vue`:**
+      * Dirombak total menjadi **Enterprise Data Table** lebar penuh (full-width) mengikuti konsep modern *Booking Lists* guna memastikan tidak ada lagi pemborosan ruang atau area kosong di sisi kiri dan kanan.
+      * Menyematkan **Dynamic Initials Avatars** dengan lingkaran inisial dinamis (misal: "BS" untuk Budi Santoso) berlatar belakang pastel lembut yang cantik untuk mempermudah identifikasi kegiatan di setiap baris.
+      * Menyusun data secara horizontal terstruktur rapi ke dalam kolom tabel standar: ID Booking (biru tebal), Kegiatan & PIC, Nama Ruangan, Status Pills dengan H-X countdown, Tanggal Mulai, Tanggal Selesai, Kapasitas Peserta/Panitia, dan Aksi.
+      * Menyederhanakan tombol aksi pada baris kartu menjadi satu tombol utama **"Lihat Detail"** yang memicu *drawer slide-over* dari kanan secara interaktif, memindahkan tombol PDF dan Cancel ke dalamnya.
+    * **`PasswordSettings.vue`:** Header security keyhole, banner info keamanan, toggle show/hide password (eye / eye-slash), dan checklist validasi menggunakan SVG bersih.
+    * **`BookingDetail.vue`:** Ikon navigasi kembali, aksi pembatalan, cetak tiket PDF, status tag, dan banner persiapan lapangan H-14 diperbarui ke standar visual premium.
+    * **`BookingHistory.vue`:** Memodifikasi tabel riwayat booking, status pills, usulan perubahan tanggal (approved, pending, rejected), warning modal, dan link aksi ke visual SVG stroke modern.
+
 ---
 
 ## 🧠 Gap Analysis — Sistem H-14 vs Skenario Operasional Nyata

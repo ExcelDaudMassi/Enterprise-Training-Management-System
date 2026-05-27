@@ -745,7 +745,9 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                         ? 'bg-blue-600 text-white'
                                         : 'bg-gray-200 text-gray-400'"
                             >
-                                <span v-if="currentStage > idx + 1">✓</span>
+                                <svg v-if="currentStage > idx + 1" class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                </svg>
                                 <span v-else>{{ idx + 1 }}</span>
                             </div>
                             <span
@@ -769,8 +771,15 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
             <!-- STAGE 1: Upload Excel & Roster Panitia -->
             <!-- ======================================================= -->
             <div v-if="currentStage === 1" class="bg-white rounded-2xl border border-gray-100 shadow-xs p-6">
-                <h2 class="text-base font-bold text-gray-800 mb-1">Tahap 1: Daftar Peserta & Panitia</h2>
-                <p class="text-xs text-gray-500 mb-6 leading-relaxed">
+                <div class="flex items-center gap-2.5 mb-2">
+                    <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A11.386 11.386 0 0 1 10.089 21c-2.243 0-4.32-.647-6.07-1.758A5.986 5.986 0 0 1 4 17.25m6-5.625a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6.5-2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-base font-bold text-gray-800">Tahap 1: Daftar Peserta & Panitia</h2>
+                </div>
+                <p class="text-xs text-gray-500 mb-6 leading-relaxed ml-1">
                     Pilih metode pengisian daftar peserta (via Unggah Excel atau Ketik Manual), lalu lengkapi roster panitia penyelenggara.
                 </p>
 
@@ -783,9 +792,13 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                         <div class="flex flex-wrap items-center gap-3">
                             <!-- Status Indicator -->
                             <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-3xs">
-                                <span class="w-5 h-5 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-[10px] font-bold">✓</span>
+                                <div class="p-1 bg-green-50 text-green-600 rounded-lg shrink-0">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                    </svg>
+                                </div>
                                 <span class="text-xs font-bold text-gray-700">Metode Input:</span>
-                                <span class="text-xs text-gray-500 font-semibold px-2 py-0.5 rounded bg-gray-50 border border-gray-150">{{ uploadedFileName }}</span>
+                                <span class="text-xs font-extrabold text-blue-600 px-2 py-0.5 rounded bg-blue-50/50 border border-blue-100">{{ uploadedFileName }}</span>
                             </div>
 
                             <!-- Excel Import Option (Sleek button next to status if manual or show reset button if uploaded) -->
@@ -794,21 +807,29 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                     <input type="file" id="excel-upload-bar" class="hidden" accept=".xlsx"
                                         @change="handleExcelUpload" :disabled="isUploadingExcel" />
                                     <label for="excel-upload-bar"
-                                        class="bg-emerald-650 hover:bg-emerald-705 text-white text-xs font-black py-2 px-3.5 rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-3xs select-none"
+                                        class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer transition flex items-center gap-2 shadow-3xs select-none"
                                         :class="{ 'opacity-70 cursor-not-allowed': isUploadingExcel }">
-                                        <span v-if="isUploadingExcel" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                        <span v-else>📂</span>
+                                        <span v-if="isUploadingExcel" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
+                                        <svg v-else class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                        </svg>
                                         <span>{{ isUploadingExcel ? 'Memproses Excel...' : 'Impor dari Excel' }}</span>
                                     </label>
                                     <a :href="`/user/booking/download-template?v=${Date.now()}`"
-                                        class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-800 text-[10px] font-extrabold py-2 px-3 rounded-xl transition inline-flex items-center gap-1.5 shadow-3xs select-none">
-                                        📥 Template Excel
+                                        class="bg-white border border-gray-200 text-gray-655 hover:bg-gray-50 hover:text-gray-800 text-xs font-semibold py-2.5 px-4 rounded-xl transition inline-flex items-center gap-2 shadow-3xs select-none">
+                                        <svg class="w-4 h-4 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                        </svg>
+                                        Template Excel
                                     </a>
                                 </template>
                                 <template v-else>
                                     <button @click="resetExcel"
-                                        class="bg-red-50 hover:bg-red-100 text-red-650 border border-red-200 hover:border-red-300 text-xs font-black py-2 px-3.5 rounded-xl transition flex items-center gap-1.5 shadow-3xs">
-                                        🔄 Ganti Metode
+                                        class="bg-red-50 hover:bg-red-105 text-red-600 border border-red-200 hover:border-red-300 text-xs font-bold py-2.5 px-4 rounded-xl transition flex items-center gap-2 shadow-3xs select-none">
+                                        <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                        </svg>
+                                        Ganti Metode
                                     </button>
                                 </template>
                             </div>
@@ -817,24 +838,40 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                         <!-- Right side: Count summary & Next CTA -->
                         <div class="flex flex-wrap items-center gap-4">
                             <!-- Ringkasan kapasitas -->
-                            <div class="flex items-center gap-3 text-xs font-semibold text-gray-500">
-                                <span>Peserta: <strong class="text-gray-800 font-extrabold">{{ participantCount }}</strong></span>
-                                <span class="text-gray-300">•</span>
-                                <span>Panitia: <strong class="text-gray-800 font-extrabold">{{ panitiaCount }}</strong></span>
-                                <span class="text-gray-300">•</span>
-                                <span class="font-extrabold text-blue-600 text-sm">Total: {{ totalOrangComputed }} Orang</span>
+                            <div class="flex items-center gap-2 bg-white border border-gray-150 rounded-xl px-3 py-1.5 shadow-3xs">
+                                <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                                </svg>
+                                <span class="text-xs font-semibold text-gray-500">
+                                    Peserta: <strong class="text-gray-800 font-bold">{{ participantCount }}</strong>
+                                    <span class="mx-1.5 text-gray-300">|</span>
+                                    Panitia: <strong class="text-gray-800 font-bold">{{ panitiaCount }}</strong>
+                                    <span class="mx-1.5 text-gray-300">|</span>
+                                    <span class="text-blue-600 font-extrabold">Total: {{ totalOrangComputed }} Orang</span>
+                                </span>
                             </div>
 
                             <!-- Error inline -->
-                            <div v-if="stage1Error" class="text-xs text-red-650 bg-red-50 border border-red-200 rounded px-2.5 py-1">
-                                ⚠️ {{ stage1Error }}
+                            <div v-if="stage1Error" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-3xs shrink-0">
+                                <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                </svg>
+                                <span class="font-semibold">{{ stage1Error }}</span>
                             </div>
 
                             <!-- CTA -->
                             <button @click="checkEligibility" :disabled="!isStage1Valid || isChecking"
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-6 rounded-xl text-xs transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs flex items-center gap-2">
-                                <span v-if="isChecking" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                {{ isChecking ? 'Mengecek Kapasitas...' : 'Cari Ruangan →' }}
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl text-xs transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-3xs flex items-center gap-2 select-none">
+                                <span v-if="isChecking" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
+                                <span v-else-if="!isChecking" class="shrink-0">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637z" />
+                                    </svg>
+                                </span>
+                                <span>{{ isChecking ? 'Mengecek Kapasitas...' : 'Cari Ruangan' }}</span>
+                                <svg v-if="!isChecking" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                </svg>
                             </button>
                         </div>
                     </div>
@@ -843,32 +880,40 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                     <div class="flex flex-col gap-6 w-full">
 
                         <!-- ── Tabel Roster Peserta (Editable & Interactive) ── -->
-                        <div class="border border-gray-250 rounded-xl overflow-hidden flex flex-col bg-white shadow-3xs">
-                            <div class="bg-blue-50/50 border-b border-blue-100 px-4 py-3 flex items-center justify-between shrink-0">
-                                <span class="text-xs font-black text-blue-900 uppercase tracking-wider">📋 Roster Peserta</span>
-                                <div class="flex items-center gap-3">
-                                    <span class="bg-blue-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-3xs">
+                        <div class="border border-gray-200 rounded-xl overflow-hidden flex flex-col bg-white shadow-3xs">
+                            <div class="bg-blue-50/50 border-b border-blue-100 px-4 py-3.5 flex items-center justify-between shrink-0">
+                                <div class="flex items-center gap-2">
+                                    <div class="p-1.5 bg-blue-100 text-blue-700 rounded-lg shrink-0">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-bold text-blue-900 uppercase tracking-wider">Roster Peserta</span>
+                                    <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200">
                                         {{ participantCount }} Orang
                                     </span>
-                                    <button @click="addParticipant"
-                                        class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-3 py-1 rounded-lg transition flex items-center gap-1 shadow-3xs">
-                                        + Tambah Peserta
-                                    </button>
                                 </div>
+                                <button @click="addParticipant"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold py-1.5 px-3 rounded-lg transition flex items-center gap-1.5 shadow-3xs select-none">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    Tambah Peserta
+                                </button>
                             </div>
                             
                             <div class="overflow-x-auto flex-1 max-h-[420px]">
                                 <table class="w-full text-xs text-left border-collapse min-w-[650px]">
-                                    <thead class="bg-gray-50 text-gray-500 font-extrabold uppercase tracking-wider sticky top-0 z-10 border-b border-gray-200/50">
+                                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-gray-200/50">
                                         <tr>
-                                            <th class="px-4 py-3 w-12 text-center">#</th>
-                                            <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">NRP<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">Jabatan<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">Site<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">No. HP<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3 w-44 text-center">Gender<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3 w-12 text-center"></th>
+                                            <th class="px-4 py-3 w-12 text-center font-bold">#</th>
+                                            <th class="px-4 py-3 font-bold">Nama Lengkap<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">NRP<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Jabatan<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Site<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">No. HP<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 w-40 text-center font-bold">Gender<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 w-12 text-center font-bold"></th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100">
@@ -876,40 +921,44 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             <td class="px-4 py-2.5 text-center text-gray-400 font-bold">{{ i + 1 }}</td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.nama" type="text" placeholder="Ketik nama lengkap..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
                                                     :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.nrp" type="text" placeholder="Ketik NRP atau 'N/A'..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
                                                     :class="p.nrp.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
                                                     :class="p.jabatan.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.site" type="text" placeholder="Site..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
                                                     :class="p.site.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.no_hp" type="text" placeholder="Contoh: 0812..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
                                                     :class="p.no_hp.trim() === '' || !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <select v-model="p.gender"
-                                                    class="text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white min-w-[120px] select-gender appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.65em_auto] bg-[right_0.75rem_center] bg-no-repeat">
-                                                    <option value="L">♂ Laki-laki</option>
-                                                    <option value="P">♀ Perempuan</option>
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white min-w-[110px] appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.6em_auto] bg-[right_0.65rem_center] bg-no-repeat">
+                                                    <option value="L">Laki-laki</option>
+                                                    <option value="P">Perempuan</option>
                                                 </select>
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <button @click="removeParticipant(i)"
-                                                    class="text-red-400 hover:text-red-650 text-sm font-black transition"
-                                                    title="Hapus baris">×</button>
+                                                    class="text-gray-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition"
+                                                    title="Hapus baris">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9 9m6.24-3.5v-.75A2.25 2.25 0 0 0 14.25 2.25h-4.5A2.25 2.25 0 0 0 7.5 4.5v.75m3 3h4.5M5.625 6h12.75L17.25 18a2.25 2.25 0 0 1-2.25 2.25h-6A2.25 2.25 0 0 1 6.75 18L5.625 6Z" />
+                                                    </svg>
+                                                </button>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -917,40 +966,62 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                             </div>
                             
                             <!-- Footer hint validasi peserta -->
-                            <div class="bg-gray-50 border-t border-gray-200 px-4 py-2.5 flex items-center gap-2 shrink-0">
-                                <span class="text-[10px] text-gray-500 font-semibold">Semua kolom bertanda asterisk (<span class="text-red-450 font-bold">*</span>) wajib diisi.</span>
-                                <span v-if="!participantsValid" class="text-[10px] text-red-500 font-extrabold ml-auto flex items-center gap-1">⚠️ Ada kolom kosong</span>
-                                <span v-else class="text-[10px] text-green-600 font-extrabold ml-auto flex items-center gap-1">✓ Peserta siap validasi</span>
+                            <div class="bg-gray-50 border-t border-gray-150 px-4 py-2.5 flex items-center justify-between shrink-0">
+                                <span class="text-[10px] text-gray-500 font-medium">
+                                    Semua kolom bertanda asterisk (<span class="text-red-500 font-bold">*</span>) wajib diisi.
+                                </span>
+                                <div class="flex items-center gap-1 ml-auto">
+                                    <template v-if="!participantsValid">
+                                        <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                        </svg>
+                                        <span class="text-[10px] text-red-650 font-bold">Ada kolom kosong</span>
+                                    </template>
+                                    <template v-else>
+                                        <svg class="w-3.5 h-3.5 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                        <span class="text-[10px] text-green-655 font-bold">Peserta siap validasi</span>
+                                    </template>
+                                </div>
                             </div>
                         </div>
 
                         <!-- ── Tabel Roster Panitia (manual input) ── -->
-                        <div class="border border-gray-250 rounded-xl overflow-hidden flex flex-col bg-white shadow-3xs">
-                            <div class="bg-amber-50/50 border-b border-amber-100 px-4 py-3 flex items-center justify-between shrink-0">
-                                <span class="text-xs font-black text-amber-900 uppercase tracking-wider">👥 Roster Panitia</span>
-                                <div class="flex items-center gap-3">
-                                    <span class="bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-3xs">
+                        <div class="border border-gray-200 rounded-xl overflow-hidden flex flex-col bg-white shadow-3xs">
+                            <div class="bg-amber-50/30 border-b border-amber-100 px-4 py-3.5 flex items-center justify-between shrink-0">
+                                <div class="flex items-center gap-2">
+                                    <div class="p-1.5 bg-amber-100 text-amber-850 rounded-lg shrink-0">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-bold text-amber-900 uppercase tracking-wider">Roster Panitia</span>
+                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200">
                                         {{ panitiaCount }} Orang
                                     </span>
-                                    <button @click="addPanitia"
-                                        class="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black px-3 py-1 rounded-lg transition flex items-center gap-1 shadow-3xs">
-                                        + Tambah Panitia
-                                    </button>
                                 </div>
+                                <button @click="addPanitia"
+                                    class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold py-1.5 px-3 rounded-lg transition flex items-center gap-1.5 shadow-3xs select-none">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    Tambah Panitia
+                                </button>
                             </div>
                             
                             <div class="overflow-x-auto flex-1 max-h-[420px]">
                                 <table class="w-full text-xs text-left border-collapse min-w-[650px]">
-                                    <thead class="bg-gray-50 text-gray-500 font-extrabold uppercase tracking-wider sticky top-0 z-10 border-b border-gray-200/50">
+                                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-gray-200/50">
                                         <tr>
-                                            <th class="px-4 py-3 w-12 text-center">#</th>
-                                            <th class="px-4 py-3">Nama Lengkap<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">NRP<span class="text-red-400">*</span></th>
-                                            <th class="px-4 py-3">Jabatan</th>
-                                            <th class="px-4 py-3">Site</th>
-                                            <th class="px-4 py-3">No. HP</th>
-                                            <th class="px-4 py-3 w-44 text-center">Gender</th>
-                                            <th class="px-4 py-3 w-12 text-center"></th>
+                                            <th class="px-4 py-3 w-12 text-center font-bold">#</th>
+                                            <th class="px-4 py-3 font-bold">Nama Lengkap<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">NRP<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Jabatan</th>
+                                            <th class="px-4 py-3 font-bold">Site</th>
+                                            <th class="px-4 py-3 font-bold">No. HP</th>
+                                            <th class="px-4 py-3 w-40 text-center font-bold">Gender</th>
+                                            <th class="px-4 py-3 w-12 text-center font-bold"></th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100">
@@ -958,38 +1029,42 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                             <td class="px-4 py-2.5 text-center text-gray-400 font-bold">{{ i + 1 }}</td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.nama" type="text" placeholder="Nama lengkap..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
                                                     :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.nrp" type="text" placeholder="Ketik NRP atau 'N/A'..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
                                                     :class="p.nrp.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.site" type="text" placeholder="Site..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white" />
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <input v-model="p.no_hp" type="text" placeholder="Contoh: 0812..."
-                                                    class="w-full text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
                                                     :class="p.no_hp.trim() !== '' && !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <select v-model="p.gender"
-                                                    class="text-xs border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white min-w-[120px] select-gender appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.65em_auto] bg-[right_0.75rem_center] bg-no-repeat">
-                                                    <option value="L">♂ Laki-laki</option>
-                                                    <option value="P">♀ Perempuan</option>
+                                                    class="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white min-w-[110px] appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.6em_auto] bg-[right_0.65rem_center] bg-no-repeat">
+                                                    <option value="L">Laki-laki</option>
+                                                    <option value="P">Perempuan</option>
                                                 </select>
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <button @click="removePanitia(i)" :disabled="panitiaList.length === 1"
-                                                    class="text-red-400 hover:text-red-655 disabled:opacity-30 disabled:cursor-not-allowed text-sm font-black transition"
-                                                    title="Hapus baris">×</button>
+                                                    class="text-gray-400 hover:text-red-655 disabled:opacity-30 disabled:cursor-not-allowed p-1.5 hover:bg-red-50 rounded-lg transition"
+                                                    title="Hapus baris">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9 9m6.24-3.5v-.75A2.25 2.25 0 0 0 14.25 2.25h-4.5A2.25 2.25 0 0 0 7.5 4.5v.75m3 3h4.5M5.625 6h12.75L17.25 18a2.25 2.25 0 0 1-2.25 2.25h-6A2.25 2.25 0 0 1 6.75 18L5.625 6Z" />
+                                                    </svg>
+                                                </button>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -997,10 +1072,24 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                             </div>
                             
                             <!-- Footer hint validasi panitia -->
-                            <div class="bg-gray-50 border-t border-gray-200 px-4 py-2.5 flex items-center gap-2 shrink-0">
-                                <span class="text-[10px] text-gray-500 font-semibold">Kolom <strong>Nama*</strong> dan <strong>NRP*</strong> wajib diisi semua baris (NRP boleh diisi "N/A").</span>
-                                <span v-if="!panitiaValid" class="text-[10px] text-red-500 font-extrabold ml-auto">⚠️ Ada nama atau NRP yang belum diisi</span>
-                                <span v-else class="text-[10px] text-green-600 font-extrabold ml-auto">✓ Roster panitia valid</span>
+                            <div class="bg-gray-50 border-t border-gray-150 px-4 py-2.5 flex items-center justify-between shrink-0">
+                                <span class="text-[10px] text-gray-500 font-medium">
+                                    Kolom <strong>Nama*</strong> dan <strong>NRP*</strong> wajib diisi semua baris (NRP boleh diisi "N/A").
+                                </span>
+                                <div class="flex items-center gap-1 ml-auto">
+                                    <template v-if="!panitiaValid">
+                                        <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                        </svg>
+                                        <span class="text-[10px] text-red-650 font-bold">Ada nama atau NRP belum diisi</span>
+                                    </template>
+                                    <template v-else>
+                                        <svg class="w-3.5 h-3.5 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                        <span class="text-[10px] text-green-655 font-bold">Roster panitia valid</span>
+                                    </template>
+                                </div>
                             </div>
                         </div>
 
