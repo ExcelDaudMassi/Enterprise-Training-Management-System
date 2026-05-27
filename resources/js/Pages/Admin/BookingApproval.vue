@@ -6,8 +6,9 @@ import axios from 'axios'
 
 const props = defineProps({
     auth:         Object,
-    bookings:     Array,
+    bookings:     Object,   // Laravel paginator object
     activeFilter: { type: String, default: 'all' },
+    search:       { type: String, default: '' },
 })
 
 // ─── Tabs ─────────────────────────────────────────────────────
@@ -23,10 +24,20 @@ const tabs = [
 ]
 
 const activeTab = ref(props.activeFilter ?? 'all')
+const searchQuery = ref(props.search ?? '')
 
 function switchTab(key) {
     activeTab.value = key
+    searchQuery.value = ''
     router.get('/admin/bookings', { filter: key }, { preserveScroll: true, preserveState: true })
+}
+
+function doSearch() {
+    router.get('/admin/bookings', { filter: activeTab.value, search: searchQuery.value }, { preserveScroll: true, preserveState: true })
+}
+
+function goToPage(url) {
+    if (url) router.get(url, {}, { preserveScroll: true, preserveState: true })
 }
 
 // ─── Status display helpers ───────────────────────────────────
@@ -291,6 +302,33 @@ const layoutLabels = {
             </button>
         </div>
 
+        <!-- Search Bar -->
+        <div class="flex items-center gap-2 mb-4">
+            <div class="relative flex-1 max-w-xs">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+                </svg>
+                <input
+                    v-model="searchQuery"
+                    @keyup.enter="doSearch"
+                    type="text"
+                    placeholder="Cari nama acara, pemohon, divisi..."
+                    class="w-full pl-9 pr-4 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white"
+                />
+            </div>
+            <button @click="doSearch"
+                class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
+                Cari
+            </button>
+            <button v-if="searchQuery" @click="searchQuery = ''; doSearch()"
+                class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg transition">
+                Reset
+            </button>
+            <span class="text-xs text-gray-400 ml-auto">
+                {{ bookings.total }} hasil ditemukan
+            </span>
+        </div>
+
         <!-- Table -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <table class="min-w-full divide-y divide-gray-100">
@@ -306,7 +344,7 @@ const layoutLabels = {
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
-                    <tr v-if="bookings.length === 0">
+                    <tr v-if="bookings.data.length === 0">
                         <td colspan="7" class="px-6 py-12 text-center text-gray-400 text-sm">
                             <div class="flex flex-col items-center gap-2">
                                 <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -314,7 +352,7 @@ const layoutLabels = {
                             </div>
                         </td>
                     </tr>
-                    <tr v-for="b in bookings" :key="b.id" class="hover:bg-gray-50 transition-colors align-top">
+                    <tr v-for="b in bookings.data" :key="b.id" class="hover:bg-gray-50 transition-colors align-top">
                         <td class="px-4 py-3">
                             <div class="text-sm font-semibold text-gray-900">{{ b.nama_training }}</div>
                             <div class="text-xs text-gray-500 mt-0.5">{{ b.pemohon }} · <span class="font-medium text-gray-600">{{ b.divisi }}</span></div>
@@ -422,6 +460,44 @@ const layoutLabels = {
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div v-if="bookings.last_page > 1" class="flex items-center justify-between mt-4">
+            <p class="text-xs text-gray-500">
+                Menampilkan <span class="font-semibold">{{ bookings.from }}</span>–<span class="font-semibold">{{ bookings.to }}</span>
+                dari <span class="font-semibold">{{ bookings.total }}</span> booking
+            </p>
+            <div class="flex items-center gap-1">
+                <!-- Prev -->
+                <button @click="goToPage(bookings.prev_page_url)"
+                    :disabled="!bookings.prev_page_url"
+                    class="px-3 py-1.5 text-xs rounded border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                    ← Prev
+                </button>
+
+                <!-- Page numbers -->
+                <template v-for="link in bookings.links" :key="link.label">
+                    <button v-if="link.label !== '&laquo; Previous' && link.label !== 'Next &raquo;'"
+                        @click="goToPage(link.url)"
+                        :class="[
+                            'px-3 py-1.5 text-xs rounded border transition',
+                            link.active
+                                ? 'bg-blue-600 text-white border-blue-600 font-bold'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                        ]"
+                        :disabled="!link.url"
+                        v-html="link.label"
+                    />
+                </template>
+
+                <!-- Next -->
+                <button @click="goToPage(bookings.next_page_url)"
+                    :disabled="!bookings.next_page_url"
+                    class="px-3 py-1.5 text-xs rounded border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                    Next →
+                </button>
+            </div>
         </div>
 
         <!-- ══════════════════════════════════════════════════════════ -->

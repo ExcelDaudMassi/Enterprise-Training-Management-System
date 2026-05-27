@@ -60,6 +60,15 @@ class BookingApprovalController extends Controller
             default => null, // 'all' — tanpa filter tambahan
         };
 
+        // Fitur Pencarian: cari berdasarkan nama training atau nama/divisi pemohon
+        if ($search = $request->query('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_training', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%")
+                                                    ->orWhere('divisi', 'like', "%{$search}%"));
+            });
+        }
+
         // Pengurutan: antrian tunggu → diurutkan dari TERLAMA; yang lain → TERBARU
         if (in_array($filter, ['waiting_confirmation', 'h14', 'overdue', 'date_changes'])) {
             $query->orderBy('tgl_mulai', 'asc');
@@ -67,12 +76,16 @@ class BookingApprovalController extends Controller
             $query->orderBy('created_at', 'desc');
         }
 
-        $bookings = $query->get()->map(fn(Booking $b) => $this->formatBooking($b));
+        // Paginasi: 20 data per halaman, URL params dipertahankan
+        $paginated = $query->paginate(20)->withQueryString();
+        $bookings  = $paginated->getCollection()->map(fn(Booking $b) => $this->formatBooking($b));
+        $paginated->setCollection($bookings);
 
         return Inertia::render('Admin/BookingApproval', [
             'auth'         => ['user' => ['name' => Auth::user()->name, 'role' => Auth::user()->role]],
-            'bookings'     => $bookings,
+            'bookings'     => $paginated,
             'activeFilter' => $filter,
+            'search'       => $request->query('search', ''),
         ]);
     }
 
