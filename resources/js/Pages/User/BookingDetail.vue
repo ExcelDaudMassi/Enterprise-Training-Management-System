@@ -1,7 +1,7 @@
 <script setup>
 import UserLayout from '@/Layouts/UserLayout.vue'
 import { ref } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { Link, router } from '@inertiajs/vue3'
 
 const props = defineProps({
     auth: Object,
@@ -93,13 +93,13 @@ function getAvatarBg(id) {
             <!-- Navigation Header -->
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <a href="/user/booking/active" 
+                    <Link href="/user/booking/active" 
                        class="inline-flex items-center gap-1.5 text-gray-600 hover:text-gray-800 bg-white hover:bg-gray-50 border border-gray-200 px-3.5 py-1.5 rounded-md text-xs font-bold transition shadow-sm select-none">
                         <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                         </svg>
                         Kembali
-                    </a>
+                    </Link>
                     <div>
                         <h1 class="text-xl md:text-2xl font-bold text-gray-800">Detail Booking</h1>
                         <p class="text-[11px] text-gray-500 mt-0.5">Informasi lengkap pemesanan ruangan divisi Anda</p>
