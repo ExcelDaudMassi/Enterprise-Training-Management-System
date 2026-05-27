@@ -742,6 +742,28 @@ const getStageSubtitle = (stage) => {
 }
 
 const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
+
+const getLayoutLabel = (layout) => {
+    switch (layout) {
+        case 'classroom': return 'Kelas'
+        case 'u-shape': return 'Bentuk U'
+        case 'i-shape': return 'Boardroom'
+        case 'o-shape': return 'Melingkar'
+        case 'custom': return 'Kustom'
+        default: return layout
+    }
+}
+
+const getLayoutDesc = (layout) => {
+    switch (layout) {
+        case 'classroom': return 'Meja kelas paralel'
+        case 'u-shape': return 'Kolaborasi aktif'
+        case 'i-shape': return 'Meja rapat panjang'
+        case 'o-shape': return 'Hollow square/bulat'
+        case 'custom': return 'Upload denah sendiri'
+        default: return ''
+    }
+}
 </script>
 
 <template>
@@ -1393,7 +1415,11 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
 
                 <!-- Info Banner: Dept & Site terkunci otomatis -->
                 <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-4 shadow-sm mb-6">
-                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-blue-100 flex-shrink-0 text-xl">🏢</div>
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-blue-100 flex-shrink-0">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                    </div>
                     <div>
                         <p class="text-xs font-black text-blue-900 mb-0.5">Identitas Pemesan Terkunci Otomatis</p>
                         <p class="text-[11px] text-blue-700 leading-tight">Departemen dan Site diambil dari akun Anda secara otomatis dan tidak dapat diubah. Harap isi <strong>Nama PIC</strong> dan <strong>No. HP PIC</strong> — yaitu nama manusia nyata yang dapat dihubungi saat hari-H.</p>
@@ -1407,7 +1433,9 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                         <div>
                             <label class="block text-xs font-bold text-gray-750 mb-1">Departemen</label>
                             <div class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50 text-gray-600 flex items-center gap-2">
-                                <span class="text-sm">🏛️</span>
+                                <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.33m-16.5 0V21m6-12h9" />
+                                </svg>
                                 <span class="font-semibold">{{ auth?.user?.divisi || '—' }}</span>
                                 <span class="ml-auto text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">Terkunci</span>
                             </div>
@@ -1415,7 +1443,10 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                         <div>
                             <label class="block text-xs font-bold text-gray-750 mb-1">Site / Lokasi</label>
                             <div class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50 text-gray-600 flex items-center gap-2">
-                                <span class="text-sm">📍</span>
+                                <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                </svg>
                                 <span class="font-semibold">{{ auth?.user?.site || '—' }}</span>
                                 <span class="ml-auto text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">Terkunci</span>
                             </div>
@@ -1426,7 +1457,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                 <!-- Informasi Utama -->
                 <div>
                     <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Informasi Utama</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Nama Training / Acara <span class="text-red-500">*</span></label>
                             <input v-model="formStage4.nama_training" type="text" placeholder="Masukkan nama acara..."
@@ -1434,14 +1465,14 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Nama PIC <span class="text-red-500">*</span></label>
-                            <input v-model="formStage4.nama_pic" type="text" placeholder="Nama lengkap yang bisa dihubungi..."
+                            <input v-model="formStage4.nama_pic" type="text" placeholder="Nama PIC..."
                                 class="w-full border border-gray-200 rounded-sm px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-400 focus:outline-none bg-white" />
                         </div>
-                        <div class="md:col-span-2">
+                        <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">No. HP PIC <span class="text-red-500">*</span></label>
                             <input v-model="formStage4.no_hp_pic" type="tel" placeholder="Contoh: 08123456789"
                                 class="w-full border border-gray-200 rounded-sm px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-400 focus:outline-none bg-white" />
-                            <p class="text-[10px] text-gray-400 mt-1">Nomor ini digunakan Admin Gedung untuk menghubungi Anda di hari pelaksanaan.</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Dihubungi Admin Gedung saat hari-H.</p>
                         </div>
                     </div>
                 </div>
@@ -1450,25 +1481,103 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
 
                 <!-- Layout Ruangan -->
                 <div>
-                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Layout Ruangan</p>
-                    <div class="flex flex-wrap gap-2">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Layout Ruangan (Pilih Salah Satu)</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                         <label v-for="layout in ['classroom', 'u-shape', 'i-shape', 'o-shape', 'custom']" :key="layout"
-                            class="relative flex items-center gap-2 px-3 py-2 border rounded-sm cursor-pointer transition select-none"
-                            :class="formStage4.layout_preferensi === layout ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-white'">
+                            class="relative flex flex-col items-center justify-between p-3 border rounded-lg cursor-pointer transition select-none h-40"
+                            :class="formStage4.layout_preferensi === layout ? 'border-blue-600 bg-blue-50/40 text-blue-700 ring-2 ring-blue-100 shadow-sm' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50/40 text-gray-600 bg-white'">
                             <input type="radio" v-model="formStage4.layout_preferensi" :value="layout" class="hidden" />
-                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path v-if="layout === 'classroom'" stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-                                <path v-else-if="layout === 'u-shape'" stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
-                                <path v-else-if="layout === 'i-shape'" stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
-                                <path v-else-if="layout === 'o-shape'" stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                <path v-else stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
-                            </svg>
-                            <span class="text-xs font-medium capitalize">{{ layout }}</span>
+
+                            <!-- Mini Layout Schematic (CSS Visual Diagram) -->
+                            <div class="w-full h-20 bg-gray-50 border border-gray-100 rounded-md flex items-center justify-center relative overflow-hidden shrink-0">
+                                <!-- Classroom Layout -->
+                                <template v-if="layout === 'classroom'">
+                                    <div class="absolute top-1.5 w-10 h-0.5 bg-gray-400 rounded-full"></div>
+                                    <div class="flex flex-col gap-2 mt-4 items-center w-full px-2">
+                                        <div v-for="row in 2" :key="row" class="flex gap-2 justify-center w-full">
+                                            <div v-for="col in 2" :key="col" class="flex flex-col items-center gap-0.5">
+                                                <div class="w-5 h-1.5 bg-blue-300/80 rounded-[1px] shadow-sm"></div>
+                                                <div class="flex gap-0.5">
+                                                    <div class="w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                                    <div class="w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <!-- U-Shape Layout -->
+                                <template v-if="layout === 'u-shape'">
+                                    <div class="absolute top-1.5 w-10 h-0.5 bg-gray-400 rounded-full"></div>
+                                    <div class="relative w-12 h-10 mt-3 flex items-center justify-center">
+                                        <div class="absolute left-2.5 top-0 bottom-0 w-1.5 bg-blue-300/80 rounded-[1px] shadow-sm"></div>
+                                        <div class="absolute right-2.5 top-0 bottom-0 w-1.5 bg-blue-300/80 rounded-[1px] shadow-sm"></div>
+                                        <div class="absolute top-0 left-2.5 right-2.5 h-1.5 bg-blue-300/80 rounded-[1px] shadow-sm"></div>
+
+                                        <!-- Outer side chairs -->
+                                        <div class="absolute -top-1 left-4 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        <div class="absolute -top-1 right-4 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        <div class="absolute left-1 top-2.5 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        <div class="absolute left-1 top-6 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        <div class="absolute right-1 top-2.5 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        <div class="absolute right-1 top-6 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                    </div>
+                                </template>
+
+                                <!-- I-Shape Layout -->
+                                <template v-if="layout === 'i-shape'">
+                                    <div class="relative w-12 h-10 flex items-center justify-center">
+                                        <div class="w-8 h-3 bg-blue-300/80 rounded-[1px] shadow-sm flex items-center justify-center"></div>
+                                        <!-- Chairs -->
+                                        <div class="absolute top-1.5 flex gap-1 justify-center w-full">
+                                            <div class="w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                            <div class="w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                            <div class="w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        </div>
+                                        <div class="absolute bottom-1.5 flex gap-1 justify-center w-full">
+                                            <div class="w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                            <div class="w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                            <div class="w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        </div>
+                                        <div class="absolute left-1 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        <div class="absolute right-1 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                    </div>
+                                </template>
+
+                                <!-- O-Shape Layout -->
+                                <template v-if="layout === 'o-shape'">
+                                    <div class="relative w-12 h-10 flex items-center justify-center">
+                                        <div class="w-8 h-8 border-2 border-blue-300/85 rounded-full flex items-center justify-center"></div>
+                                        <!-- Chairs outer sides -->
+                                        <div class="absolute top-0.5 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        <div class="absolute bottom-0.5 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        <div class="absolute left-1 top-4.5 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                        <div class="absolute right-1 top-4.5 w-1 h-1 rounded-full bg-blue-500/90 shadow-sm"></div>
+                                    </div>
+                                </template>
+
+                                <!-- Custom Layout -->
+                                <template v-if="layout === 'custom'">
+                                    <div class="w-10 h-8 border border-dashed border-gray-300 rounded flex flex-col items-center justify-center gap-0.5">
+                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                                        </svg>
+                                        <span class="text-[7px] text-gray-400 font-bold">Sketsa</span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Layout Text -->
+                            <div class="text-center mt-2 w-full">
+                                <span class="text-[10px] font-bold block leading-tight capitalize">{{ getLayoutLabel(layout) }}</span>
+                                <span class="text-[8px] text-gray-400 block mt-0.5 leading-none">{{ getLayoutDesc(layout) }}</span>
+                            </div>
                         </label>
                     </div>
 
-                    <div v-if="formStage4.layout_preferensi === 'custom'" class="mt-3 bg-gray-50 border border-gray-100 rounded-sm p-3">
-                        <label class="block text-xs font-medium text-gray-600 mb-2">Unggah Denah/Sketsa Kustom (Maks 2MB) <span class="text-red-500">*</span></label>
+                    <!-- Custom layout file upload section -->
+                    <div v-if="formStage4.layout_preferensi === 'custom'" class="mt-4 bg-gray-50 border border-gray-100 rounded-lg p-4 transition-all duration-350">
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Unggah Denah/Sketsa Kustom (Maks 2MB) <span class="text-red-500">*</span></label>
                         <input type="file" @change="handleCustomLayoutUpload" accept=".jpg,.png,.pdf" class="text-xs text-gray-600 bg-white border border-gray-200 rounded-sm p-2 file:bg-gray-100 file:border-none file:px-2 file:py-1 file:rounded-sm file:mr-2 file:text-xs" />
                         <p v-if="uploadedCustomFileName" class="text-xs text-green-600 font-medium mt-1.5">✓ {{ uploadedCustomFileName }}</p>
                     </div>
