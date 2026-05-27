@@ -10,6 +10,14 @@ defineProps({
 const page = usePage()
 const currentUrl = computed(() => page.url)
 
+const isDetailActive = ref(currentUrl.value.includes('/detail'))
+
+watch(() => currentUrl.value, (newUrl) => {
+    isDetailActive.value = newUrl.includes('/detail')
+})
+
+let unregisterStartListener = null
+
 function isActive(path) {
     return currentUrl.value.startsWith(path)
 }
@@ -137,12 +145,21 @@ onMounted(() => {
     document.addEventListener('click', handleClickOutside)
     checkWindowStatus() // Cek saat pertama kali load
     pollingInterval = setInterval(checkWindowStatus, 10000) // Polling setiap 10 detik
+
+    unregisterStartListener = router.on('start', (event) => {
+        const url = event.detail.visit.url
+        const pathname = url.pathname || url.toString()
+        if (!pathname.includes('/detail')) {
+            isDetailActive.value = false
+        }
+    })
 })
 
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
     document.removeEventListener('click', handleClickOutside)
     if (pollingInterval) clearInterval(pollingInterval)
+    if (unregisterStartListener) unregisterStartListener()
 })
 
 function toggleSidebar() {
@@ -227,7 +244,7 @@ provide('isWindowActive', isWindowActive)
 
                 <!-- Detail Booking (Sub-menu reaktif dengan animasi slide down dari Booking Aktif) -->
                 <Transition name="menu-slide" appear>
-                    <div v-if="currentUrl.includes('/detail')" class="pl-6 pr-1 shrink-0 overflow-hidden">
+                    <div v-if="isDetailActive" class="pl-6 pr-1 shrink-0 overflow-hidden">
                         <div class="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs bg-blue-50/75 text-blue-700 font-bold border-l-2 border-blue-500 shadow-2xs select-none">
                             <svg class="w-3.5 h-3.5 shrink-0 text-blue-500/70" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -374,16 +391,16 @@ provide('isWindowActive', isWindowActive)
 
 <style scoped>
 .menu-slide-enter-active {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .menu-slide-leave-active {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .menu-slide-enter-from,
 .menu-slide-leave-to {
   max-height: 0;
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-10px);
   padding-top: 0;
   padding-bottom: 0;
   margin-top: 0;
