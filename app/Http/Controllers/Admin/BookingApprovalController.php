@@ -292,6 +292,11 @@ class BookingApprovalController extends Controller
             
             $sheet->getStyle('A' . $infoRow)->getFont()->setBold(true);
             $sheet->getStyle('A' . $infoRow . ':H' . $infoRow)->getFont()->setSize(9);
+            
+            // Align left explicitly to prevent numeric values (like phone numbers) from right-aligning
+            $sheet->getStyle('A' . $infoRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('C' . $infoRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            
             $infoRow++;
         }
 
@@ -398,8 +403,11 @@ class BookingApprovalController extends Controller
         }
 
         // ── Output ──
-        $safeName = preg_replace('/[^A-Za-z0-9\-]/', '_', $booking->nama_training);
-        $filename  = 'Detail_Peserta_' . $safeName . '_' . now()->format('Ymd') . '.xlsx';
+        $namaTrainingClean = preg_replace('/[^A-Za-z0-9\-]/', '_', $booking->nama_training);
+        $pemohonClean = preg_replace('/[^A-Za-z0-9\-]/', '_', $booking->user?->name ?? 'Pemohon');
+        $tglFormat = $booking->tgl_mulai->format('Ymd') . '-' . $booking->tgl_selesai->format('Ymd');
+        
+        $filename = $namaTrainingClean . '-' . $pemohonClean . '-' . $tglFormat . '.xlsx';
         $writer    = new Xlsx($spreadsheet);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
