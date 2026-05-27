@@ -102,25 +102,39 @@ watch(() => page.props.flash, (newVal) => {
         if (newVal.success) {
             Swal.fire({
                 toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: newVal.success,
+                position: 'bottom-end',
+                text: newVal.success,
                 showConfirmButton: false,
                 timer: 3000,
-                timerProgressBar: true,
-                customClass: { popup: 'colored-toast' }
+                timerProgressBar: false,
+                icon: false,
+                background: '#18181b', // Zinc 900
+                color: '#fafafa', // Zinc 50
+                showClass: { popup: 'swal2-noanimation' },
+                hideClass: { popup: 'swal2-noanimation' },
+                customClass: { 
+                    popup: '!rounded-lg !shadow-2xl !border !border-gray-800 !py-2 !px-4 !mb-4 !mr-4',
+                    title: '!text-sm !font-medium !m-0 !p-0'
+                }
             })
         }
         if (newVal.error) {
             Swal.fire({
                 toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: newVal.error,
+                position: 'bottom-end',
+                text: newVal.error,
                 showConfirmButton: false,
                 timer: 4000,
-                timerProgressBar: true,
-                customClass: { popup: 'colored-toast' }
+                timerProgressBar: false,
+                icon: false,
+                background: '#7f1d1d', // Red 900
+                color: '#fef2f2', // Red 50
+                showClass: { popup: 'swal2-noanimation' },
+                hideClass: { popup: 'swal2-noanimation' },
+                customClass: { 
+                    popup: '!rounded-lg !shadow-2xl !border !border-red-800 !py-2 !px-4 !mb-4 !mr-4',
+                    title: '!text-sm !font-medium !m-0 !p-0'
+                }
             })
         }
     }
