@@ -840,8 +840,8 @@ const getLayoutDesc = (layout) => {
                     </div>
                 </div>
 
-                <!-- Unified Action Bar (Persistent at the Top, under Header) -->
-                <div class="bg-gray-50 border border-gray-100 rounded-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 mb-6 shrink-0 min-h-[54px]">
+                <!-- Unified Action Bar (Persistent at the Top, under Header - Hidden on Stage 5) -->
+                <div v-if="currentStage !== 5" class="bg-gray-50 border border-gray-100 rounded-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 mb-6 shrink-0 min-h-[54px]">
                     <!-- Left: dynamic information based on current stage -->
                     <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500">
                         <!-- Stage 1 -->
@@ -1712,6 +1712,44 @@ const getLayoutDesc = (layout) => {
                         </div>
                     </div>
 
+                </div>
+
+                <!-- Stage 5 Action Bar at the Bottom -->
+                <div class="bg-gray-50 border border-gray-100 rounded-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 mt-6 shrink-0 min-h-[54px]">
+                    <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 flex-1">
+                        <label class="flex items-start gap-3 select-none cursor-pointer flex-1" :class="isSubmitting ? 'opacity-60 cursor-not-allowed' : ''">
+                            <input type="checkbox" v-model="termsAccepted" :disabled="isSubmitting"
+                                class="w-4 h-4 mt-0.5 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-100 shrink-0" />
+                            <div>
+                                <span class="text-xs font-semibold text-gray-700 block leading-tight">Saya memastikan data pemesanan sudah benar</span>
+                                <span class="text-[10px] text-gray-405 block mt-0.5 leading-tight">Saya bertanggung jawab penuh atas kelengkapan data & menyetujui syarat penggunaan ruangan.</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div v-if="submitError" class="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 flex items-center gap-1 shrink-0">
+                            <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+                            {{ submitError }}
+                        </div>
+
+                        <div class="flex flex-col items-end gap-1">
+                            <div class="flex items-center gap-2">
+                                <button @click="currentStage = 4" :disabled="isSubmitting"
+                                    class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none h-[38px]">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                                    Kembali Edit
+                                </button>
+                                <button @click="submitFinal" :disabled="isSubmitting || !termsAccepted"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-md text-xs transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap select-none h-[38px]">
+                                    <span v-if="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                    <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+                                    {{ isSubmitting ? 'Mengajukan...' : 'Ajukan Booking' }}
+                                </button>
+                            </div>
+                            <span class="text-[9px] text-gray-400 select-none mr-1">Direview admin maks. 1×24 jam</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             </div>
