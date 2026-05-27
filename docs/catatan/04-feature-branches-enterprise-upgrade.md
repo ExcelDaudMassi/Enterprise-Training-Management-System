@@ -45,14 +45,12 @@
 
 ---
 
-## Branch 4: `feature/booking-rate-limit`
-**Tujuan:** Mencegah spam pengajuan booking dari akun departemen yang mewakili banyak orang.
+## Branch 4: `feature/booking-rate-limit` (DIBATALKAN / DIHAPUS)
+**Status:** Dibatalkan & Dihapus atas permintaan user.
 
-### Perubahan:
-- **`BookingWizardController.php` (method `submitBooking`)**:
-  - Ditambahkan cek sebelum proses DB transaction: hitung jumlah booking **aktif** (`waiting_confirmation` + `confirmed` + `final`) milik akun yang login.
-  - Jika jumlahnya **≥ 5**, sistem mengembalikan error HTTP `429 Too Many Requests` dengan pesan yang jelas.
-- **`BookingWizard.vue`**:
-  - Ditambahkan penanganan error `status === 429` yang menampilkan pesan batas pengajuan tercapai.
+Sistem tidak lagi membatasi jumlah booking aktif per user/departemen agar user dapat melakukan booking secara bebas tanpa batas.
 
-> **Batas:** 5 booking aktif per akun pada satu waktu. Akun dapat mengajukan lagi setelah booking aktif selesai (final) atau dibatalkan.
+### Perubahan yang Dikembalikan (Reverted):
+- Logika rate limit pada `BookingWizardController.php` (pengecekan batas 5 booking aktif) telah dihapus sepenuhnya.
+- Penanganan error HTTP `429` di frontend `BookingWizard.vue` telah dibersihkan.
+

@@ -639,9 +639,6 @@ async function submitFinal() {
             } else {
                 submitError.value = err.response.data?.message || 'Data tidak valid.'
             }
-        } else if (err.response?.status === 429) {
-            // Rate limit exceeded
-            submitError.value = err.response.data?.message || 'Batas pengajuan booking telah tercapai. Harap selesaikan booking aktif Anda terlebih dahulu.'
         } else if (err.response?.data?.message) {
             submitError.value = err.response.data.message
         } else {
