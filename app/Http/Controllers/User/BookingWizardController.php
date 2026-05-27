@@ -368,6 +368,7 @@ class BookingWizardController extends Controller
         $validated = $request->validate([
             'nama_training'      => 'required|string|max:255',
             'nama_pic'           => 'required|string|max:255',
+            'no_hp_pic'          => 'required|string|max:255',
             'layout_preferensi'  => 'required|string|in:classroom,u-shape,i-shape,o-shape,custom',
             'layout_custom_file' => 'nullable|file|mimes:jpeg,png,pdf|max:2048',
             'hybrid'             => 'nullable|boolean',
@@ -384,6 +385,7 @@ class BookingWizardController extends Controller
         session(['booking_step4' => [
             'nama_training'      => $validated['nama_training'],
             'nama_pic'           => $validated['nama_pic'],
+            'no_hp_pic'          => $validated['no_hp_pic'],
             'layout_preferensi'  => $validated['layout_preferensi'],
             'layout_custom_path' => $path,
             'hybrid'             => $validated['hybrid'] ?? false,
@@ -456,6 +458,7 @@ class BookingWizardController extends Controller
                 'fase'               => 'reguler',
                 'status'             => 'waiting_confirmation',
                 'pic'                => $stage4Data['nama_pic'],
+                'no_hp_pic'          => $stage4Data['no_hp_pic'] ?? null,
                 'gabung_ruang'       => $isCombined,
                 'layout_preferensi'  => $stage4Data['layout_preferensi'],
                 'layout_custom_path' => $stage4Data['layout_custom_path'],

@@ -956,6 +956,10 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             <span class="font-bold text-gray-800">{{ selectedDetailBooking?.pic || '-' }}</span>
                         </div>
                         <div class="flex items-center gap-1.5 text-gray-600">
+                            <span class="font-semibold text-gray-400 uppercase tracking-wider text-[9.5px]">No. HP PIC:</span>
+                            <span class="font-bold text-gray-800">{{ selectedDetailBooking?.no_hp_pic || '-' }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-gray-600">
                             <span class="font-semibold text-gray-400 uppercase tracking-wider text-[9.5px]">Layout:</span>
                             <span class="font-bold text-gray-800 capitalize">{{ selectedDetailBooking?.layout_preferensi || '-' }}</span>
                         </div>

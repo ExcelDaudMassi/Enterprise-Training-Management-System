@@ -220,6 +220,7 @@ class BookingApprovalController extends Controller
                 'status'            => $booking->status,
                 'fase'              => $booking->fase,
                 'pic'               => $booking->pic,
+                'no_hp_pic'         => $booking->no_hp_pic,
                 'gabung_ruang'      => $booking->gabung_ruang,
                 'layout_preferensi' => $booking->layout_preferensi,
                 'layout_url'        => $layoutUrl,
@@ -277,14 +278,18 @@ class BookingApprovalController extends Controller
             ['Ruangan',     $booking->ruangan?->nama_ruang ?? 'Ruang Gabungan'],
             ['Tanggal',     ($booking->tgl_mulai?->format('d M Y') ?? '-') . ' s/d ' . ($booking->tgl_selesai?->format('d M Y') ?? '-')],
             ['PIC',         $booking->pic ?? '-'],
+            ['No. HP PIC',  $booking->no_hp_pic ?? '-'],
             ['Pemohon',     $booking->user?->name . ' (' . ($booking->user?->divisi ?? '-') . ')'],
             ['Diekspor',    now()->format('d M Y, H:i')],
         ];
         $infoRow = 2;
         foreach ($infos as [$label, $value]) {
             $sheet->setCellValue('A' . $infoRow, $label . ':');
-            $sheet->setCellValue('B' . $infoRow, $value);
-            $sheet->mergeCells('B' . $infoRow . ':H' . $infoRow);
+            $sheet->mergeCells('A' . $infoRow . ':B' . $infoRow);
+            
+            $sheet->setCellValue('C' . $infoRow, $value);
+            $sheet->mergeCells('C' . $infoRow . ':H' . $infoRow);
+            
             $sheet->getStyle('A' . $infoRow)->getFont()->setBold(true);
             $sheet->getStyle('A' . $infoRow . ':H' . $infoRow)->getFont()->setSize(9);
             $infoRow++;

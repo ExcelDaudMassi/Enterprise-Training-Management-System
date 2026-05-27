@@ -36,6 +36,7 @@ class Booking extends Model
         'fase',
         'status',
         'pic',
+        'no_hp_pic',
         'gabung_ruang',
         'layout_preferensi',
         'layout_custom_path',

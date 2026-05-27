@@ -405,6 +405,10 @@ function exportExcel() {
                                                     <p class="text-[11px] text-gray-400 mb-0.5">PIC Kegiatan</p>
                                                     <p class="text-sm font-medium text-gray-800">{{ detailData.booking.pic ?? '-' }}</p>
                                                 </div>
+                                                <div>
+                                                    <p class="text-[11px] text-gray-400 mb-0.5">No. HP PIC</p>
+                                                    <p class="text-sm font-semibold text-slate-800">{{ detailData.booking.no_hp_pic ?? '-' }}</p>
+                                                </div>
                                             </div>
                                         </div>
 
