@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { router, useForm, Link, usePage } from '@inertiajs/vue3'
 import UserLayout from '@/Layouts/UserLayout.vue'
 
@@ -23,14 +23,15 @@ const isWindowActive = computed(() => page.props.bookingWindow?.is_active ?? tru
 // ============================================================
 // Warna per ruangan (index-based, statis) — Palette baru yang tidak bentrok dengan warna status
 // ============================================================
+// Palette baru: setiap warna terpisah ≥60° di color wheel — mudah dibedakan bahkan di titik 4px
 const ROOM_COLORS = [
-    { bg: '#6366f1', light: '#e0e7ff', text: '#312e81' }, // Indigo  - Ruang 1
-    { bg: '#a855f7', light: '#f3e8ff', text: '#581c87' }, // Purple  - Ruang 2
-    { bg: '#ec4899', light: '#fce7f3', text: '#831843' }, // Pink    - Ruang 3
-    { bg: '#06b6d4', light: '#e0f7fa', text: '#164e63' }, // Cyan    - Ruang 4
-    { bg: '#14b8a6', light: '#ccfbf1', text: '#134e4a' }, // Teal    - Ruang 5
-    { bg: '#f43f5e', light: '#ffe4e6', text: '#881337' }, // Rose    - Ruang 6
-    { bg: '#d946ef', light: '#fae8ff', text: '#701a75' }, // Fuchsia - Ruang 7
+    { bg: '#2563eb', light: '#dbeafe', text: '#1e3a8a' }, // Blue    - Ruang 1
+    { bg: '#7c3aed', light: '#ede9fe', text: '#3b0764' }, // Violet  - Ruang 2
+    { bg: '#e11d48', light: '#ffe4e6', text: '#881337' }, // Rose    - Ruang 3
+    { bg: '#d97706', light: '#fef3c7', text: '#78350f' }, // Amber   - Ruang 4
+    { bg: '#059669', light: '#d1fae5', text: '#064e3b' }, // Emerald - Ruang 5
+    { bg: '#0284c7', light: '#e0f2fe', text: '#0c4a6e' }, // Sky     - Ruang 6
+    { bg: '#ea580c', light: '#ffedd5', text: '#7c2d12' }, // Orange  - Ruang 7
 ]
 
 function getRoomColor(ruanganId) {
@@ -77,6 +78,19 @@ function getStatusColor(status) {
 // ============================================================
 const filterYear = ref(props.selectedYear)
 const filterRuangan = ref(props.selectedRuangan)
+const isFilterOpen = ref(false)
+const filterRef = ref(null)
+
+function handleFilterClickOutside(e) {
+    if (filterRef.value && !filterRef.value.contains(e.target)) {
+        isFilterOpen.value = false
+    }
+}
+
+onMounted(() => document.addEventListener('click', handleFilterClickOutside))
+onUnmounted(() => document.removeEventListener('click', handleFilterClickOutside))
+
+const YEAR_OPTIONS = [2024, 2025, 2026, 2027, 2028]
 
 watch(() => props.selectedYear, (newYear) => {
     filterYear.value = newYear
@@ -86,7 +100,24 @@ watch(() => props.selectedRuangan, (newRuangan) => {
     filterRuangan.value = newRuangan
 })
 
+const selectedRuanganLabel = computed(() => {
+    if (!filterRuangan.value) return 'Semua Ruangan'
+    const room = props.ruanganList?.find(r => r.id === filterRuangan.value)
+    return room?.nama_ruang ?? 'Semua Ruangan'
+})
+
+const selectedRuanganColor = computed(() => {
+    if (!filterRuangan.value) return null
+    const idx = props.ruanganList?.findIndex(r => r.id === filterRuangan.value) ?? -1
+    return idx >= 0 ? ROOM_COLORS[idx % ROOM_COLORS.length].bg : null
+})
+
+const hasActiveFilter = computed(() => {
+    return filterYear.value !== new Date().getFullYear() || filterRuangan.value !== null
+})
+
 function applyFilter() {
+    isFilterOpen.value = false
     router.get('/user/dashboard', {
         year: filterYear.value,
         ruangan_id: filterRuangan.value || undefined,
@@ -94,6 +125,12 @@ function applyFilter() {
         preserveState: true,
         preserveScroll: true,
     })
+}
+
+function resetFilter() {
+    filterYear.value = new Date().getFullYear()
+    filterRuangan.value = null
+    applyFilter()
 }
 
 // ============================================================
@@ -378,40 +415,160 @@ function statusLabel(status) {
         </div>
 
         <!-- ============================================================ -->
-        <!-- Filter Area -->
+        <!-- Filter Area — Premium Panel -->
         <!-- ============================================================ -->
-        <div class="bg-white rounded shadow p-4 mb-4 flex flex-wrap gap-4 items-end">
+        <div class="bg-white border border-gray-200 rounded-md shadow-sm mb-5">
 
-            <!-- Year -->
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Tahun</label>
-                <select v-model="filterYear" @change="applyFilter" class="border border-gray-300 rounded px-3 py-1.5 text-sm">
-                    <option v-for="y in [2025,2026,2027,2028]" :key="y" :value="y">{{ y }}</option>
-                </select>
+            <!-- Filter Header -->
+            <div class="px-5 py-3.5 flex items-center justify-between border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <div class="p-1.5 bg-blue-50 rounded-md text-blue-600">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Filter Tampilan</span>
+                    <span v-if="hasActiveFilter" class="ml-1 px-1.5 py-0.5 text-[9px] font-bold bg-blue-100 text-blue-700 rounded-full uppercase tracking-wide">Aktif</span>
+                </div>
+                <button
+                    v-if="hasActiveFilter"
+                    @click="resetFilter"
+                    class="text-[11px] text-gray-400 hover:text-red-500 font-semibold flex items-center gap-1 transition-colors"
+                >
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Reset Filter
+                </button>
             </div>
 
-            <!-- Ruangan -->
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Ruangan</label>
-                <select v-model="filterRuangan" @change="applyFilter" class="border border-gray-300 rounded px-3 py-1.5 text-sm">
-                    <option :value="null">Semua Ruangan</option>
-                    <option v-for="r in ruanganList" :key="r.id" :value="r.id">{{ r.nama_ruang }}</option>
-                </select>
+            <!-- Filter Controls -->
+            <div class="px-5 py-4 flex flex-wrap items-end gap-4">
+
+                <!-- Tahun Select -->
+                <div class="flex flex-col gap-1.5 min-w-[130px]">
+                    <label class="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Tahun
+                    </label>
+                    <div class="relative">
+                        <select
+                            v-model="filterYear"
+                            class="w-full h-9 pl-3 pr-8 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-800 font-semibold appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 cursor-pointer transition"
+                        >
+                            <option v-for="y in YEAR_OPTIONS" :key="y" :value="y">{{ y }}</option>
+                        </select>
+                        <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Ruangan Select -->
+                <div ref="filterRef" class="flex flex-col gap-1.5 min-w-[200px]">
+                    <label class="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        Ruangan
+                    </label>
+                    <div class="relative">
+                        <!-- Trigger Display -->
+                        <div
+                            @click="isFilterOpen = !isFilterOpen"
+                            class="w-full h-9 pl-3 pr-8 bg-gray-50 border border-gray-200 rounded-md text-sm font-semibold flex items-center gap-2 cursor-pointer select-none transition"
+                            :class="isFilterOpen ? 'ring-2 ring-blue-500 border-blue-400' : 'hover:border-gray-300'"
+                        >
+                            <span
+                                v-if="selectedRuanganColor"
+                                class="w-2.5 h-2.5 rounded-full shrink-0"
+                                :style="{ backgroundColor: selectedRuanganColor }"
+                            ></span>
+                            <span class="text-gray-800 truncate">{{ selectedRuanganLabel }}</span>
+                            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none transition-transform" :class="isFilterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                        <!-- Dropdown Options -->
+                        <Transition
+                            enter-active-class="transition-all duration-200 ease-out"
+                            enter-from-class="opacity-0 translate-y-1 scale-98"
+                            enter-to-class="opacity-100 translate-y-0 scale-100"
+                            leave-active-class="transition-all duration-150 ease-in"
+                            leave-from-class="opacity-100 translate-y-0 scale-100"
+                            leave-to-class="opacity-0 translate-y-1 scale-98"
+                        >
+                            <div
+                                v-if="isFilterOpen"
+                                class="absolute top-full left-0 mt-1 w-full min-w-[220px] bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1 overflow-hidden"
+                            >
+                                <!-- Semua Ruangan -->
+                                <button
+                                    @click="filterRuangan = null; isFilterOpen = false"
+                                    class="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-gray-50 transition text-left"
+                                    :class="filterRuangan === null ? 'bg-blue-50 font-bold text-blue-700' : 'text-gray-700 font-medium'"
+                                >
+                                    <span class="w-2.5 h-2.5 rounded-full bg-gray-300 shrink-0"></span>
+                                    <span>Semua Ruangan</span>
+                                    <svg v-if="filterRuangan === null" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                </button>
+                                <div class="my-1 border-t border-gray-100"></div>
+                                <!-- Per Ruangan -->
+                                <button
+                                    v-for="(r, idx) in ruanganList"
+                                    :key="r.id"
+                                    @click="filterRuangan = r.id; isFilterOpen = false"
+                                    class="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-gray-50 transition text-left"
+                                    :class="filterRuangan === r.id ? 'bg-blue-50 font-bold text-blue-700' : 'text-gray-700 font-medium'"
+                                >
+                                    <span
+                                        class="w-2.5 h-2.5 rounded-full shrink-0"
+                                        :style="{ backgroundColor: ROOM_COLORS[idx % ROOM_COLORS.length].bg }"
+                                    ></span>
+                                    <span>{{ r.nama_ruang }}</span>
+                                    <svg v-if="filterRuangan === r.id" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                </button>
+                            </div>
+                        </Transition>
+                    </div>
+                </div>
+
+                <!-- Tombol Terapkan -->
+                <button
+                    @click="applyFilter"
+                    class="h-9 px-5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold rounded-md shadow-sm transition flex items-center gap-2 select-none shrink-0"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                    </svg>
+                    Terapkan
+                </button>
+
             </div>
 
-            <!-- Legend Warna Ruangan -->
-            <div class="flex flex-wrap gap-2 ml-auto">
-                <div
+            <!-- Legend Ruangan -->
+            <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/60 flex flex-wrap gap-2">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider self-center mr-1">Warna Ruangan:</span>
+                <button
                     v-for="(r, idx) in ruanganList"
                     :key="r.id"
-                    class="flex items-center gap-1 text-xs"
+                    @click="filterRuangan = r.id; applyFilter()"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border transition-all"
+                    :style="{
+                        backgroundColor: filterRuangan === r.id ? ROOM_COLORS[idx % ROOM_COLORS.length].light : '#f9fafb',
+                        borderColor: filterRuangan === r.id ? ROOM_COLORS[idx % ROOM_COLORS.length].bg : '#e5e7eb',
+                        color: filterRuangan === r.id ? ROOM_COLORS[idx % ROOM_COLORS.length].text : '#6b7280'
+                    }"
+                    :title="`Filter: ${r.nama_ruang}`"
                 >
                     <span
-                        class="w-3 h-3 rounded-full inline-block"
+                        class="w-2 h-2 rounded-full shrink-0"
                         :style="{ backgroundColor: ROOM_COLORS[idx % ROOM_COLORS.length].bg }"
                     ></span>
                     {{ r.nama_ruang }}
-                </div>
+                </button>
             </div>
 
         </div>
