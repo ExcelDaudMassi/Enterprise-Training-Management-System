@@ -145,11 +145,87 @@ onMounted(() => {
     if (typeof window !== 'undefined') {
         const saved = localStorage.getItem(storageKey.value)
         if (saved) {
+            let infoHtml = ''
+            try {
+                const data = JSON.parse(saved)
+                const stageNames = {
+                    1: 'Kapasitas & Peserta',
+                    2: 'Pilih Tanggal',
+                    3: 'Pilih Ruangan',
+                    4: 'Detail Acara',
+                    5: 'Review & Ajukan'
+                }
+                const stageName = stageNames[data.currentStage] || 'Formulir'
+                
+                // Format tanggal jika ada
+                let dateRangeStr = 'Belum dipilih'
+                if (data.startDate && data.endDate) {
+                    const formatDateLocal = (dateStr) => {
+                        const d = new Date(dateStr)
+                        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+                    }
+                    dateRangeStr = `${formatDateLocal(data.startDate)} s/d ${formatDateLocal(data.endDate)}`
+                }
+                
+                // Hitung total peserta & panitia
+                const pCount = data.participants ? data.participants.length : 0
+                const panCount = data.panitiaList ? data.panitiaList.length : 0
+                const totalOrang = pCount + panCount
+                
+                infoHtml = `
+                    <div class="mt-4 p-3.5 bg-gray-50 border border-gray-100 rounded-xl text-left font-sans shadow-inner">
+                        <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5 select-none">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block animate-pulse"></span>
+                            <span>Resume Progres Tersimpan:</span>
+                        </div>
+                        <div class="space-y-2 text-[11px] leading-relaxed">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400 font-medium">Langkah Terakhir:</span>
+                                <span class="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-[4px] text-[10px] border border-blue-100/50">
+                                    Tahap ${data.currentStage}: ${stageName}
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400 font-medium">Rentang Tanggal:</span>
+                                <span class="text-gray-700 font-semibold">${dateRangeStr}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400 font-medium">Total Kapasitas:</span>
+                                <span class="text-gray-700 font-semibold">${totalOrang > 0 ? `${totalOrang} Orang` : 'Belum diisi'}</span>
+                            </div>
+                `
+                if (data.selectedRoom) {
+                    infoHtml += `
+                            <div class="flex items-center justify-between border-t border-gray-200/50 pt-2 mt-2">
+                                <span class="text-gray-400 font-medium">Ruangan Terpilih:</span>
+                                <span class="text-blue-600 font-bold">${data.selectedRoom.nama_ruang}</span>
+                            </div>
+                    `
+                }
+                infoHtml += `
+                        </div>
+                    </div>
+                `
+            } catch (e) {
+                console.error('Gagal mem-parse info modal resume:', e)
+            }
+
             Swal.fire({
                 title: 'Lanjutkan Isian?',
-                text: 'Anda memiliki data isian form booking yang belum selesai. Apakah Anda ingin melanjutkannya?',
-                icon: 'question',
-                iconColor: '#2563eb', // Tema biru premium kita
+                html: `
+                    <div class="text-center font-sans">
+                        <div class="w-14 h-14 bg-blue-50 border border-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-600 relative shadow-sm">
+                            <span class="animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-20"></span>
+                            <svg class="w-7 h-7 relative" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                        </div>
+                        <div class="text-[11.5px] text-gray-500 leading-relaxed px-2">
+                            Anda memiliki data isian form booking yang belum selesai. Apakah Anda ingin melanjutkannya?
+                        </div>
+                        ${infoHtml}
+                    </div>
+                `,
                 width: '22rem', // Ukuran box ramping dan elegan (352px)
                 showCancelButton: true,
                 confirmButtonText: 'Ya, Lanjutkan',
@@ -157,12 +233,12 @@ onMounted(() => {
                 allowOutsideClick: false,
                 buttonsStyling: false,
                 customClass: {
-                    popup: 'rounded-xl border border-gray-100 shadow-md p-5 font-sans',
-                    title: 'text-base font-black text-gray-800 tracking-tight !mt-3 !mb-1.5',
-                    htmlContainer: 'text-[11px] text-gray-500 leading-relaxed !m-0 !mb-4 px-2',
+                    popup: 'rounded-2xl border border-gray-100 shadow-xl p-5 font-sans',
+                    title: 'text-base font-black text-gray-800 tracking-tight !mt-1 !mb-1.5',
+                    htmlContainer: '!m-0 !mb-4',
                     confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-5 rounded-md transition shadow-sm mr-2 focus:outline-none select-none cursor-pointer',
                     cancelButton: 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 font-bold text-xs py-2.5 px-5 rounded-md transition shadow-sm focus:outline-none select-none cursor-pointer',
-                    actions: '!mt-1',
+                    actions: '!mt-1.5',
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
