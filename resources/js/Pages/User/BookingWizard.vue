@@ -697,8 +697,7 @@ function backToStage1() {
 
 function backToStage2() {
     currentStage.value   = 2
-    // Reset state stage 3 dan 4
-    availableRooms.value = []
+    // Reset state stage 3 dan 4 (TETAP pertahankan availableRooms agar indikator "Ruangan Tersedia" akurat)
     selectedRoom.value   = null
     stage3Error.value    = ''
     formStage4.value     = {
@@ -718,6 +717,28 @@ function formatDate(dateStr) {
     if (!dateStr) return '-'
     const d = new Date(dateStr)
     return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+const getStageTitle = (stage) => {
+    switch (stage) {
+        case 1: return 'Daftar Peserta & Panitia'
+        case 2: return 'Kalender Ketersediaan'
+        case 3: return 'Pilih Ruangan'
+        case 4: return 'Detail Informasi Acara'
+        case 5: return 'Review & Finalisasi'
+        default: return ''
+    }
+}
+
+const getStageSubtitle = (stage) => {
+    switch (stage) {
+        case 1: return 'Lengkapi daftar peserta training dan panitia penyelenggara untuk mencari ruangan yang sesuai.'
+        case 2: return 'Pilih rentang tanggal mulai dan selesai pada kalender untuk melihat ketersediaan ruangan.'
+        case 3: return 'Pilih salah satu ruangan yang tersedia untuk kapasitas dan rentang tanggal yang telah ditentukan.'
+        case 4: return 'Lengkapi informasi acara, PIC, layout ruangan, dan kebutuhan tambahan.'
+        case 5: return 'Tinjau kembali seluruh data sebelum diajukan ke admin.'
+        default: return ''
+    }
 }
 
 const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
@@ -767,92 +788,284 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                     </template>
                 </div>
             </div>
-            <!-- STAGE 1 -->
-            <div v-if="currentStage === 1" class="bg-white rounded-md border border-gray-100 shadow-sm p-6">
-                <div class="flex items-center gap-2.5 mb-1.5">
-                    <svg class="w-4.5 h-4.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A11.386 11.386 0 0 1 10.089 21c-2.243 0-4.32-.647-6.07-1.758A5.986 5.986 0 0 1 4 17.25m6-5.625a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6.5-2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                    </svg>
-                    <h2 class="text-sm font-semibold text-gray-700">Daftar Peserta & Panitia</h2>
+            <!-- ======================================================= -->
+            <!-- STAGE CARD MAIN WRAPPER -->
+            <!-- ======================================================= -->
+            <div v-if="!submitSuccess" class="bg-white rounded-md border border-gray-100 shadow-sm p-6 flex flex-col min-h-[500px]">
+                
+                <!-- Dynamic Stage Header (Always Pinned at Top) -->
+                <div class="mb-5 flex items-start gap-3 min-h-[52px]">
+                    <div class="bg-gray-50 border border-gray-100 rounded-md p-2 shrink-0">
+                        <svg v-if="currentStage === 1" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A11.386 11.386 0 0 1 10.089 21c-2.243 0-4.32-.647-6.07-1.758A5.986 5.986 0 0 1 4 17.25m6-5.625a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6.5-2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                        </svg>
+                        <svg v-else-if="currentStage === 2" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                        </svg>
+                        <svg v-else-if="currentStage === 3" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+                        </svg>
+                        <svg v-else-if="currentStage === 4" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+                        </svg>
+                        <svg v-else-if="currentStage === 5" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                    </div>
+                    <div class="flex-grow">
+                        <h2 class="text-sm font-bold text-gray-800 leading-none mb-1">{{ getStageTitle(currentStage) }}</h2>
+                        <p class="text-xs text-gray-400 leading-relaxed">{{ getStageSubtitle(currentStage) }}</p>
+                    </div>
                 </div>
-                <p class="text-xs text-gray-400 mb-5 leading-relaxed ml-7">
-                    Lengkapi daftar peserta training dan panitia penyelenggara untuk mencari ruangan yang sesuai.
-                </p>
 
-                <div class="space-y-6">
-
-                    <!-- Action Bar -->
-                    <div class="flex flex-wrap items-center justify-between gap-3 bg-gray-50 border border-gray-100 rounded-md px-4 py-3">
-                        
-                        <!-- Left side: Excel Import & Download only -->
-                        <div class="flex items-center gap-2">
-                            <template v-if="uploadedFileName === 'Input Manual'">
-                                <input type="file" id="excel-upload-bar" class="hidden" accept=".xlsx"
-                                    @change="handleExcelUpload" :disabled="isUploadingExcel" />
-                                <label for="excel-upload-bar"
-                                    class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3.5 rounded-md cursor-pointer transition flex items-center gap-2 shadow-sm select-none"
-                                    :class="{ 'opacity-60 cursor-not-allowed': isUploadingExcel }">
-                                    <span v-if="isUploadingExcel" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
-                                    <svg v-else class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                                    </svg>
-                                    <span>{{ isUploadingExcel ? 'Memproses...' : 'Impor Excel' }}</span>
-                                </label>
-                                <a :href="`/user/booking/download-template?v=${Date.now()}`"
-                                    class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition inline-flex items-center gap-2 shadow-sm select-none">
-                                    <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                    </svg>
-                                    Template Excel
-                                </a>
-                            </template>
-                            <template v-else>
-                                <button @click="resetExcel"
-                                    class="bg-white border border-red-200 text-red-500 hover:bg-red-50 text-xs font-semibold py-2 px-3.5 rounded-md transition flex items-center gap-2 shadow-sm max-w-xs">
-                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9 9m9.24-3.5v-.75A2.25 2.25 0 0 0 16.25 2.25h-4.5A2.25 2.25 0 0 0 9.5 4.5v.75m3 3h4.5M5.625 6h12.75L17.25 18a2.25 2.25 0 0 1-2.25 2.25h-6A2.25 2.25 0 0 1 6.75 18L5.625 6Z" />
-                                    </svg>
-                                    <span class="truncate">Hapus "{{ uploadedFileName }}"</span>
-                                </button>
-                            </template>
-                        </div>
-
-                        <!-- Right side: Count summary & Next CTA -->
-                        <div class="flex flex-wrap items-center gap-3">
-                            <!-- Ringkasan kapasitas -->
-                            <div class="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
-                                <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-                                </svg>
+                <!-- Unified Action Bar (Persistent at the Top, under Header) -->
+                <div class="bg-gray-50 border border-gray-100 rounded-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 mb-6 shrink-0 min-h-[54px]">
+                    <!-- Left: dynamic information based on current stage -->
+                    <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                        <!-- Stage 1 -->
+                        <template v-if="currentStage === 1">
+                            <div class="flex items-center gap-2">
+                                <template v-if="uploadedFileName === 'Input Manual'">
+                                    <input type="file" id="excel-upload-bar" class="hidden" accept=".xlsx"
+                                        @change="handleExcelUpload" :disabled="isUploadingExcel" />
+                                    <label for="excel-upload-bar"
+                                        class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3.5 rounded-md cursor-pointer transition flex items-center gap-2 shadow-sm select-none"
+                                        :class="{ 'opacity-60 cursor-not-allowed': isUploadingExcel }">
+                                        <span v-if="isUploadingExcel" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
+                                        <svg v-else class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                        </svg>
+                                        <span>{{ isUploadingExcel ? 'Memproses...' : 'Impor Excel' }}</span>
+                                    </label>
+                                    <a :href="`/user/booking/download-template?v=${Date.now()}`"
+                                        class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition inline-flex items-center gap-2 shadow-sm select-none">
+                                        <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                        </svg>
+                                        Template Excel
+                                    </a>
+                                </template>
+                                <template v-else>
+                                    <button @click="resetExcel"
+                                        class="bg-white border border-red-200 text-red-500 hover:bg-red-50 text-xs font-semibold py-2 px-3.5 rounded-md transition flex items-center gap-2 shadow-sm max-w-xs">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9 9m9.24-3.5v-.75A2.25 2.25 0 0 0 16.25 2.25h-4.5A2.25 2.25 0 0 0 9.5 4.5v.75m3 3h4.5M5.625 6h12.75L17.25 18a2.25 2.25 0 0 1-2.25 2.25h-6A2.25 2.25 0 0 1 6.75 18L5.625 6Z" />
+                                        </svg>
+                                        <span class="truncate">Hapus "{{ uploadedFileName }}"</span>
+                                    </button>
+                                </template>
+                            </div>
+                            <span class="text-gray-300 mx-0.5">|</span>
+                            <div class="flex items-center gap-1.5 font-medium text-xs">
                                 Peserta: <strong class="text-gray-800">{{ participantCount }}</strong>
                                 <span class="text-gray-300 mx-0.5">|</span>
                                 Panitia: <strong class="text-gray-800">{{ panitiaCount }}</strong>
                                 <span class="text-gray-300 mx-0.5">|</span>
                                 <span class="text-blue-600 font-bold">Total: {{ totalOrangComputed }}</span>
                             </div>
+                        </template>
 
-                            <!-- Error inline -->
-                            <div v-if="stage1Error" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-1.5 flex items-center gap-1.5 shrink-0">
-                                <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                        <!-- Stage 2 -->
+                        <template v-else-if="currentStage === 2">
+                            <div class="flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
                                 </svg>
-                                <span>{{ stage1Error }}</span>
+                                <span>Kapasitas: <strong class="text-gray-800">{{ totalOrang }} Orang</strong></span>
+                                <span class="text-gray-300 mx-0.5">|</span>
+                                <span><strong class="text-gray-800">{{ eligibleRooms.length }}</strong> Opsi Ruangan</span>
                             </div>
+                            <span class="text-gray-300 mx-0.5">|</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full shrink-0" :class="isRangeSelected ? 'bg-green-500' : 'bg-yellow-400 animate-pulse'"></span>
+                                <span>
+                                    <template v-if="!startDate">Pilih tanggal mulai di kalender</template>
+                                    <template v-else-if="!endDate">Mulai: <strong class="text-blue-600">{{ formatDate(startDate) }}</strong> — pilih selesai</template>
+                                    <template v-else><strong class="text-green-600">{{ formatDate(startDate) }}</strong> s/d <strong class="text-green-600">{{ formatDate(endDate) }}</strong></template>
+                                </span>
+                            </div>
+                            <template v-if="isRangeSelected">
+                                <span class="text-gray-300 mx-0.5">|</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span v-if="isAutoFetchingRooms" class="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></span>
+                                    <template v-else>
+                                        <span v-if="availableRooms.filter(r => r.is_available).length > 0" class="bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-semibold border border-green-100 flex items-center gap-1">
+                                            <span>✓</span>
+                                            <span>{{ availableRooms.filter(r => r.is_available).length }} Ruangan Tersedia</span>
+                                        </span>
+                                        <span v-else class="bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-semibold border border-red-100 flex items-center gap-1 animate-pulse">
+                                            <span>❌</span>
+                                            <span>Semua Penuh</span>
+                                        </span>
+                                    </template>
+                                </div>
+                            </template>
+                        </template>
 
-                            <!-- CTA -->
-                            <button @click="checkEligibility" :disabled="!isStage1Valid || isChecking"
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2 select-none">
-                                <span v-if="isChecking" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
-                                <svg v-else class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637z" />
+                        <!-- Stage 3 -->
+                        <template v-else-if="currentStage === 3">
+                            <div class="flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                                 </svg>
-                                <span>{{ isChecking ? 'Mengecek...' : 'Cari Ruangan' }}</span>
-                                <svg v-if="!isChecking" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                <span>{{ formatDate(startDate) }} <span class="text-gray-300">s/d</span> {{ formatDate(endDate) }}</span>
+                            </div>
+                            <span class="text-gray-300 mx-0.5">|</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full shrink-0" :class="isRoomSelected ? 'bg-green-500' : 'bg-yellow-400 animate-pulse'"></span>
+                                <span :class="isRoomSelected ? 'text-green-600 font-semibold' : ''">
+                                    {{ isRoomSelected ? `${selectedRoom.nama_ruang} Terpilih` : 'Pilih ruangan di bawah' }}
+                                </span>
+                            </div>
+                        </template>
+
+                        <!-- Stage 4 -->
+                        <template v-else-if="currentStage === 4">
+                            <div class="flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
                                 </svg>
-                            </button>
-                        </div>
+                                <span class="font-bold text-gray-700">{{ selectedRoom?.nama_ruang }}</span>
+                            </div>
+                            <span class="text-gray-300 mx-0.5">|</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full shrink-0" :class="isStage4Valid ? 'bg-green-500' : 'bg-yellow-400 animate-pulse'"></span>
+                                <span :class="isStage4Valid ? 'text-green-600 font-semibold' : ''">
+                                    {{ isStage4Valid ? 'Siap dilanjutkan' : 'Lengkapi Nama Acara & PIC' }}
+                                </span>
+                            </div>
+                        </template>
+
+                        <!-- Stage 5 -->
+                        <template v-else-if="currentStage === 5">
+                            <label class="flex items-start gap-3 select-none cursor-pointer flex-1" :class="isSubmitting ? 'opacity-60 cursor-not-allowed' : ''">
+                                <input type="checkbox" v-model="termsAccepted" :disabled="isSubmitting"
+                                    class="w-4 h-4 mt-0.5 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-100 shrink-0" />
+                                <div>
+                                    <span class="text-xs font-semibold text-gray-700 block leading-tight">Saya memastikan data pemesanan sudah benar</span>
+                                    <span class="text-[10px] text-gray-450 block mt-0.5 leading-tight">Saya bertanggung jawab penuh atas kelengkapan data & menyetujui syarat penggunaan ruangan.</span>
+                                </div>
+                            </label>
+                        </template>
                     </div>
+
+                    <!-- Right: dynamic action buttons -->
+                    <div class="flex items-center gap-2">
+                        <div v-if="currentStage === 1 && stage1Error" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-1.5 flex items-center gap-1.5 shrink-0">
+                            <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                            </svg>
+                            <span>{{ stage1Error }}</span>
+                        </div>
+
+                        <div v-if="currentStage === 2 && rangeError" class="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 flex items-center gap-1 shrink-0">
+                            <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+                            {{ rangeError }}
+                        </div>
+                        <div v-if="currentStage === 2 && stage3Error" class="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 flex items-center gap-1 shrink-0">
+                            <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+                            {{ stage3Error }}
+                        </div>
+
+                        <div v-if="currentStage === 3 && stage3Error" class="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 flex items-center gap-1 shrink-0">
+                            <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+                            {{ stage3Error }}
+                        </div>
+
+                        <div v-if="currentStage === 4 && stage4Error" class="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 flex items-center gap-1 shrink-0">
+                            <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+                            {{ stage4Error }}
+                        </div>
+
+                        <div v-if="currentStage === 5 && submitError" class="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 flex items-center gap-1 shrink-0">
+                            <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+                            {{ submitError }}
+                        </div>
+
+                        <div v-if="currentStage === 2" class="hidden md:flex items-center gap-2 text-[10px] text-gray-400 font-medium mr-2 shrink-0">
+                            <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Tersedia</div>
+                            <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> Parsial</div>
+                            <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span> Penuh</div>
+                        </div>
+
+                        <!-- CTAs -->
+                        <button v-if="currentStage === 1" @click="checkEligibility" :disabled="!isStage1Valid || isChecking"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2 select-none">
+                            <span v-if="isChecking" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
+                            <svg v-else class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637z" />
+                            </svg>
+                            <span>{{ isChecking ? 'Mengecek...' : 'Cari Ruangan' }}</span>
+                            <svg v-if="!isChecking" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                            </svg>
+                        </button>
+
+                        <template v-else-if="currentStage === 2">
+                            <button @click="backToStage1"
+                                class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                                Kembali
+                            </button>
+                            <button @click="proceedToStage3" :disabled="!isRangeSelected || isLoadingRooms || (availableRooms.length > 0 && !availableRooms.some(r => r.is_available))"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2 select-none">
+                                <span v-if="isLoadingRooms" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <span>{{ isLoadingRooms ? 'Memproses...' : 'Pilih Ruangan' }}</span>
+                                <svg v-if="!isLoadingRooms" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                            </button>
+                        </template>
+
+                        <template v-else-if="currentStage === 3">
+                            <button @click="backToStage2"
+                                class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                                Kembali
+                            </button>
+                            <button @click="proceedToStage4" :disabled="!isRoomSelected"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2 select-none">
+                                <span>Isi Detail</span>
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                            </button>
+                        </template>
+
+                        <template v-else-if="currentStage === 4">
+                            <button @click="currentStage = 3" :disabled="isSavingStage4"
+                                class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                                Kembali
+                            </button>
+                            <button @click="proceedToStage5" :disabled="!isStage4Valid || isSavingStage4"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2 select-none">
+                                <span v-if="isSavingStage4" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <span>{{ isSavingStage4 ? 'Menyimpan...' : 'Lanjut ke Review' }}</span>
+                                <svg v-if="!isSavingStage4" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                            </button>
+                        </template>
+
+                        <template v-else-if="currentStage === 5">
+                            <button @click="currentStage = 4" :disabled="isSubmitting"
+                                class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                                Kembali Edit
+                            </button>
+                            <div class="flex flex-col items-end gap-0.5 shrink-0">
+                                <button @click="submitFinal" :disabled="isSubmitting || !termsAccepted"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-md text-xs transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap select-none">
+                                    <span v-if="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                    <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+                                    {{ isSubmitting ? 'Mengajukan...' : 'Ajukan Booking' }}
+                                </button>
+                                <span class="text-[9px] text-gray-405 select-none">Direview admin maks. 1×24 jam</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Dynamic Stage Content Area -->
+                <div class="flex-grow">
+
+                    <!-- STAGE 1 -->
+                    <div v-if="currentStage === 1" class="space-y-6">
 
                     <!-- Tables -->
                     <div class="flex flex-col gap-4 w-full">
@@ -1069,82 +1282,9 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
 
                     </div>
                 </div>
-            </div>
 
             <!-- STAGE 2 -->
-                    <div v-if="currentStage === 2" class="bg-white rounded-md border border-gray-100 shadow-sm p-6 space-y-6">
-                <div class="flex items-center gap-2.5 mb-1.5">
-                    <svg class="w-4.5 h-4.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                    </svg>
-                    <h2 class="text-sm font-semibold text-gray-700">Kalender Ketersediaan</h2>
-                </div>
-                <p class="text-xs text-gray-400 mb-5 leading-relaxed ml-7">Pilih rentang tanggal mulai dan selesai pada kalender untuk melihat ketersediaan ruangan.</p>
-
-                <!-- Action Bar Stage 2 -->
-                <div class="flex flex-wrap items-center justify-between gap-3 bg-gray-50 border border-gray-100 rounded-md px-4 py-3">
-                    <!-- Left: info kapasitas + status tanggal -->
-                    <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <!-- Kapasitas -->
-                        <div class="flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-                            </svg>
-                            <span>Kapasitas: <strong class="text-gray-800">{{ totalOrang }} Orang</strong></span>
-                            <span class="text-gray-300 mx-0.5">|</span>
-                            <span><strong class="text-gray-800">{{ eligibleRooms.length }}</strong> Opsi Ruangan</span>
-                        </div>
-
-                        <!-- Status tanggal -->
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full shrink-0" :class="isRangeSelected ? 'bg-green-500' : 'bg-yellow-400 animate-pulse'"></span>
-                            <span>
-                                <template v-if="!startDate">Pilih tanggal mulai di kalender</template>
-                                <template v-else-if="!endDate">Mulai: <strong class="text-blue-600">{{ formatDate(startDate) }}</strong> — pilih selesai</template>
-                                <template v-else><strong class="text-green-600">{{ formatDate(startDate) }}</strong> s/d <strong class="text-green-600">{{ formatDate(endDate) }}</strong></template>
-                            </span>
-                        </div>
-
-                        <!-- Auto-fetch status -->
-                        <div v-if="isRangeSelected" class="flex items-center gap-1.5">
-                            <span v-if="isAutoFetchingRooms" class="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></span>
-                            <span v-else-if="availableRooms.length > 0 && availableRooms.some(r => r.is_available)" class="text-green-600 font-semibold">{{ availableRooms.filter(r => r.is_available).length }} Ruangan Siap</span>
-                            <span v-else-if="availableRooms.length > 0" class="text-red-500 font-semibold">Semua Penuh</span>
-                            <span v-else class="text-gray-400">Mengecek...</span>
-                        </div>
-                    </div>
-
-                    <!-- Right: legend + error + aksi -->
-                    <div class="flex flex-wrap items-center gap-3">
-                        <!-- Legend -->
-                        <div class="hidden md:flex items-center gap-2 text-[10px] text-gray-400 font-medium">
-                            <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Tersedia</div>
-                            <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> Parsial</div>
-                            <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span> Penuh</div>
-                        </div>
-
-                        <div v-if="rangeError" class="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 flex items-center gap-1">
-                            <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
-                            {{ rangeError }}
-                        </div>
-                        <div v-if="stage3Error" class="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 flex items-center gap-1">
-                            <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
-                            {{ stage3Error }}
-                        </div>
-
-                        <button @click="backToStage1"
-                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-                            Kembali
-                        </button>
-                        <button @click="proceedToStage3" :disabled="!isRangeSelected || isLoadingRooms"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2">
-                            <span v-if="isLoadingRooms" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            <span>{{ isLoadingRooms ? 'Memproses...' : 'Pilih Ruangan' }}</span>
-                            <svg v-if="!isLoadingRooms" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                        </button>
-                    </div>
-                </div>
+            <div v-if="currentStage === 2" class="space-y-6">
 
                 <div v-if="isLoadingCalendar" class="bg-white rounded-md border border-gray-100 shadow-sm p-10 text-center text-gray-400 text-sm">
                     Memuat data ketersediaan kalender...
@@ -1184,48 +1324,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
             </div>
 
             <!-- STAGE 3 -->
-            <div v-if="currentStage === 3" class="bg-white rounded-md border border-gray-100 shadow-sm p-6 space-y-4">
-                <div class="flex items-center gap-2.5 mb-1.5">
-                    <svg class="w-4.5 h-4.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
-                    </svg>
-                    <h2 class="text-sm font-semibold text-gray-700">Pilih Ruangan</h2>
-                </div>
-                <p class="text-xs text-gray-400 mb-4 leading-relaxed ml-7">Pilih salah satu ruangan yang tersedia untuk kapasitas dan rentang tanggal yang telah ditentukan.</p>
-
-                <!-- Action Bar Stage 3 -->
-                <div class="flex flex-wrap items-center justify-between gap-3 bg-gray-50 border border-gray-100 rounded-md px-4 py-3">
-                    <!-- Left: info tanggal + status ruangan -->
-                    <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <div class="flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                            </svg>
-                            <span>{{ formatDate(startDate) }} <span class="text-gray-300">s/d</span> {{ formatDate(endDate) }}</span>
-                        </div>
-                        <span class="text-gray-200">|</span>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full shrink-0" :class="isRoomSelected ? 'bg-green-500' : 'bg-yellow-400 animate-pulse'"></span>
-                            <span :class="isRoomSelected ? 'text-green-600 font-semibold' : ''">
-                                {{ isRoomSelected ? selectedRoom.nama_ruang : 'Pilih ruangan di bawah' }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Right: actions -->
-                    <div class="flex items-center gap-2">
-                        <button @click="backToStage2"
-                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-                            Kembali
-                        </button>
-                        <button @click="proceedToStage4" :disabled="!isRoomSelected"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2">
-                            <span>Isi Detail</span>
-                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                        </button>
-                    </div>
-                </div>
+            <div v-if="currentStage === 3" class="space-y-4">
 
                 <!-- Room Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -1290,53 +1389,7 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
             </div>
 
             <!-- STAGE 4 -->
-            <div v-if="currentStage === 4" class="bg-white rounded-md border border-gray-100 shadow-sm p-6 space-y-5">
-                <div class="flex items-center gap-2.5 mb-1.5">
-                    <svg class="w-4.5 h-4.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
-                    </svg>
-                    <h2 class="text-sm font-semibold text-gray-700">Detail Informasi Acara</h2>
-                </div>
-                <p class="text-xs text-gray-400 leading-relaxed ml-7">Lengkapi informasi acara, PIC, layout ruangan, dan kebutuhan tambahan.</p>
-
-                <!-- Action Bar Stage 4 -->
-                <div class="flex flex-wrap items-center justify-between gap-3 bg-gray-50 border border-gray-100 rounded-md px-4 py-3">
-                    <!-- Left: info ruangan + status form -->
-                    <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <div class="flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
-                            </svg>
-                            <span class="font-medium text-gray-700">{{ selectedRoom?.nama_ruang }}</span>
-                        </div>
-                        <span class="text-gray-200">|</span>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full shrink-0" :class="isStage4Valid ? 'bg-green-500' : 'bg-yellow-400 animate-pulse'"></span>
-                            <span :class="isStage4Valid ? 'text-green-600 font-semibold' : ''">
-                                {{ isStage4Valid ? 'Siap dilanjutkan' : 'Lengkapi Nama Acara & PIC' }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Right: actions -->
-                    <div class="flex items-center gap-2">
-                        <div v-if="stage4Error" class="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 flex items-center gap-1">
-                            <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
-                            {{ stage4Error }}
-                        </div>
-                        <button @click="currentStage = 3" :disabled="isSavingStage4"
-                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-                            Kembali
-                        </button>
-                        <button @click="proceedToStage5" :disabled="!isStage4Valid || isSavingStage4"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2">
-                            <span v-if="isSavingStage4" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            <span>{{ isSavingStage4 ? 'Menyimpan...' : 'Lanjut ke Review' }}</span>
-                            <svg v-if="!isSavingStage4" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                        </button>
-                    </div>
-                </div>
+            <div v-if="currentStage === 4" class="space-y-5">
 
                 <!-- Info Banner: Dept & Site terkunci otomatis -->
                 <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-4 shadow-sm mb-6">
@@ -1444,38 +1497,8 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                 </div>
             </div>
 
-            <!-- ======================================================= -->
             <!-- STAGE 5 -->
-            <div v-if="currentStage === 5 && !submitSuccess" class="bg-white rounded-md border border-gray-100 shadow-sm p-6 space-y-5">
-                <div class="flex items-center gap-2.5">
-                    <svg class="w-4.5 h-4.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
-                    <h2 class="text-sm font-semibold text-gray-700">Review & Finalisasi</h2>
-                </div>
-                <p class="text-xs text-gray-400 leading-relaxed ml-7">Tinjau kembali seluruh data sebelum diajukan ke admin.</p>
-
-                <!-- Action Bar -->
-                <div class="flex flex-wrap items-center justify-between gap-3 bg-gray-50 border border-gray-100 rounded-md px-4 py-3">
-                    <div class="flex items-center gap-2 text-xs text-gray-500">
-                        <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.573-3.007-9.964-7.178Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                        </svg>
-                        Periksa semua data di bawah sebelum mengajukan
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div v-if="submitError" class="text-xs text-red-500 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 flex items-center gap-1">
-                            <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
-                            {{ submitError }}
-                        </div>
-                        <button @click="currentStage = 4" :disabled="isSubmitting"
-                            class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-                            Kembali Edit
-                        </button>
-                    </div>
-                </div>
+            <div v-if="currentStage === 5" class="space-y-5">
 
                 <!-- Review: single column flow -->
                 <div class="flex flex-col gap-4">
@@ -1580,29 +1603,10 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                         </div>
                     </div>
 
-                    <!-- Konfirmasi & Submit — paling bawah, sejalur -->
-                    <div class="bg-gray-50 border border-gray-100 rounded-md p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <label class="flex items-start gap-3 select-none cursor-pointer flex-1" :class="isSubmitting ? 'opacity-60 cursor-not-allowed' : ''">
-                            <input type="checkbox" v-model="termsAccepted" :disabled="isSubmitting"
-                                class="w-4 h-4 mt-0.5 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-100 shrink-0" />
-                            <div>
-                                <span class="text-xs font-semibold text-gray-700 block">Saya memastikan data pemesanan sudah benar</span>
-                                <span class="text-[11px] text-gray-400 block mt-0.5">Dengan mencentang ini, saya menyetujui syarat penggunaan ruangan dan bertanggung jawab atas kelengkapan data.</span>
-                            </div>
-                        </label>
-                        <div class="flex flex-col items-end gap-1.5 shrink-0">
-                            <button @click="submitFinal" :disabled="isSubmitting || !termsAccepted"
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-md text-sm transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap">
-                                <span v-if="isSubmitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
-                                {{ isSubmitting ? 'Mengajukan...' : 'Ajukan Booking' }}
-                            </button>
-                            <p class="text-[10px] text-gray-400">Direview admin maks. 1×24 jam kerja</p>
-                        </div>
-                    </div>
-
                 </div>
             </div>
+            </div>
+        </div>
             <!-- ======================================================= -->
             <!-- SUCCESS PAGE -->
             <!-- ======================================================= -->
@@ -1631,20 +1635,15 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
     </UserLayout>
 </template>
 
-<style scoped>
-/* Custom Scrollbar for the tables */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+<style>
+/* Sembunyikan indikator scrollbar secara global untuk mencegah pergeseran layout */
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1; /* tailwind slate-300 */
-    border-radius: 20px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: #94a3b8; /* tailwind slate-400 */
+* {
+    -ms-overflow-style: none !important;  /* IE dan Edge */
+    scrollbar-width: none !important;  /* Firefox */
 }
 </style>
