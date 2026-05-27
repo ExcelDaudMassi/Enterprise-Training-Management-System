@@ -150,17 +150,18 @@ onMounted(() => {
                 text: 'Anda memiliki data isian form booking yang belum selesai. Apakah Anda ingin melanjutkannya?',
                 icon: 'question',
                 iconColor: '#2563eb', // Tema biru premium kita
+                width: '22rem', // Ukuran box ramping dan elegan (352px)
                 showCancelButton: true,
                 confirmButtonText: 'Ya, Lanjutkan',
                 cancelButtonText: 'Buat Baru',
                 allowOutsideClick: false,
                 buttonsStyling: false,
                 customClass: {
-                    popup: 'rounded-xl border border-gray-100 shadow-md p-6 font-sans',
-                    title: 'text-lg font-black text-gray-800 tracking-tight !mt-3 !mb-1.5',
-                    htmlContainer: 'text-xs text-gray-500 leading-relaxed !m-0 !mb-5 px-4',
-                    confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2 px-4 rounded-md transition shadow-sm mr-2 focus:outline-none select-none cursor-pointer',
-                    cancelButton: 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold text-xs py-2 px-4 rounded-md transition shadow-sm focus:outline-none select-none cursor-pointer',
+                    popup: 'rounded-xl border border-gray-100 shadow-md p-5 font-sans',
+                    title: 'text-base font-black text-gray-800 tracking-tight !mt-3 !mb-1.5',
+                    htmlContainer: 'text-[11px] text-gray-500 leading-relaxed !m-0 !mb-4 px-2',
+                    confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-5 rounded-md transition shadow-sm mr-2 focus:outline-none select-none cursor-pointer',
+                    cancelButton: 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 font-bold text-xs py-2.5 px-5 rounded-md transition shadow-sm focus:outline-none select-none cursor-pointer',
                     actions: '!mt-1',
                 }
             }).then((result) => {
