@@ -169,8 +169,23 @@ function toggleSidebar() {
     }
 }
 
+function handleNav(url, e) {
+    if (currentUrl.value === url) return
+    if (isDetailActive.value && !url.includes('/detail')) {
+        e.preventDefault()
+        e.stopPropagation()
+        isDetailActive.value = false
+        setTimeout(() => {
+            router.visit(url)
+        }, 450)
+    }
+}
+
 // Sediakan state ini untuk halaman-halaman anak
 provide('isWindowActive', isWindowActive)
+provide('collapseDetailMenu', () => {
+    isDetailActive.value = false
+})
 </script>
 
 <template>
@@ -210,6 +225,7 @@ provide('isWindowActive', isWindowActive)
                 <!-- Dashboard -->
                 <Link
                     href="/user/dashboard"
+                    @click="handleNav('/user/dashboard', $event)"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
                     :class="isActive('/user/dashboard') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
@@ -227,6 +243,7 @@ provide('isWindowActive', isWindowActive)
                 </div>
                 <Link v-else
                     href="/user/booking/create"
+                    @click="handleNav('/user/booking/create', $event)"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
                     :class="isActive('/user/booking/create') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
@@ -236,6 +253,7 @@ provide('isWindowActive', isWindowActive)
                 <!-- Booking Aktif -->
                 <Link
                     href="/user/booking/active"
+                    @click="handleNav('/user/booking/active', $event)"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
                     :class="isActive('/user/booking/active') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
@@ -257,6 +275,7 @@ provide('isWindowActive', isWindowActive)
                 <!-- Riwayat Booking -->
                 <Link
                     href="/user/booking/history"
+                    @click="handleNav('/user/booking/history', $event)"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
                     :class="isActive('/user/booking/history') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
@@ -266,6 +285,7 @@ provide('isWindowActive', isWindowActive)
                 <!-- Pengaturan Password -->
                 <Link
                     href="/user/settings/password"
+                    @click="handleNav('/user/settings/password', $event)"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
                     :class="isActive('/user/settings/password') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
