@@ -103,24 +103,34 @@ watch(() => page.props.flash, (newVal) => {
             Swal.fire({
                 toast: true,
                 position: 'top-end',
-                icon: 'success',
+                iconHtml: '<svg class="w-7 h-7 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>',
                 title: newVal.success,
                 showConfirmButton: false,
                 timer: 3000,
                 timerProgressBar: true,
-                customClass: { popup: 'colored-toast' }
+                showClass: { popup: 'animate-slide-in-right' },
+                hideClass: { popup: 'animate-slide-out-right' },
+                customClass: { 
+                    popup: 'colored-toast shadow-lg border border-gray-100',
+                    icon: '!border-0 !m-0 !mr-3'
+                }
             })
         }
         if (newVal.error) {
             Swal.fire({
                 toast: true,
                 position: 'top-end',
-                icon: 'error',
+                iconHtml: '<svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>',
                 title: newVal.error,
                 showConfirmButton: false,
                 timer: 4000,
                 timerProgressBar: true,
-                customClass: { popup: 'colored-toast' }
+                showClass: { popup: 'animate-slide-in-right' },
+                hideClass: { popup: 'animate-slide-out-right' },
+                customClass: { 
+                    popup: 'colored-toast shadow-lg border border-gray-100',
+                    icon: '!border-0 !m-0 !mr-3'
+                }
             })
         }
     }
