@@ -239,6 +239,15 @@ provide('isWindowActive', isWindowActive)
                     <span class="text-base">🕒</span> Riwayat Booking
                 </Link>
 
+                <!-- Pengaturan Password -->
+                <Link
+                    href="/user/settings/password"
+                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    :class="isActive('/user/settings/password') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
+                >
+                    <span class="text-base">⚙️</span> Pengaturan Password
+                </Link>
+
                 <!-- Detail Booking (hanya muncul saat user sedang di halaman detail) -->
                 <div v-if="currentUrl.includes('/detail')"
                      class="flex items-center gap-2.5 px-3 py-2 rounded text-sm bg-blue-50 text-blue-700 font-semibold border-l-2 border-blue-500 ml-2">
@@ -291,7 +300,7 @@ provide('isWindowActive', isWindowActive)
                     <h1 class="text-sm font-semibold text-gray-700">
                         <span class="text-gray-400">User /</span>
                         <span class="ml-1 text-gray-800">
-                            {{ isActive('/user/booking') ? 'Booking Ruangan' : 'Dashboard' }}
+                            {{ isActive('/user/booking') ? 'Booking Ruangan' : (isActive('/user/settings') ? 'Pengaturan Password' : 'Dashboard') }}
                         </span>
                     </h1>
                 </div>

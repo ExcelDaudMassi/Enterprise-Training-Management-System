@@ -59,6 +59,12 @@ Route::middleware(['auth', 'user'])->group(function () {
          ->name('api.booking.request-date-change');
     Route::post('/api/booking/{booking}/update-participants', [BookingManageController::class, 'updateParticipants'])
          ->name('api.booking.update-participants');
+
+    // ─── Password Management ──────────────────────────────
+    Route::get('/user/settings/password', [\App\Http\Controllers\User\SettingsController::class, 'editPassword'])
+         ->name('user.settings.password');
+    Route::post('/user/settings/password', [\App\Http\Controllers\User\SettingsController::class, 'updatePassword'])
+         ->name('user.settings.password.update');
 });
 
 // ============================================================
