@@ -71,6 +71,7 @@ class CompanyUsersSeeder extends Seeder
                     'password' => $password,
                     'role'     => 'user',
                     'divisi'   => $deptLabel,
+                    'site'     => $siteUpper,
                 ]);
 
                 $count++;

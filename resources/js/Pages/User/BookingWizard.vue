@@ -70,6 +70,7 @@ const autoFetchRoomsError = ref('')
 const formStage4 = ref({
     nama_training: '',
     nama_pic: '',
+    no_hp_pic: '',
     layout_preferensi: 'classroom',
     layout_custom_file: null,
     hybrid: false,
@@ -82,6 +83,7 @@ const stage4Error = ref('')
 
 const isStage4Valid = computed(() => {
     if (!formStage4.value.nama_training.trim() || !formStage4.value.nama_pic.trim()) return false
+    if (!formStage4.value.no_hp_pic.trim()) return false
     if (formStage4.value.layout_preferensi === 'custom' && !formStage4.value.layout_custom_file) return false
     return true
 })
@@ -116,6 +118,7 @@ const stateToSave = computed(() => {
         formStage4: {
             nama_training: formStage4.value.nama_training,
             nama_pic: formStage4.value.nama_pic,
+            no_hp_pic: formStage4.value.no_hp_pic,
             layout_preferensi: formStage4.value.layout_preferensi,
             hybrid: formStage4.value.hybrid,
             flipchart: formStage4.value.flipchart,
@@ -161,6 +164,7 @@ onMounted(() => {
                 if (data.formStage4 !== undefined) {
                     formStage4.value.nama_training = data.formStage4.nama_training || ''
                     formStage4.value.nama_pic = data.formStage4.nama_pic || ''
+                    formStage4.value.no_hp_pic = data.formStage4.no_hp_pic || ''
                     formStage4.value.layout_preferensi = data.formStage4.layout_preferensi || 'classroom'
                     formStage4.value.hybrid = data.formStage4.hybrid || false
                     formStage4.value.flipchart = data.formStage4.flipchart || false
@@ -172,10 +176,8 @@ onMounted(() => {
         }
     }
     
-    // Smart Defaults: Isi Nama PIC secara otomatis jika kosong
-    if (!formStage4.value.nama_pic && props.auth?.user?.name) {
-        formStage4.value.nama_pic = props.auth.user.name
-    }
+    // Smart Defaults: Nama PIC tidak otomatis diisi karena harus diinput manual oleh user
+    // Departemen & Site dikunci dan diambil dari data akun yang login
 })
 
 function clearSavedState() {
@@ -582,6 +584,7 @@ async function proceedToStage5() {
     const formData = new FormData()
     formData.append('nama_training', formStage4.value.nama_training)
     formData.append('nama_pic', formStage4.value.nama_pic)
+    formData.append('no_hp_pic', formStage4.value.no_hp_pic)
     formData.append('layout_preferensi', formStage4.value.layout_preferensi)
     if (formStage4.value.layout_preferensi === 'custom' && formStage4.value.layout_custom_file) {
         formData.append('layout_custom_file', formStage4.value.layout_custom_file)
@@ -1262,12 +1265,35 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                     </div>
                 </div>
 
-                <!-- Smart Defaults / Assistant Banner -->
-                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 flex items-center gap-4 shadow-sm mb-6 transition-all hover:shadow-md">
-                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-3xs border border-blue-100 flex-shrink-0 text-xl">🤖</div>
+                <!-- Info Banner: Dept & Site terkunci otomatis -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-4 shadow-sm mb-6">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-blue-100 flex-shrink-0 text-xl">🏢</div>
                     <div>
-                        <p class="text-xs font-black text-blue-900 mb-0.5">Halo, {{ auth?.user?.name || 'User' }}!</p>
-                        <p class="text-[11px] text-blue-700 leading-tight">Asisten pintar kami telah mengisi profil Anda sebagai penanggung jawab acara. Anda tetap dapat mengeditnya jika mewakilkan pihak lain.</p>
+                        <p class="text-xs font-black text-blue-900 mb-0.5">Identitas Pemesan Terkunci Otomatis</p>
+                        <p class="text-[11px] text-blue-700 leading-tight">Departemen dan Site diambil dari akun Anda secara otomatis dan tidak dapat diubah. Harap isi <strong>Nama PIC</strong> dan <strong>No. HP PIC</strong> — yaitu nama manusia nyata yang dapat dihubungi saat hari-H.</p>
+                    </div>
+                </div>
+
+                <!-- Locked: Departemen & Site -->
+                <div class="mb-4">
+                    <h2 class="text-sm font-bold text-gray-800 mb-3 uppercase tracking-wider text-blue-900/80">Identitas Pemesan (Terkunci)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-750 mb-1">Departemen</label>
+                            <div class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50 text-gray-600 flex items-center gap-2">
+                                <span class="text-sm">🏛️</span>
+                                <span class="font-semibold">{{ auth?.user?.divisi || '—' }}</span>
+                                <span class="ml-auto text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">Terkunci</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-750 mb-1">Site / Lokasi</label>
+                            <div class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50 text-gray-600 flex items-center gap-2">
+                                <span class="text-sm">📍</span>
+                                <span class="font-semibold">{{ auth?.user?.site || '—' }}</span>
+                                <span class="ml-auto text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">Terkunci</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1280,9 +1306,15 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
                                 class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-500 bg-white" />
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-750 mb-1">Nama PIC Divisi <span class="text-red-500">*</span></label>
-                            <input v-model="formStage4.nama_pic" type="text" placeholder="Masukkan nama PIC..."
+                            <label class="block text-xs font-bold text-gray-750 mb-1">Nama PIC (Person In Charge) <span class="text-red-500">*</span></label>
+                            <input v-model="formStage4.nama_pic" type="text" placeholder="Nama lengkap yang bisa dihubungi..."
                                 class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-500 bg-white" />
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-gray-750 mb-1">No. HP PIC <span class="text-red-500">*</span></label>
+                            <input v-model="formStage4.no_hp_pic" type="tel" placeholder="Contoh: 08123456789"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-500 bg-white" />
+                            <p class="text-[10px] text-gray-400 mt-1">Nomor ini akan digunakan Admin Gedung atau Security untuk menghubungi Anda di hari pelaksanaan.</p>
                         </div>
                     </div>
                 </div>

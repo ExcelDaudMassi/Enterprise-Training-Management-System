@@ -35,6 +35,7 @@ class HandleInertiaRequests extends Middleware
                     'email'  => $request->user()->email,
                     'role'   => $request->user()->role,
                     'divisi' => $request->user()->divisi,
+                    'site'   => $request->user()->site,
                 ] : null,
             ],
             // Share global Booking Window status
