@@ -66,22 +66,6 @@ class AuthController extends Controller
         };
     }
 
-    /**
-     * [DEV ONLY] Toggle role antara admin dan user untuk testing cepat.
-     * Langsung update DB, lalu redirect ke dashboard role baru.
-     */
-    public function switchRole(Request $request)
-    {
-        $user = Auth::user();
-        $newRole = $user->role === 'admin' ? 'user' : 'admin';
 
-        // Update role di database
-        $user->forceFill(['role' => $newRole])->save();
-
-        // Re-login agar session auth diperbarui
-        Auth::login($user);
-
-        return $this->redirectByRole($user);
-    }
 }
 

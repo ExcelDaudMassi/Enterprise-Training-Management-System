@@ -15,14 +15,9 @@ function isActive(path) {
 }
 
 const logoutForm = useForm({})
-const switchForm = useForm({})
 
 function logout() {
     logoutForm.post('/logout')
-}
-
-function switchRole() {
-    switchForm.post('/dev/switch-role')
 }
 
 // ── User Notifications & Flash Messages ──────────────────────────────
@@ -249,17 +244,6 @@ provide('isWindowActive', isWindowActive)
 
             <!-- Bottom Actions -->
             <div class="px-2 py-3 border-t border-gray-100 space-y-1">
-                <!-- Switch Role (Dev Only) -->
-                <button
-                    @click="switchRole"
-                    :disabled="switchForm.processing"
-                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors font-medium"
-                    title="Switch ke Admin (Dev Only)"
-                >
-                    <span class="text-base">🔄</span>
-                    <span class="truncate">{{ switchForm.processing ? 'Switching...' : 'Switch ke Admin' }}</span>
-                </button>
-
                 <!-- Logout -->
                 <button
                     @click="logout"

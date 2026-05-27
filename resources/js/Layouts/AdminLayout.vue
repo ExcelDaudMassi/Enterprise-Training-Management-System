@@ -18,10 +18,8 @@ function isActive(path) {
 }
 
 const logoutForm  = useForm({})
-const switchForm  = useForm({})
 
 function logout() { logoutForm.post('/logout') }
-function switchRole() { switchForm.post('/dev/switch-role') }
 
 // ── Notification dropdown ────────────────────────────────────────
 const showNotif = ref(false)
@@ -227,17 +225,6 @@ watch(() => page.props.flash, (newVal) => {
 
             <!-- Bottom Actions -->
             <div class="px-2 py-3 border-t border-gray-700 space-y-1">
-                <!-- Switch Role (Dev Only) -->
-                <button
-                    @click="switchRole"
-                    :disabled="switchForm.processing"
-                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-amber-400 hover:bg-gray-800 transition-colors font-medium"
-                    title="Switch ke User (Dev Only)"
-                >
-                    <span class="text-base">🔄</span>
-                    <span class="truncate">{{ switchForm.processing ? 'Switching...' : 'Switch ke User' }}</span>
-                </button>
-
                 <!-- Logout -->
                 <button
                     @click="logout"
