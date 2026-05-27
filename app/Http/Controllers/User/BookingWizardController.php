@@ -422,6 +422,26 @@ class BookingWizardController extends Controller
             return response()->json(['success' => false, 'message' => 'Data detail (Tahap 4) tidak ditemukan. Silakan ulangi.'], 400);
         }
 
+        // ── Rate Limit: Maks 5 Booking Aktif per Akun ────────────────
+        // "Aktif" = status waiting_confirmation / confirmed / final (belum selesai)
+        $activeBookingCount = Booking::where('user_id', auth()->id())
+            ->whereIn('status', [
+                Booking::STATUS_WAITING_CONFIRMATION,
+                Booking::STATUS_CONFIRMED,
+                Booking::STATUS_FINAL,
+            ])
+            ->count();
+
+        if ($activeBookingCount >= 5) {
+            return response()->json([
+                'success' => false,
+                'message' => "Batas pengajuan tercapai. Akun Anda sudah memiliki {$activeBookingCount} booking aktif. " .
+                             "Maksimum 5 booking aktif diperbolehkan dalam satu waktu. " .
+                             "Selesaikan atau batalkan booking yang ada terlebih dahulu sebelum mengajukan yang baru.",
+            ], 429);
+        }
+
+
         try {
             DB::beginTransaction();
 
