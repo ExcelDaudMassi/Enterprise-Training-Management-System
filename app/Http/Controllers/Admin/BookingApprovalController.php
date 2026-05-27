@@ -403,8 +403,14 @@ class BookingApprovalController extends Controller
         }
 
         // ── Output ──
-        $namaTrainingClean = preg_replace('/[^A-Za-z0-9\-]/', '_', $booking->nama_training);
-        $pemohonClean = preg_replace('/[^A-Za-z0-9\-]/', '_', $booking->user?->name ?? 'Pemohon');
+        $namaTrainingClean = preg_replace('/[^A-Za-z0-9\-]/', '-', $booking->nama_training);
+        $namaTrainingClean = preg_replace('/-+/', '-', $namaTrainingClean);
+        $namaTrainingClean = trim($namaTrainingClean, '-');
+
+        $pemohonClean = preg_replace('/[^A-Za-z0-9\-]/', '-', $booking->user?->name ?? 'Pemohon');
+        $pemohonClean = preg_replace('/-+/', '-', $pemohonClean);
+        $pemohonClean = trim($pemohonClean, '-');
+
         $tglFormat = $booking->tgl_mulai->format('Ymd') . '-' . $booking->tgl_selesai->format('Ymd');
         
         $filename = $namaTrainingClean . '-' . $pemohonClean . '-' . $tglFormat . '.xlsx';
