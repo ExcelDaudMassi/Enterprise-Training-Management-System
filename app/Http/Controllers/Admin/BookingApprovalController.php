@@ -43,7 +43,7 @@ class BookingApprovalController extends Controller
             'waiting_confirmation' => $query->where('status', Booking::STATUS_WAITING_CONFIRMATION),
             'confirmed'            => $query->where('status', Booking::STATUS_CONFIRMED),
             'cancelled'            => $query->where('status', Booking::STATUS_CANCELLED),
-            'final', 'final_confirmed' => $query->whereIn('status', [Booking::STATUS_FINAL, 'final_confirmed']),
+            'final'                => $query->where('status', Booking::STATUS_FINAL),
 
             // H-14: confirmed, mulai dalam 0-14 hari ke depan
             'h14', 'urgent' => $query->where('status', Booking::STATUS_CONFIRMED)
@@ -89,7 +89,7 @@ class BookingApprovalController extends Controller
         match ($filter) {
             'waiting_confirmation' => $query->where('status', 'waiting_confirmation'),
             'confirmed'            => $query->where('status', 'confirmed'),
-            'final_confirmed'      => $query->where('status', 'final_confirmed'),
+            'final'                => $query->where('status', Booking::STATUS_FINAL),
             'cancelled'            => $query->where('status', 'cancelled'),
             'urgent'               => $query->where('status', 'waiting_confirmation')
                                             ->where('tgl_mulai', '<=', $today->copy()->addDays(14))
@@ -696,9 +696,9 @@ class BookingApprovalController extends Controller
 
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($booking) {
-                // Ubah status menjadi final_confirmed
+                // Ubah status menjadi final
                 $booking->update([
-                    'status'  => 'final_confirmed',
+                    'status'  => Booking::STATUS_FINAL,
                     'acc2_at' => now(),
                     'acc2_by' => auth()->id(),
                 ]);
@@ -738,15 +738,36 @@ class BookingApprovalController extends Controller
             return back()->with('error', 'Booking tidak dapat di-finalisasi. Status saat ini: ' . $booking->status);
         }
 
-        $booking->update([
-            'status'  => Booking::STATUS_FINAL,
-            'acc2_at' => now(),
-            'acc2_by' => Auth::id(),
-        ]);
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($booking) {
+                $booking->update([
+                    'status'  => Booking::STATUS_FINAL,
+                    'acc2_at' => now(),
+                    'acc2_by' => Auth::id(),
+                ]);
 
-        // TODO: Kirim notifikasi WhatsApp ke HK & Frontdesk di sini (fase berikutnya)
+                \App\Models\BookingLog::create([
+                    'booking_id' => $booking->id,
+                    'user_id'    => Auth::id(),
+                    'action'     => 'approve_final',
+                    'message'    => 'Admin ' . Auth::user()->name . ' melakukan ACC Final.',
+                ]);
 
-        return back()->with('success', "Booking #{$booking->id} berhasil di-ACC Final. Status: FINAL.");
+                \App\Models\BookingNotification::create([
+                    'user_id'    => $booking->user_id,
+                    'booking_id' => $booking->id,
+                    'tipe'       => 'approval',
+                    'title'      => 'Booking Final ACC',
+                    'message'    => "Booking Anda untuk '{$booking->nama_training}' telah mendapatkan ACC Final. Persiapan lapangan segera dilakukan.",
+                ]);
+
+                \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} di-ACC Final oleh admin ID #" . Auth::id());
+            });
+
+            return back()->with('success', "Booking #{$booking->id} berhasil di-ACC Final. Status: FINAL.");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
+        }
     }
 
     // ============================================================
@@ -764,14 +785,37 @@ class BookingApprovalController extends Controller
             'catatan_acc_terlambat.required' => 'Alasan ACC terlambat wajib diisi.',
         ]);
 
-        $booking->update([
-            'status'                => Booking::STATUS_FINAL,
-            'acc2_at'               => now(),
-            'acc2_by'               => Auth::id(),
-            'catatan_acc_terlambat' => $request->catatan_acc_terlambat,
-        ]);
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($booking, $request) {
+                $booking->update([
+                    'status'                => Booking::STATUS_FINAL,
+                    'acc2_at'               => now(),
+                    'acc2_by'               => Auth::id(),
+                    'catatan_acc_terlambat' => $request->catatan_acc_terlambat,
+                ]);
 
-        return back()->with('success', "Booking #{$booking->id} di-ACC Terlambat dan kini berstatus FINAL.");
+                \App\Models\BookingLog::create([
+                    'booking_id' => $booking->id,
+                    'user_id'    => Auth::id(),
+                    'action'     => 'approve_final_late',
+                    'message'    => 'Admin ' . Auth::user()->name . ' melakukan ACC Final (Terlambat). Alasan: ' . $request->catatan_acc_terlambat,
+                ]);
+
+                \App\Models\BookingNotification::create([
+                    'user_id'    => $booking->user_id,
+                    'booking_id' => $booking->id,
+                    'tipe'       => 'approval',
+                    'title'      => 'Booking Final ACC (Terlambat)',
+                    'message'    => "Booking Anda untuk '{$booking->nama_training}' telah mendapatkan ACC Final. Persiapan lapangan segera dilakukan.",
+                ]);
+
+                \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} di-ACC Final Terlambat oleh admin ID #" . Auth::id());
+            });
+
+            return back()->with('success', "Booking #{$booking->id} di-ACC Terlambat dan kini berstatus FINAL.");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
+        }
     }
 
     // ============================================================

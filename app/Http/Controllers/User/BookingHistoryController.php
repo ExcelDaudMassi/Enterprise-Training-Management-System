@@ -58,6 +58,7 @@ class BookingHistoryController extends Controller
             ->whereIn('status', [
                 Booking::STATUS_WAITING_CONFIRMATION,
                 Booking::STATUS_CONFIRMED,
+                Booking::STATUS_FINAL,
             ])
             ->orderBy('tgl_mulai', 'asc')
             ->get()

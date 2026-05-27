@@ -19,6 +19,11 @@ const STATUS_META = {
         class: 'bg-green-100 text-green-800 border border-green-200',
         icon: '✅',
     },
+    final: {
+        label: 'Final ACC / Persiapan Lapangan',
+        class: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
+        icon: '🔧',
+    },
 }
 
 function formatDate(d) {
@@ -96,7 +101,7 @@ async function submitCancel() {
                     <div class="flex flex-col md:flex-row">
 
                         <!-- Status bar vertikal kiri -->
-                        <div :class="b.status === 'confirmed' ? 'bg-green-500' : 'bg-yellow-400'"
+                        <div :class="b.status === 'final' ? 'bg-indigo-500' : (b.status === 'confirmed' ? 'bg-green-500' : 'bg-yellow-400')"
                              class="w-full md:w-1.5 h-1.5 md:h-auto flex-shrink-0 rounded-t-xl md:rounded-none md:rounded-l-xl"></div>
 
                         <div class="flex-1 p-5">

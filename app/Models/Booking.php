@@ -183,12 +183,12 @@ class Booking extends Model
 
     public function isFinalConfirmed(): bool
     {
-        return $this->status === 'final_confirmed';
+        return $this->status === self::STATUS_FINAL;
     }
 
     public function canBeAcc2(): bool
     {
-        return $this->isConfirmed() && !$this->isFinalConfirmed();
+        return $this->isConfirmed() && !$this->isFinal();
     }
 
     public function isCancelled(): bool

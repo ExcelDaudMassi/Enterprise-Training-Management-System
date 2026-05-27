@@ -25,7 +25,7 @@ class DashboardController extends Controller
             'pending_approval' => Booking::where('status', Booking::STATUS_WAITING_CONFIRMATION)->count(),
 
             // Kartu 2 – Confirmed bulan berjalan
-            'confirmed_this_month' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINAL, 'final_confirmed'])
+            'confirmed_this_month' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINAL])
                 ->whereMonth('tgl_mulai', $today->month)
                 ->whereYear('tgl_mulai', $today->year)
                 ->count(),
@@ -37,7 +37,7 @@ class DashboardController extends Controller
                 ->count(),
 
             // Kartu 4 – Ruangan terpakai hari ini (confirmed, final, ATAU final_confirmed)
-            'rooms_today' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINAL, 'final_confirmed'])
+            'rooms_today' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINAL])
                 ->where('tgl_mulai', '<=', $today)
                 ->where('tgl_selesai', '>=', $today)
                 ->whereNotNull('ruangan_id')

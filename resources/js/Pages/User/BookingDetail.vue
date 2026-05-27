@@ -12,7 +12,7 @@ const STATUS_META = {
     waiting_confirmation: { label: 'Menunggu Persetujuan', class: 'bg-yellow-100 text-yellow-800' },
     confirmed:            { label: 'Disetujui',            class: 'bg-green-100 text-green-800' },
     cancelled:            { label: 'Dibatalkan',           class: 'bg-red-100 text-red-800' },
-    final:                { label: 'Final',                class: 'bg-blue-100 text-blue-800' },
+    final:                { label: 'Final ACC / Persiapan Lapangan', class: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
 }
 
 function formatDate(d) {
@@ -59,6 +59,19 @@ async function submitCancel() {
                         </svg>
                         Unduh Tiket / Bukti PDF
                     </a>
+                </div>
+            </div>
+
+            <!-- Banner Persiapan Lapangan -->
+            <div v-if="booking.status === 'final'" class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-md flex items-start shadow-sm">
+                <div class="flex-shrink-0 mt-0.5">
+                    <span class="text-indigo-500 font-bold text-lg">⚠️</span>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-semibold text-indigo-800">Ruangan sedang dipersiapkan Tim Lapangan</h3>
+                    <p class="text-sm text-indigo-700 mt-1">
+                        Pemesanan Anda telah mendapatkan persetujuan akhir. Tim lapangan kami sedang mempersiapkan ruangan beserta fasilitas yang Anda minta.
+                    </p>
                 </div>
             </div>
 

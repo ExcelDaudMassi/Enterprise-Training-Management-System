@@ -16,7 +16,7 @@ const STATUS_META = {
     waiting_confirmation: { label: 'Menunggu Persetujuan', class: 'bg-yellow-100 text-yellow-800' },
     confirmed:            { label: 'Disetujui',            class: 'bg-green-100 text-green-800' },
     cancelled:            { label: 'Dibatalkan',           class: 'bg-red-100 text-red-800' },
-    final:                { label: 'Final',                class: 'bg-blue-100 text-blue-800' },
+    final:                { label: 'Final ACC / Persiapan Lapangan', class: 'bg-indigo-100 text-indigo-800' },
 }
 
 const CHANGE_META = {

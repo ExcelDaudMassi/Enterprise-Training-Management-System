@@ -14,7 +14,7 @@ const props = defineProps({
 const filterToTab = {
     'waiting_confirmation': 'waiting_confirmation',
     'confirmed':            'confirmed',
-    'final_confirmed':      'final_confirmed',
+    'final':                'final',
     'cancelled':            'cancelled',
     'urgent':               'urgent',
     'overdue':              'overdue',
@@ -25,7 +25,7 @@ const activeTab = ref(filterToTab[props.activeFilter] ?? 'all')
 const tabs = [
     { key: 'waiting_confirmation', label: 'Menunggu' },
     { key: 'confirmed',            label: 'Disetujui' },
-    { key: 'final_confirmed',      label: 'Final Confirmed' },
+    { key: 'final',                label: 'Final ACC / Persiapan Lapangan' },
     { key: 'cancelled',            label: 'Ditolak' },
     { key: 'urgent',               label: '🚨 H-14' },
     { key: 'overdue',              label: '⛔ Lewat Tenggat' },
@@ -35,7 +35,7 @@ const tabs = [
 const statusMeta = {
     waiting_confirmation: { label: 'Menunggu',  class: 'bg-yellow-100 text-yellow-800 border border-yellow-200' },
     confirmed:            { label: 'Disetujui', class: 'bg-blue-100 text-blue-800 border border-blue-200' },
-    final_confirmed:      { label: 'Final',     class: 'bg-green-100 text-green-800 border border-green-200' },
+    final:                { label: 'Final ACC / Persiapan Lapangan',     class: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
     cancelled:            { label: 'Ditolak',   class: 'bg-red-100 text-red-800 border border-red-200' },
     plotting:             { label: 'Plotting',  class: 'bg-purple-100 text-purple-800 border border-purple-200' },
 }

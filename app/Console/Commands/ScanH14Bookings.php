@@ -41,14 +41,50 @@ class ScanH14Bookings extends Command
             if ($mode === 'auto_acc') {
                 $booking->update([
                     'status' => \App\Models\Booking::STATUS_FINAL,
+                    'acc2_at' => now(),
+                    // Sistem yang melakukan ACC otomatis (bukan admin spesifik)
                 ]);
+
+                \App\Models\BookingLog::create([
+                    'booking_id' => $booking->id,
+                    'user_id'    => null, // Log oleh sistem
+                    'action'     => 'auto_approve_final',
+                    'message'    => 'Sistem secara otomatis menyetujui booking ini (H-14 Auto ACC).',
+                ]);
+
+                \App\Models\BookingNotification::create([
+                    'user_id'    => $booking->user_id,
+                    'booking_id' => $booking->id,
+                    'tipe'       => 'approval',
+                    'title'      => 'Booking Final ACC (Otomatis H-14)',
+                    'message'    => "Booking Anda untuk '{$booking->nama_training}' telah otomatis di-ACC Final oleh sistem karena telah memasuki H-14. Persiapan lapangan segera dilakukan.",
+                ]);
+
                 $this->info("Booking #{$booking->id} otomatis di-ACC Final (H-14).");
                 $count++;
             } elseif ($mode === 'auto_cancel') {
+                $alasan = 'Dibatalkan secara otomatis oleh sistem karena melewati batas H-14 tanpa konfirmasi.';
+                
                 $booking->update([
                     'status' => \App\Models\Booking::STATUS_CANCELLED,
-                    'catatan_admin' => 'Dibatalkan secara otomatis oleh sistem karena melewati batas H-14 tanpa konfirmasi.'
+                    'catatan_admin' => $alasan
                 ]);
+
+                \App\Models\BookingLog::create([
+                    'booking_id' => $booking->id,
+                    'user_id'    => null,
+                    'action'     => 'auto_cancel',
+                    'message'    => 'Sistem otomatis membatalkan booking (H-14 Auto Cancel).',
+                ]);
+
+                \App\Models\BookingNotification::create([
+                    'user_id'    => $booking->user_id,
+                    'booking_id' => $booking->id,
+                    'tipe'       => 'rejection',
+                    'title'      => 'Booking Dibatalkan (Otomatis H-14)',
+                    'message'    => "Booking Anda untuk '{$booking->nama_training}' telah dibatalkan secara otomatis karena {$alasan}",
+                ]);
+
                 $this->info("Booking #{$booking->id} otomatis dibatalkan (H-14).");
                 $count++;
             }

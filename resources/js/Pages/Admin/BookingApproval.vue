@@ -33,8 +33,7 @@ function switchTab(key) {
 const STATUS_META = {
     waiting_confirmation: { label: 'Menunggu',  class: 'bg-yellow-100 text-yellow-800 border border-yellow-200' },
     confirmed:            { label: 'Disetujui', class: 'bg-blue-100 text-blue-800 border border-blue-200' },
-    final:                { label: 'Final',     class: 'bg-green-100 text-green-800 border border-green-200' },
-    final_confirmed:      { label: 'Final',     class: 'bg-green-100 text-green-800 border border-green-200' },
+    final:                { label: 'Final ACC / Persiapan Lapangan', class: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
     cancelled:            { label: 'Ditolak',   class: 'bg-red-100 text-red-800 border border-red-200' },
     plotting:             { label: 'Plotting',  class: 'bg-purple-100 text-purple-800 border border-purple-200' },
 }
@@ -633,7 +632,7 @@ const layoutLabels = {
                                                 <p class="text-xs text-gray-500 mt-0.5">Panitia</p>
                                             </div>
                                             <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                                                <p class="text-2xl font-black text-gray-700">{{ detailData.booking.status === 'confirmed' ? '1/2' : (['final', 'final_confirmed'].includes(detailData.booking.status) ? '2/2' : '0/2') }}</p>
+                                                <p class="text-2xl font-black text-gray-700">{{ detailData.booking.status === 'confirmed' ? '1/2' : (detailData.booking.status === 'final' ? '2/2' : '0/2') }}</p>
                                                 <p class="text-xs text-gray-500 mt-0.5">Tahap ACC</p>
                                             </div>
                                         </div>
