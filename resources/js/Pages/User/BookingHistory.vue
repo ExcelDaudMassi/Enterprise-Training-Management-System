@@ -330,14 +330,16 @@ async function submitDateChange() {
                                     </button>
 
                                     <!-- Dropdown Menu -->
-                                    <Teleport to="body">
-                                        <div v-if="openDropdownId === b.id"
-                                             class="fixed z-50"
-                                             :style="{ top: '0', left: '0', right: '0', bottom: '0', pointerEvents: 'none' }">
-                                        </div>
-                                    </Teleport>
+                                    <Transition
+                                        enter-active-class="transition-all duration-200 ease-out"
+                                        enter-from-class="opacity-0 translate-y-1 scale-95"
+                                        enter-to-class="opacity-100 translate-y-0 scale-100"
+                                        leave-active-class="transition-all duration-150 ease-in"
+                                        leave-from-class="opacity-100 translate-y-0 scale-100"
+                                        leave-to-class="opacity-0 translate-y-1 scale-95"
+                                    >
                                     <div v-if="openDropdownId === b.id"
-                                         class="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-40 overflow-hidden">
+                                         class="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-40 overflow-hidden origin-top-right">
                                         <!-- Edit Pesanan -->
                                         <div v-if="b.can_request_date_change || b.can_update_participants"
                                              class="border-b border-gray-100">
@@ -365,9 +367,10 @@ async function submitDateChange() {
                                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                                             </svg>
-                                            Batalkan Pesanan
+                                        Batalkan Pesanan
                                         </button>
                                     </div>
+                                    </Transition>
                                 </div>
                             </td>
 
