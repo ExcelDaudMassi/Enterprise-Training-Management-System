@@ -50,9 +50,19 @@ function formatDate(d) {
 
 // ─── Dropdown per baris ───────────────────────────────────────
 const openDropdownId = ref(null)
+const dropdownPos    = ref({ top: 0, right: 0 })
 
-function toggleDropdown(id) {
-    openDropdownId.value = openDropdownId.value === id ? null : id
+function toggleDropdown(id, event) {
+    if (openDropdownId.value === id) {
+        openDropdownId.value = null
+        return
+    }
+    const rect = event.currentTarget.getBoundingClientRect()
+    dropdownPos.value = {
+        top:   rect.bottom + window.scrollY + 4,
+        right: window.innerWidth - rect.right,
+    }
+    openDropdownId.value = id
 }
 
 function closeDropdown() {
@@ -318,8 +328,8 @@ async function submitDateChange() {
                                       class="text-xs text-gray-300">—</span>
 
                                 <!-- Dropdown Aksi -->
-                                <div v-else class="relative inline-block text-left">
-                                    <button @click.stop="toggleDropdown(b.id)"
+                                <div v-else class="inline-block text-left">
+                                    <button @click.stop="toggleDropdown(b.id, $event)"
                                             class="inline-flex items-center gap-1.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 py-1.5 px-3 rounded-md text-xs font-semibold transition active:scale-[0.98] shadow-xs">
                                         Aksi
                                         <svg class="w-3.5 h-3.5 text-gray-400 transition-transform"
@@ -328,49 +338,6 @@ async function submitDateChange() {
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                                         </svg>
                                     </button>
-
-                                    <!-- Dropdown Menu -->
-                                    <Transition
-                                        enter-active-class="transition-all duration-200 ease-out"
-                                        enter-from-class="opacity-0 translate-y-1 scale-95"
-                                        enter-to-class="opacity-100 translate-y-0 scale-100"
-                                        leave-active-class="transition-all duration-150 ease-in"
-                                        leave-from-class="opacity-100 translate-y-0 scale-100"
-                                        leave-to-class="opacity-0 translate-y-1 scale-95"
-                                    >
-                                    <div v-if="openDropdownId === b.id"
-                                         class="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-40 overflow-hidden origin-top-right">
-                                        <!-- Edit Pesanan -->
-                                        <div v-if="b.can_request_date_change || b.can_update_participants"
-                                             class="border-b border-gray-100">
-                                            <button v-if="b.can_request_date_change"
-                                                    @click="closeDropdown(); openDateChange(b)"
-                                                    class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition text-left">
-                                                <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                                                </svg>
-                                                Ubah Tanggal
-                                            </button>
-                                            <button v-if="b.can_update_participants"
-                                                    @click="closeDropdown(); openParticipantUpdate(b)"
-                                                    class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition text-left">
-                                                <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                                                </svg>
-                                                Update Peserta
-                                            </button>
-                                        </div>
-                                        <!-- Batalkan Pesanan -->
-                                        <button v-if="b.can_cancel"
-                                                @click="closeDropdown(); openCancel(b)"
-                                                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 transition text-left">
-                                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                            </svg>
-                                        Batalkan Pesanan
-                                        </button>
-                                    </div>
-                                    </Transition>
                                 </div>
                             </td>
 
@@ -381,6 +348,59 @@ async function submitDateChange() {
         </div>
 
     </div>
+
+    <!-- ── Dropdown Aksi (Teleport ke body agar tidak terpotong overflow) ── -->
+    <Teleport to="body">
+        <Transition
+            enter-active-class="transition-all duration-200 ease-out"
+            enter-from-class="opacity-0 translate-y-1 scale-95"
+            enter-to-class="opacity-100 translate-y-0 scale-100"
+            leave-active-class="transition-all duration-150 ease-in"
+            leave-from-class="opacity-100 translate-y-0 scale-100"
+            leave-to-class="opacity-0 translate-y-1 scale-95"
+        >
+            <div v-if="openDropdownId !== null"
+                 class="fixed z-[999] w-48 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden origin-top-right"
+                 :style="{ top: dropdownPos.top + 'px', right: dropdownPos.right + 'px' }"
+                 @click.stop>
+                <!-- Isi dropdown untuk booking yang sedang terbuka -->
+                <template v-for="b in bookings" :key="b.id">
+                    <template v-if="b.id === openDropdownId">
+                        <!-- Edit Pesanan -->
+                        <div v-if="b.can_request_date_change || b.can_update_participants"
+                             class="border-b border-gray-100">
+                            <button v-if="b.can_request_date_change"
+                                    @click="closeDropdown(); openDateChange(b)"
+                                    class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition text-left">
+                                <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                </svg>
+                                Ubah Tanggal
+                            </button>
+                            <button v-if="b.can_update_participants"
+                                    @click="closeDropdown(); openParticipantUpdate(b)"
+                                    class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition text-left">
+                                <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                </svg>
+                                Update Peserta
+                            </button>
+                        </div>
+                        <!-- Batalkan Pesanan -->
+                        <button v-if="b.can_cancel"
+                                @click="closeDropdown(); openCancel(b)"
+                                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 transition text-left">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                            Batalkan Pesanan
+                        </button>
+                    </template>
+                </template>
+            </div>
+        </Transition>
+    </Teleport>
+
 
     <!-- ── Modal: Batalkan Booking ──────────────────────────────── -->
     <Teleport to="body">
