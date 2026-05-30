@@ -188,9 +188,9 @@ function getDateHighlightClass(year, month, day) {
     const totalRooms = props.ruanganList?.length || 0
     
     if (totalRooms > 0 && bookedRoomIds.size >= totalRooms) {
-        return 'bg-red-50 text-red-800 font-semibold border border-red-200'
+        return 'bg-red-100 text-red-800 font-extrabold'
     } else {
-        return 'bg-amber-50 text-amber-800 font-semibold border border-amber-200'
+        return 'bg-amber-100 text-amber-800 font-extrabold'
     }
 }
 
@@ -432,12 +432,12 @@ const cards = [
         filter:  'waiting_confirmation',
         theme: {
             bg:     'bg-amber-50',
-            border: 'border-amber-200',
+            border: 'border-transparent',
             icon:   'bg-amber-100 text-amber-600',
             num:    'text-amber-700',
             label:  'text-amber-600',
             badge:  'bg-amber-100 text-amber-700',
-            hover:  'hover:border-amber-400 hover:shadow-amber-100',
+            hover:  'hover:shadow-amber-100',
         },
     },
     {
@@ -448,12 +448,12 @@ const cards = [
         filter:  'confirmed',
         theme: {
             bg:     'bg-emerald-50',
-            border: 'border-emerald-200',
+            border: 'border-transparent',
             icon:   'bg-emerald-100 text-emerald-600',
             num:    'text-emerald-700',
             label:  'text-emerald-600',
             badge:  'bg-emerald-100 text-emerald-700',
-            hover:  'hover:border-emerald-400 hover:shadow-emerald-100',
+            hover:  'hover:shadow-emerald-100',
         },
     },
     {
@@ -464,12 +464,12 @@ const cards = [
         filter:  'urgent',
         theme: {
             bg:     'bg-red-50',
-            border: 'border-red-200',
+            border: 'border-transparent',
             icon:   'bg-red-100 text-red-600',
             num:    'text-red-700',
             label:  'text-red-600',
             badge:  'bg-red-100 text-red-700',
-            hover:  'hover:border-red-400 hover:shadow-red-100',
+            hover:  'hover:shadow-red-100',
         },
     },
     {
@@ -480,12 +480,12 @@ const cards = [
         filter:  'confirmed',
         theme: {
             bg:     'bg-blue-50',
-            border: 'border-blue-200',
+            border: 'border-transparent',
             icon:   'bg-blue-100 text-blue-600',
             num:    'text-blue-700',
             label:  'text-blue-600',
             badge:  'bg-blue-100 text-blue-700',
-            hover:  'hover:border-blue-400 hover:shadow-blue-100',
+            hover:  'hover:shadow-blue-100',
         },
     },
 ]
@@ -563,7 +563,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 v-for="card in cards"
                 :key="card.key"
                 @click="goToFilter(card.filter)"
-                class="text-left border border-gray-100 rounded-lg p-5 transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                class="text-left border-0 rounded-lg p-5 transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
                 :class="[card.theme.bg, card.theme.border, card.theme.hover]"
             >
                 <!-- Icon + number row -->
@@ -592,47 +592,15 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             </button>
         </div>
 
-        <!-- ── Quick Info: Booking Window status ─────────────────────── -->
-        <div v-if="bookingWindow" class="mb-6">
-            <div
-                class="flex items-center gap-3.5 rounded-lg border px-5 py-4 shadow-3xs"
-                :class="bookingWindow.is_active
-                    ? 'bg-emerald-50/50 border-emerald-250'
-                    : 'bg-gray-50/80 border-gray-200'"
-            >
-                <div class="w-10 h-10 flex items-center justify-center rounded-xl text-lg shrink-0"
-                      :class="bookingWindow.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-extrabold"
-                       :class="bookingWindow.is_active ? 'text-emerald-800' : 'text-gray-700'">
-                        {{ bookingWindow.is_active ? 'Window Booking Sedang Aktif' : 'Window Booking Tutup' }}
-                    </p>
-                    <p class="text-xs font-medium mt-0.5 leading-snug"
-                       :class="bookingWindow.is_active ? 'text-emerald-600' : 'text-gray-400'">
-                        <template v-if="bookingWindow.is_active">
-                            Periode: <span class="font-bold text-emerald-700">{{ bookingWindow.nama }}</span> &nbsp;·&nbsp; Batas Pengajuan: <span class="font-bold">{{ formatDate(bookingWindow.end_date) }}</span>
-                        </template>
-                        <template v-else>
-                            User saat ini tidak dapat mengajukan booking baru. Klik tombol "Buka" di navbar kanan atas untuk membuka window.
-                        </template>
-                    </p>
-                </div>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold border uppercase shrink-0"
-                      :class="bookingWindow.is_active ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-gray-200 text-gray-600 border-gray-300'">
-                    {{ bookingWindow.is_active ? 'Open' : 'Closed' }}
-                </span>
-            </div>
-        </div>
+
 
         <!-- ============================================================ -->
         <!-- Filter Area — Premium Panel -->
         <!-- ============================================================ -->
-        <div class="bg-white border border-gray-200 rounded-lg shadow-xs mb-6 relative">
+        <div class="bg-white rounded-lg shadow-xs mb-6 relative">
 
             <!-- Filter Header -->
-            <div class="px-5 py-3.5 flex items-center justify-between border-b border-gray-100 bg-gray-50/20 rounded-t-lg">
+            <div class="px-5 py-3.5 flex items-center justify-between bg-gray-50/20 rounded-t-lg">
                 <div class="flex items-center gap-2">
                     <div class="p-1.5 bg-blue-50 rounded-lg text-blue-600">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
@@ -817,7 +785,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             </div>
 
             <!-- Legend Ruangan -->
-            <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/40 flex flex-wrap gap-2 rounded-b-lg">
+            <div class="px-5 py-3 bg-gray-50/40 flex flex-wrap gap-2 rounded-b-lg">
                 <span class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest self-center mr-1">Warna Ruangan:</span>
                 <button
                     v-for="(r, idx) in ruanganList"
@@ -842,7 +810,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         </div>
 
         <!-- Kalender Grid -->
-        <div class="bg-white rounded-lg border border-gray-150 shadow-sm p-5 mb-6">
+        <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
             <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-1.5">
                 <span>📅</span> Kalender Pemesanan Ruangan — {{ selectedYear }}
             </h3>
@@ -851,7 +819,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 <div 
                     v-for="(monthName, monthIdx) in MONTH_NAMES" 
                     :key="monthIdx" 
-                    class="group/month relative border border-gray-100 rounded-lg p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-lg hover:bg-white hover:z-[60] hover:border-blue-200"
+                    class="group/month relative rounded-lg p-3 bg-gray-50/20 transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-md hover:bg-white hover:z-[60]"
                     :class="getMonthOriginClass(monthIdx)"
                 >
                     <!-- Nama Bulan -->
@@ -906,7 +874,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
             <!-- Chart Box -->
-            <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-5 flex flex-col items-stretch h-full">
+            <div class="bg-white rounded-lg shadow-xs p-5 flex flex-col items-stretch h-full">
                 <div class="flex items-center gap-2 mb-6">
                     <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                         <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
@@ -926,7 +894,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
             <!-- Notifications List -->
             <div v-if="notifications && notifications.length > 0"
-                 class="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-xs overflow-hidden flex flex-col h-full">
+                 class="lg:col-span-2 bg-white rounded-lg shadow-xs overflow-hidden flex flex-col h-full">
                 <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between bg-gray-50/20 shrink-0">
                     <div class="flex items-center gap-2">
                         <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
