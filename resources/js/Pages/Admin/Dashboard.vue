@@ -877,20 +877,30 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         </div>
 
         <!-- Kalender Grid -->
-        <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
-            <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-1.5">
-                <span>📅</span> Kalender Pemesanan Ruangan — {{ selectedYear }}
-            </h3>
+        <div class="bg-white rounded-xl shadow-xs p-5 mb-6">
+            
+            <!-- Premium Calendar Header with SVG Icon -->
+            <div class="flex items-center gap-2.5 mb-5 border-b border-gray-100 pb-4">
+                <span class="w-8.5 h-8.5 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                    </svg>
+                </span>
+                <div>
+                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Jadwal Kalender Pemesanan</h3>
+                    <h2 class="text-sm font-black text-gray-800 mt-1.5 font-sans">Kalender Pemesanan Ruangan — {{ selectedYear }}</h2>
+                </div>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div 
                     v-for="(monthName, monthIdx) in MONTH_NAMES" 
                     :key="monthIdx" 
-                    class="group/month relative rounded-lg p-3 bg-gray-50/20 transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-md hover:bg-white hover:z-[60]"
+                    class="group/month relative rounded-lg p-3 bg-gray-50/20 border border-gray-100/50 transition-all duration-300 ease-in-out hover:scale-140 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
                     :class="getMonthOriginClass(monthIdx)"
                 >
                     <!-- Nama Bulan -->
-                    <div @click="openModal(selectedYear, monthIdx)" class="text-xs font-bold text-center text-gray-800 mb-2 border-b border-gray-100 pb-1 cursor-pointer hover:text-blue-600 transition">{{ monthName }}</div>
+                    <div @click="openModal(selectedYear, monthIdx)" class="text-xs font-black text-center text-gray-800 mb-2 border-b border-gray-100 pb-1.5 cursor-pointer hover:text-blue-600 transition">{{ monthName }}</div>
 
                     <!-- Header hari -->
                     <div class="grid grid-cols-7 text-center mb-1">
