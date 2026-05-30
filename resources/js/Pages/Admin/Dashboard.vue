@@ -563,7 +563,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 v-for="card in cards"
                 :key="card.key"
                 @click="goToFilter(card.filter)"
-                class="text-left border border-gray-100 rounded-2xl p-5 transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                class="text-left border border-gray-100 rounded-lg p-5 transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
                 :class="[card.theme.bg, card.theme.border, card.theme.hover]"
             >
                 <!-- Icon + number row -->
@@ -595,7 +595,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <!-- ── Quick Info: Booking Window status ─────────────────────── -->
         <div v-if="bookingWindow" class="mb-6">
             <div
-                class="flex items-center gap-3.5 rounded-2xl border px-5 py-4 shadow-3xs"
+                class="flex items-center gap-3.5 rounded-lg border px-5 py-4 shadow-3xs"
                 :class="bookingWindow.is_active
                     ? 'bg-emerald-50/50 border-emerald-250'
                     : 'bg-gray-50/80 border-gray-200'"
@@ -629,10 +629,10 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <!-- ============================================================ -->
         <!-- Filter Area — Premium Panel -->
         <!-- ============================================================ -->
-        <div class="bg-white border border-gray-200 rounded-2xl shadow-xs mb-6 overflow-hidden">
+        <div class="bg-white border border-gray-200 rounded-lg shadow-xs mb-6 relative">
 
             <!-- Filter Header -->
-            <div class="px-5 py-3.5 flex items-center justify-between border-b border-gray-100 bg-gray-50/20">
+            <div class="px-5 py-3.5 flex items-center justify-between border-b border-gray-100 bg-gray-50/20 rounded-t-lg">
                 <div class="flex items-center gap-2">
                     <div class="p-1.5 bg-blue-50 rounded-lg text-blue-600">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
@@ -817,7 +817,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             </div>
 
             <!-- Legend Ruangan -->
-            <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/40 flex flex-wrap gap-2">
+            <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/40 flex flex-wrap gap-2 rounded-b-lg">
                 <span class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest self-center mr-1">Warna Ruangan:</span>
                 <button
                     v-for="(r, idx) in ruanganList"
@@ -842,7 +842,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         </div>
 
         <!-- Kalender Grid -->
-        <div class="bg-white rounded-2xl border border-gray-150 shadow-sm p-5 mb-6">
+        <div class="bg-white rounded-lg border border-gray-150 shadow-sm p-5 mb-6">
             <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-1.5">
                 <span>📅</span> Kalender Pemesanan Ruangan — {{ selectedYear }}
             </h3>
@@ -851,7 +851,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 <div 
                     v-for="(monthName, monthIdx) in MONTH_NAMES" 
                     :key="monthIdx" 
-                    class="group/month relative border border-gray-100 rounded-2xl p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
+                    class="group/month relative border border-gray-100 rounded-lg p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-lg hover:bg-white hover:z-[60] hover:border-blue-200"
                     :class="getMonthOriginClass(monthIdx)"
                 >
                     <!-- Nama Bulan -->
@@ -906,7 +906,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
             <!-- Chart Box -->
-            <div class="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 flex flex-col items-stretch h-full">
+            <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-5 flex flex-col items-stretch h-full">
                 <div class="flex items-center gap-2 mb-6">
                     <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                         <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
@@ -926,7 +926,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
             <!-- Notifications List -->
             <div v-if="notifications && notifications.length > 0"
-                 class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden flex flex-col h-full">
+                 class="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-xs overflow-hidden flex flex-col h-full">
                 <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between bg-gray-50/20 shrink-0">
                     <div class="flex items-center gap-2">
                         <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
