@@ -1065,7 +1065,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
                 @click.self="closeModal"
             >
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-100 h-[85vh] min-h-[550px] transition-all">
+                <div class="bg-white rounded-lg shadow-2xl w-full max-w-[96vw] overflow-hidden flex flex-col border border-gray-100 h-[92vh] min-h-[550px] transition-all">
 
                     <!-- Header -->
                     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
@@ -1112,14 +1112,14 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                         </div>
                         
                         <!-- Gantt Board Scroll Container -->
-                        <div class="bg-white rounded-2xl border border-gray-150 shadow-md overflow-hidden flex flex-col flex-1 min-h-0">
+                        <div class="bg-white rounded-lg border border-gray-200 shadow-md overflow-hidden flex flex-col flex-1 min-h-0">
                             <div class="overflow-x-auto flex-1 min-w-0 custom-scrollbar">
                                 <div class="min-w-[1000px] flex flex-col h-full relative">
                                     
                                     <!-- Timeline Header Row -->
-                                    <div class="flex border-b border-gray-150 bg-gray-50 select-none shrink-0 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                                    <div class="flex border-b border-gray-200 bg-gray-50 select-none shrink-0 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                                         <!-- Room Name Column Header (Sticky both ways) -->
-                                        <div class="w-48 p-4 shrink-0 font-extrabold text-[11px] text-gray-505 uppercase tracking-wider border-r border-gray-150 flex items-center bg-gray-50 sticky left-0 z-40 shadow-[2px_0_5px_rgba(0,0,0,0.015)]">
+                                        <div class="w-48 p-4 shrink-0 font-extrabold text-[11px] text-gray-500 uppercase tracking-wider border-r border-gray-200 flex items-center bg-gray-50 sticky left-0 z-40 shadow-[2px_0_5px_rgba(0,0,0,0.015)]">
                                             Nama Ruangan
                                         </div>
                                         
@@ -1151,7 +1151,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                             :style="{ minHeight: (24 + room.tracksCount * 36) + 'px' }"
                                         >
                                             <!-- Room Info Label (Sticky left-0 with hover bg) -->
-                                            <div class="w-48 p-4 shrink-0 border-r border-gray-150 flex flex-col justify-center bg-white group-hover:bg-gray-50/50 transition-colors sticky left-0 z-10 select-none shadow-[2px_0_5px_rgba(0,0,0,0.015)]">
+                                            <div class="w-48 p-4 shrink-0 border-r border-gray-200 flex flex-col justify-center bg-white group-hover:bg-gray-50/50 transition-colors sticky left-0 z-10 select-none shadow-[2px_0_5px_rgba(0,0,0,0.015)]">
                                                 <div class="flex items-center gap-2">
                                                     <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs" :style="{ backgroundColor: getRoomColor(room.id).bg }"></span>
                                                     <span class="font-extrabold text-gray-800 text-[11.5px] truncate leading-snug">{{ room.nama_ruang }}</span>
