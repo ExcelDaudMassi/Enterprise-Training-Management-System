@@ -503,21 +503,20 @@ function formatDate(d) {
 // Chart State
 // ============================================================
 const chartSeries = computed(() => {
-    let waiting = 0, confirmed = 0, plotting = 0, cancelled = 0
+    let pending = 0, confirmed = 0, cancelled = 0
     props.bookings.forEach(b => {
-        if (b.status === 'waiting_confirmation') waiting++
+        if (b.status === 'waiting_confirmation' || b.status === 'plotting') pending++
         else if (b.status === 'confirmed' || b.status === 'final') confirmed++
-        else if (b.status === 'plotting') plotting++
         else if (b.status === 'cancelled') cancelled++
     })
-    return [waiting, confirmed, plotting, cancelled]
+    return [pending, confirmed, cancelled]
 })
 
 const chartOptions = computed(() => {
     return {
         chart: { type: 'donut', fontFamily: 'inherit' },
-        labels: ['Menunggu ACC', 'Disetujui', 'Pending', 'Dibatalkan'],
-        colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'], // Blue, Emerald, Amber, Red
+        labels: ['Pending', 'Disetujui', 'Dibatalkan'],
+        colors: ['#f59e0b', '#10b981', '#ef4444'], // Amber, Emerald, Red
         plotOptions: {
             pie: {
                 donut: {
