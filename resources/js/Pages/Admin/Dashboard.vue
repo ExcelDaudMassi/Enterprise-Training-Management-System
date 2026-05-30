@@ -294,13 +294,36 @@ const roomGanttData = computed(() => {
                 startDay,
                 endDay,
                 startPct,
-                widthPct
+                widthPct,
+                trackIndex: 0
             }
         }).filter(Boolean)
         
+        // Pack bookings into non-overlapping tracks
+        const sortedBookings = [...roomBookings].sort((a, b) => a.startDay - b.startDay)
+        const tracks = []
+        sortedBookings.forEach(b => {
+            let placed = false
+            for (let i = 0; i < tracks.length; i++) {
+                const track = tracks[i]
+                const lastB = track[track.length - 1]
+                if (b.startDay > lastB.endDay) {
+                    track.push(b)
+                    b.trackIndex = i
+                    placed = true
+                    break
+                }
+            }
+            if (!placed) {
+                tracks.push([b])
+                b.trackIndex = tracks.length - 1
+            }
+        })
+        
         return {
             ...room,
-            bookings: roomBookings
+            bookings: sortedBookings,
+            tracksCount: Math.max(tracks.length, 1)
         }
     })
 })
@@ -1089,14 +1112,14 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                         </div>
                         
                         <!-- Gantt Board Scroll Container -->
-                        <div class="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden flex flex-col flex-1 min-h-0">
-                            <div class="overflow-x-auto flex-1 min-w-0">
-                                <div class="min-w-[1000px] flex flex-col h-full">
+                        <div class="bg-white rounded-2xl border border-gray-150 shadow-md overflow-hidden flex flex-col flex-1 min-h-0">
+                            <div class="overflow-x-auto flex-1 min-w-0 custom-scrollbar">
+                                <div class="min-w-[1000px] flex flex-col h-full relative">
                                     
                                     <!-- Timeline Header Row -->
-                                    <div class="flex border-b border-gray-100 bg-gray-50/50 select-none shrink-0">
-                                        <!-- Room Name Column Header -->
-                                        <div class="w-48 p-4 shrink-0 font-extrabold text-[11px] text-gray-400 uppercase tracking-wider border-r border-gray-100 flex items-center bg-gray-50/20">
+                                    <div class="flex border-b border-gray-150 bg-gray-50 select-none shrink-0 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                                        <!-- Room Name Column Header (Sticky both ways) -->
+                                        <div class="w-48 p-4 shrink-0 font-extrabold text-[11px] text-gray-505 uppercase tracking-wider border-r border-gray-150 flex items-center bg-gray-50 sticky left-0 z-40 shadow-[2px_0_5px_rgba(0,0,0,0.015)]">
                                             Nama Ruangan
                                         </div>
                                         
@@ -1105,14 +1128,14 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                             <div 
                                                 v-for="d in selectedMonthDays" 
                                                 :key="d.dayNum"
-                                                class="text-center py-2 flex flex-col items-center justify-center border-r border-gray-200/70 last:border-r-0"
+                                                class="text-center py-2 flex flex-col items-center justify-center border-r border-gray-200/80 last:border-r-0"
                                                 :class="[
-                                                    d.isWeekend ? 'bg-red-50/30 text-red-500' : 'text-gray-600',
-                                                    d.isToday ? 'bg-blue-50/50 text-blue-600 font-bold' : ''
+                                                    d.isWeekend ? 'bg-red-50/20 text-red-500' : 'text-gray-600',
+                                                    d.isToday ? 'bg-blue-50/40 text-blue-600 font-bold' : ''
                                                 ]"
                                             >
                                                 <span class="text-[8.5px] uppercase font-black tracking-tighter opacity-70">{{ d.dayName }}</span>
-                                                <span class="text-[11px] font-extrabold mt-0.5" :class="d.isToday ? 'w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-black shadow-2xs' : ''">
+                                                <span class="text-[11px] font-extrabold mt-0.5" :class="d.isToday ? 'w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-black shadow-xs' : ''">
                                                     {{ d.dayNum }}
                                                 </span>
                                             </div>
@@ -1124,26 +1147,27 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                         <div 
                                             v-for="room in roomGanttData" 
                                             :key="room.id"
-                                            class="flex min-h-[64px] hover:bg-gray-50/20 transition relative group"
+                                            class="flex hover:bg-gray-50/10 transition-colors relative group border-b border-gray-100 last:border-0"
+                                            :style="{ minHeight: (24 + room.tracksCount * 36) + 'px' }"
                                         >
-                                            <!-- Room Info Label -->
-                                            <div class="w-48 p-4 shrink-0 border-r border-gray-100 flex flex-col justify-center bg-gray-50/5 select-none">
+                                            <!-- Room Info Label (Sticky left-0 with hover bg) -->
+                                            <div class="w-48 p-4 shrink-0 border-r border-gray-150 flex flex-col justify-center bg-white group-hover:bg-gray-50/50 transition-colors sticky left-0 z-10 select-none shadow-[2px_0_5px_rgba(0,0,0,0.015)]">
                                                 <div class="flex items-center gap-2">
-                                                    <span class="w-2.5 h-2.5 rounded-full shrink-0 animate-pulse" :style="{ backgroundColor: getRoomColor(room.id).bg }"></span>
+                                                    <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs" :style="{ backgroundColor: getRoomColor(room.id).bg }"></span>
                                                     <span class="font-extrabold text-gray-800 text-[11.5px] truncate leading-snug">{{ room.nama_ruang }}</span>
                                                 </div>
-                                                <span class="text-[9px] text-gray-400 font-semibold mt-1">Kapasitas: {{ room.kapasitas }} pax</span>
+                                                <span class="text-[9px] text-gray-400 font-semibold mt-1">Kapasitas: {{ room.kapasitas || '-' }} pax</span>
                                             </div>
                                             
                                             <!-- Gantt Track Area (Absolute Bars Overlay) -->
-                                            <div class="flex-1 relative min-h-[64px]">
+                                            <div class="flex-1 relative">
                                                 <!-- Vertical background grid lines for days (Clearly Visible) -->
                                                 <div class="absolute inset-0 grid pointer-events-none" :style="{ gridTemplateColumns: `repeat(${selectedMonthDaysCount}, minmax(0, 1fr))` }">
                                                     <div 
                                                         v-for="d in selectedMonthDays" 
                                                         :key="d.dayNum" 
                                                         class="border-r border-gray-200/60 last:border-r-0 h-full"
-                                                        :class="d.isWeekend ? 'bg-red-50/15' : ''"
+                                                        :class="d.isWeekend ? 'bg-red-50/10' : ''"
                                                     ></div>
                                                 </div>
                                                 
@@ -1152,11 +1176,11 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                                     v-for="b in room.bookings"
                                                     :key="b.id"
                                                     @click="openDetailModal(b)"
-                                                    class="absolute h-8 rounded-lg px-2.5 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] transition-all cursor-pointer group"
+                                                    class="absolute h-7 rounded-lg px-2 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] hover:-translate-y-[0.5px] transition-all cursor-pointer group select-none"
                                                     :style="{
                                                         left: `calc(${b.startPct}% + 3px)`,
                                                         width: `calc(${b.widthPct}% - 6px)`,
-                                                        top: '16px',
+                                                        top: (12 + (b.trackIndex * 36)) + 'px',
                                                         backgroundColor: getStatusColor(getVisualStatus(b)).light,
                                                         color: getStatusColor(getVisualStatus(b)).text,
                                                         borderColor: getStatusColor(getVisualStatus(b)).bg
@@ -1168,7 +1192,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                                         <span class="font-extrabold text-[10px] truncate leading-none mt-0.5">{{ b.nama_training }}</span>
                                                         
                                                         <!-- Status indicator dot at the end -->
-                                                        <span class="w-1.5 h-1.5 rounded-full shrink-0 ml-auto" :class="[
+                                                        <span class="w-1.5 h-1.5 rounded-full shrink-0 ml-auto shadow-xs" :class="[
                                                             getVisualStatus(b) === 'plotting' ? 'bg-red-500 animate-pulse' : '',
                                                             getVisualStatus(b) === 'waiting_confirmation' ? 'bg-amber-500 animate-pulse' : '',
                                                             getVisualStatus(b) === 'confirmed' ? 'bg-emerald-500' : ''
@@ -1392,3 +1416,21 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         </Teleport>
 
 </template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+</style>
