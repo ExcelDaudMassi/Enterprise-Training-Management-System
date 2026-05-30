@@ -13,7 +13,6 @@ const props = defineProps({
 const page = usePage()
 const isWindowActive = computed(() => page.props.bookingWindow?.is_active ?? true)
 
-// ─── Status helpers ────────────────────────────────────────────
 const STATUS_META = {
     plotting: {
         label: 'Pending',
@@ -33,12 +32,40 @@ const STATUS_META = {
     },
     cancelled: {
         label: 'Dibatalkan',
-        class: 'bg-red-100 text-red-800 border border-red-200',
+        class: 'bg-gray-100 text-gray-600 border border-gray-200',
     },
     done: {
         label: 'Selesai',
         class: 'bg-gray-100 text-gray-600 border border-gray-200',
     },
+}
+
+function getStatusMeta(b) {
+    if (!b) return STATUS_META.waiting_confirmation
+    if (b.status === 'cancelled') return STATUS_META.cancelled
+    if (b.status === 'waiting_confirmation' || b.status === 'plotting') {
+        return {
+            label: 'Pending',
+            class: 'bg-amber-100 text-amber-800 border border-amber-200',
+        }
+    }
+    if (b.status === 'confirmed') {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const h14Cutoff = new Date()
+        h14Cutoff.setDate(today.getDate() + 14)
+        h14Cutoff.setHours(23, 59, 59, 999)
+        
+        const start = new Date(b.tgl_mulai)
+        if (start >= today && start <= h14Cutoff) {
+            return {
+                label: 'H - 14 (Perlu ACC Final)',
+                class: 'bg-red-100 text-red-800 border border-red-200',
+            }
+        }
+        return STATUS_META.confirmed
+    }
+    return STATUS_META[b.status] ?? STATUS_META.waiting_confirmation
 }
 
 const CHANGE_META = {
@@ -252,37 +279,40 @@ async function submitDateChange() {
                                 <div v-if="b.layout_preferensi" class="text-[10px] text-gray-400 capitalize mt-0.5">{{ b.layout_preferensi }}</div>
                             </td>
 
-                            <!-- Status -->
-                            <td class="py-4 px-6">
-                                <div class="flex flex-col gap-1.5">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 inline-flex items-center gap-1 w-fit"
-                                          :class="STATUS_META[b.status]?.class ?? 'bg-gray-100 text-gray-600 border border-gray-200'">
-                                        <!-- plotting (Pending) -->
-                                        <svg v-if="b.status === 'plotting'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
-                                        </svg>
-                                        <!-- waiting_confirmation -->
-                                        <svg v-else-if="b.status === 'waiting_confirmation'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
-                                        </svg>
-                                        <!-- confirmed -->
-                                        <svg v-else-if="b.status === 'confirmed'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
-                                        </svg>
-                                        <!-- final -->
-                                        <svg v-else-if="b.status === 'final'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766l.002-.001a1.56 1.56 0 0 1 1.883 1.883l-.001.002c-.14.468-.382.89-.766 1.208l-3.03 2.496ZM11.42 15.17l-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243 3 3 0 0 0 4.243 4.243Zm0 0L7.88 9.75a3 3 0 0 0-3 3v.375c0 .621.504 1.125 1.125 1.125h.375M16.5 7.5a1.5 1.5 0 1 1-3 0a1.5 1.5 0 0 1 3 0Z" />
-                                        </svg>
-                                        <!-- cancelled -->
-                                        <svg v-else-if="b.status === 'cancelled'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
-                                        </svg>
-                                        <!-- done -->
-                                        <svg v-else-if="b.status === 'done'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                        </svg>
-                                        {{ STATUS_META[b.status]?.label ?? b.status }}
-                                    </span>
+                             <!-- Status -->
+                             <td class="py-4 px-6">
+                                 <div class="flex flex-col gap-1.5">
+                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 inline-flex items-center gap-1 w-fit"
+                                           :class="getStatusMeta(b).class">
+                                         <!-- Pending / waiting_confirmation -->
+                                         <svg v-if="b.status === 'waiting_confirmation' || b.status === 'plotting'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
+                                         </svg>
+                                         <!-- H-14 or Confirmed -->
+                                         <template v-else-if="b.status === 'confirmed'">
+                                             <!-- H-14 -->
+                                             <svg v-if="getStatusMeta(b).label.startsWith('H - 14')" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                             </svg>
+                                             <!-- Disetujui -->
+                                             <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
+                                             </svg>
+                                         </template>
+                                         <!-- final -->
+                                         <svg v-else-if="b.status === 'final'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766l.002-.001a1.56 1.56 0 0 1 1.883 1.883l-.001.002c-.14.468-.382.89-.766 1.208l-3.03 2.496ZM11.42 15.17l-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243 3 3 0 0 0 4.243 4.243Zm0 0L7.88 9.75a3 3 0 0 0-3 3v.375c0 .621.504 1.125 1.125 1.125h.375M16.5 7.5a1.5 1.5 0 1 1-3 0a1.5 1.5 0 0 1 3 0Z" />
+                                         </svg>
+                                         <!-- cancelled -->
+                                         <svg v-else-if="b.status === 'cancelled'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                             <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
+                                         </svg>
+                                         <!-- done -->
+                                         <svg v-else-if="b.status === 'done'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                         </svg>
+                                         {{ getStatusMeta(b).label }}
+                                     </span>
 
                                     <!-- Catatan admin jika dibatalkan -->
                                     <div v-if="b.status === 'cancelled' && b.catatan_admin"

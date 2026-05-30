@@ -41,28 +41,28 @@ function getRoomColor(ruanganId) {
 // ============================================================
 const STATUS_COLORS = {
     plotting: {
-        bg: '#3b82f6',      // Blue 500
-        light: '#eff6ff',   // Blue 50
-        text: '#1d4ed8',    // Blue 700
-        border: '#93c5fd',  // Blue 300
+        bg: '#ef4444',      // Red 500 (H - 14)
+        light: '#fee2e2',   // Red 50
+        text: '#b91c1c',    // Red 700
+        border: '#fca5a5',  // Red 300
     },
     waiting_confirmation: {
-        bg: '#f59e0b',      // Amber 500
+        bg: '#f59e0b',      // Amber 500 (Pending)
         light: '#fffbeb',   // Amber 50
         text: '#b45309',    // Amber 700
         border: '#fcd34d',  // Amber 300
     },
     confirmed: {
-        bg: '#10b981',      // Emerald 500
+        bg: '#10b981',      // Emerald 500 (Disetujui)
         light: '#ecfdf5',   // Emerald 50
         text: '#047857',    // Emerald 700
         border: '#6ee7b7',  // Emerald 300
     },
     cancelled: {
-        bg: '#ef4444',      // Red 500
-        light: '#fee2e2',   // Red 50
-        text: '#b91c1c',    // Red 700
-        border: '#fca5a5',  // Red 300
+        bg: '#9ca3af',      // Gray 500 (Dibatalkan)
+        light: '#f3f4f6',   // Gray 50
+        text: '#4b5563',    // Gray 700
+        border: '#e5e7eb',  // Gray 300
     }
 }
 
@@ -406,20 +406,42 @@ const sortedParticipants = computed(() => {
 // Status badge helper
 // ============================================================
 const STATUS_STYLE = {
-    plotting:             'bg-blue-50 text-blue-800 border border-blue-200',
+    plotting:             'bg-red-50 text-red-850 border border-red-200',
     waiting_confirmation: 'bg-amber-50 text-amber-800 border border-amber-200',
     confirmed:            'bg-green-105 text-green-800 border border-green-200',
-    cancelled:            'bg-red-100 text-red-800 border border-red-200',
+    cancelled:            'bg-gray-100 text-gray-800 border border-gray-200',
 }
 
 function statusLabel(status) {
     const map = {
-        plotting:             'Plotting',
+        plotting:             'H - 14',
         waiting_confirmation: 'Pending',
         confirmed:            'Disetujui',
-        cancelled:            'Ditolak',
+        cancelled:            'Dibatalkan',
+        final:                'Final ACC / Persiapan Lapangan',
+        done:                 'Selesai',
     }
     return map[status] ?? status
+}
+
+function getVisualStatus(b) {
+    if (!b) return 'waiting_confirmation'
+    if (b.status === 'cancelled') return 'cancelled'
+    if (b.status === 'waiting_confirmation' || b.status === 'plotting') return 'waiting_confirmation'
+    
+    if (b.status === 'confirmed') {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const h14Cutoff = new Date()
+        h14Cutoff.setDate(today.getDate() + 14)
+        h14Cutoff.setHours(23, 59, 59, 999)
+        
+        const start = new Date(b.tgl_mulai)
+        if (start >= today && start <= h14Cutoff) {
+            return 'plotting'
+        }
+    }
+    return 'confirmed'
 }
 
 // ── Stats Card Definitions ─────────────────────────────────────────
@@ -503,21 +525,43 @@ function formatDate(d) {
 // Chart State
 // ============================================================
 const chartSeries = computed(() => {
-    let waiting = 0, confirmed = 0, plotting = 0, cancelled = 0
+    let pending = 0, confirmed = 0, h14 = 0, cancelled = 0
+    
+    // Hitung tanggal batas H-14 secara presisi
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const h14Cutoff = new Date()
+    h14Cutoff.setDate(today.getDate() + 14)
+    h14Cutoff.setHours(23, 59, 59, 999)
+
     props.bookings.forEach(b => {
-        if (b.status === 'waiting_confirmation') waiting++
-        else if (b.status === 'confirmed' || b.status === 'final' || b.status === 'final_confirmed') confirmed++
-        else if (b.status === 'plotting') plotting++
-        else if (b.status === 'cancelled') cancelled++
+        if (b.status === 'cancelled') {
+            cancelled++
+        }
+        else if (b.status === 'waiting_confirmation' || b.status === 'plotting') {
+            pending++
+        }
+        else if (b.status === 'confirmed') {
+            const startDate = new Date(b.tgl_mulai)
+            // Jika masuk dalam batas H-14 & belum final (masih status confirmed)
+            if (startDate >= today && startDate <= h14Cutoff) {
+                h14++
+            } else {
+                confirmed++
+            }
+        }
+        else if (b.status === 'final' || b.status === 'final_confirmed') {
+            confirmed++
+        }
     })
-    return [waiting, confirmed, plotting, cancelled]
+    return [pending, confirmed, h14, cancelled]
 })
 
 const chartOptions = computed(() => {
     return {
         chart: { type: 'donut', fontFamily: 'inherit' },
-        labels: ['Pending', 'Disetujui', 'Plotting', 'Dibatalkan'],
-        colors: ['#f59e0b', '#10b981', '#3b82f6', '#ef4444'], // Amber, Emerald, Blue, Red
+        labels: ['Pending', 'Disetujui', 'H - 14', 'Dibatalkan'],
+        colors: ['#f59e0b', '#10b981', '#ef4444', '#9ca3af'], // Amber, Emerald, Red, Gray
         plotOptions: {
             pie: {
                 donut: {
@@ -1000,9 +1044,9 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                 <span>Pending</span>
                             </div>
-                            <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-blue-50/80 text-blue-800 px-3 py-1 rounded-full border border-blue-100/70">
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                <span>Plotting</span>
+                            <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-red-50/80 text-red-800 px-3 py-1 rounded-full border border-red-100/70">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                <span>H - 14</span>
                             </div>
                             <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-emerald-50/80 text-emerald-800 px-3 py-1 rounded-full border border-emerald-100/70">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -1083,9 +1127,9 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                                         left: `calc(${b.startPct}% + 3px)`,
                                                         width: `calc(${b.widthPct}% - 6px)`,
                                                         top: '16px',
-                                                        backgroundColor: getStatusColor(b.status).light,
-                                                        color: getStatusColor(b.status).text,
-                                                        borderColor: getStatusColor(b.status).bg
+                                                        backgroundColor: getStatusColor(getVisualStatus(b)).light,
+                                                        color: getStatusColor(getVisualStatus(b)).text,
+                                                        borderColor: getStatusColor(getVisualStatus(b)).bg
                                                     }"
                                                     :title="`${b.nama_ruang} — ${b.nama_training} (${b.divisi}) — ${formatDateRange(b.tgl_mulai, b.tgl_selesai)}`"
                                                 >
@@ -1095,9 +1139,9 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                                         
                                                         <!-- Status indicator dot at the end -->
                                                         <span class="w-1.5 h-1.5 rounded-full shrink-0 ml-auto" :class="[
-                                                            b.status === 'plotting' ? 'bg-amber-500 animate-pulse' : '',
-                                                            b.status === 'waiting_confirmation' ? 'bg-blue-500 animate-pulse' : '',
-                                                            b.status === 'confirmed' ? 'bg-emerald-500' : ''
+                                                            getVisualStatus(b) === 'plotting' ? 'bg-red-500 animate-pulse' : '',
+                                                            getVisualStatus(b) === 'waiting_confirmation' ? 'bg-amber-500 animate-pulse' : '',
+                                                            getVisualStatus(b) === 'confirmed' ? 'bg-emerald-500' : ''
                                                         ]"></span>
                                                     </div>
                                                 </div>
@@ -1154,14 +1198,9 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                     </h4>
                                     <span
                                         class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border"
-                                        :class="{
-                                            'bg-yellow-50 text-yellow-755 border-yellow-200': selectedDetailBooking?.status === 'waiting_confirmation',
-                                            'bg-emerald-50 text-emerald-700 border-emerald-250': selectedDetailBooking?.status === 'confirmed',
-                                            'bg-red-50 text-red-755 border-red-200': selectedDetailBooking?.status === 'cancelled',
-                                            'bg-amber-50 text-amber-700 border-amber-205': selectedDetailBooking?.status === 'plotting',
-                                        }"
+                                        :class="STATUS_STYLE[getVisualStatus(selectedDetailBooking)]"
                                     >
-                                        {{ statusLabel(selectedDetailBooking?.status) }}
+                                        {{ statusLabel(getVisualStatus(selectedDetailBooking)) }}
                                     </span>
                                     <span v-if="selectedDetailBooking?.gabung_ruang" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">🔗 Gabung Ruang</span>
                                 </div>
