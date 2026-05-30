@@ -566,8 +566,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     v-for="card in cards"
                     :key="card.key"
                     @click="goToFilter(card.filter)"
-                    class="text-left border-0 rounded-lg p-5 transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 flex flex-col justify-between"
-                    :style="{ backgroundColor: card.theme.bg + '15' }"
+                    class="text-left border-0 bg-white rounded-lg p-5 transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 flex flex-col justify-between"
                 >
                     <!-- Icon + number row -->
                     <div class="flex items-start justify-between mb-3 w-full">
