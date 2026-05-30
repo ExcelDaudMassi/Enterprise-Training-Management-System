@@ -68,6 +68,14 @@ class DashboardController extends Controller
                 ->whereNotNull('ruangan_id')
                 ->distinct('ruangan_id')
                 ->count('ruangan_id'),
+
+            // Extra – Jumlah dibatalkan untuk tahun dipilih (dipakai oleh donut chart)
+            'cancelled_count' => Booking::where('status', Booking::STATUS_CANCELLED)
+                ->where(function ($q) use ($yearStart, $yearEnd) {
+                    $q->whereBetween('tgl_mulai', [$yearStart, $yearEnd])
+                      ->orWhereBetween('tgl_selesai', [$yearStart, $yearEnd]);
+                })
+                ->count(),
         ];
 
         // ── Booking Window ─────────────────────────────────────────────
@@ -163,12 +171,14 @@ class DashboardController extends Controller
 
         $ruanganList = Ruangan::all(['id', 'nama_ruang', 'lokasi_gedung', 'kapasitas_max']);
 
-        // Sertakan cancelled agar donut chart bisa menampilkan semua status dengan akurat
+        // Exclude cancelled — booking batal tidak ditampilkan di kalender & Gantt chart
+        // Angka cancelled tetap tersedia via stats['cancelled_count'] untuk donut chart
         $bookingQuery = Booking::with(['ruangan:id,nama_ruang', 'user:id,name,divisi', 'participants'])
             ->where(function ($query) use ($year) {
                 $query->whereYear('tgl_mulai', $year)
                       ->orWhereYear('tgl_selesai', $year);
-            });
+            })
+            ->whereNotIn('status', [Booking::STATUS_CANCELLED]);
 
         if ($ruanganFilter) {
             $bookingQuery->where('ruangan_id', $ruanganFilter);

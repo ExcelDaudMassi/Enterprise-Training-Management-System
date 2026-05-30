@@ -525,7 +525,7 @@ function formatDate(d) {
 // Chart State
 // ============================================================
 const chartSeries = computed(() => {
-    let pending = 0, confirmed = 0, h14 = 0, cancelled = 0
+    let pending = 0, confirmed = 0, h14 = 0
 
     // Gunakan tahun yang dipilih user
     const selectedYear = props.selectedYear
@@ -542,18 +542,14 @@ const chartSeries = computed(() => {
         h14End.setDate(h14End.getDate() + 14)
         h14End.setHours(23, 59, 59, 999)
     } else {
-        // Tahun lain (masa lalu / depan): semua booking confirmed = sudah "H-14" dalam konteksnya
-        // Gunakan seluruh tahun tersebut sebagai jangka valid
-        h14Start = new Date(selectedYear, 0, 1)   // 1 Jan tahun tersebut
-        h14End   = new Date(selectedYear, 11, 31, 23, 59, 59, 999)  // 31 Des tahun tersebut
+        // Tahun lain (masa lalu / depan): seluruh confirmed dalam tahun itu dianggap H-14
+        h14Start = new Date(selectedYear, 0, 1)
+        h14End   = new Date(selectedYear, 11, 31, 23, 59, 59, 999)
     }
 
-    // Juga sertakan cancelled dalam bookings (cancelled disaring dari backend, tapi hitung manual)
-    // Gunakan semua bookings yang masuk ke props
+    // Hitung dari props.bookings (sudah exclude cancelled — cancelled ada di stats sendiri)
     props.bookings.forEach(b => {
-        if (b.status === 'cancelled') {
-            cancelled++
-        } else if (b.status === 'waiting_confirmation' || b.status === 'plotting') {
+        if (b.status === 'waiting_confirmation' || b.status === 'plotting') {
             pending++
         } else if (b.status === 'confirmed') {
             const startDate = new Date(b.tgl_mulai)
@@ -567,7 +563,7 @@ const chartSeries = computed(() => {
                     confirmed++
                 }
             } else {
-                // Untuk tahun lain: seluruh confirmed masuk ke "H-14" (karena semuanya sudah dalam periode)
+                // Untuk tahun lain: seluruh confirmed masuk ke "H-14"
                 h14++
             }
         } else if (b.status === 'final' || b.status === 'final_confirmed') {
@@ -575,8 +571,9 @@ const chartSeries = computed(() => {
         }
     })
 
-    // Tambahkan cancelled yang juga ada di stats tapi di-filter dari bookings
-    // (backend whereNotIn cancelled, jadi kita ambil dari stats jika ada)
+    // Cancelled diambil dari stats backend (terpisah dari bookings kalender)
+    const cancelled = props.stats?.cancelled_count ?? 0
+
     return [pending, confirmed, h14, cancelled]
 })
 
