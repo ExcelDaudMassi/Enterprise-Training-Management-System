@@ -385,18 +385,18 @@ function closeDetailModal() {
 // Status badge helper
 // ============================================================
 const STATUS_STYLE = {
-    plotting:             'bg-gray-100 text-gray-700',
-    waiting_confirmation: 'bg-yellow-100 text-yellow-700',
-    confirmed:            'bg-green-100 text-green-700',
-    cancelled:            'bg-red-100 text-red-700',
+    plotting:             'bg-amber-50 text-amber-800 border border-amber-200',
+    waiting_confirmation: 'bg-yellow-100 text-yellow-700 border border-yellow-200',
+    confirmed:            'bg-green-100 text-green-700 border border-green-200',
+    cancelled:            'bg-red-100 text-red-700 border border-red-200',
 }
 
 function statusLabel(status) {
     const map = {
-        plotting:             'Plotting',
-        waiting_confirmation: 'Waiting',
-        confirmed:            'Confirmed',
-        cancelled:            'Cancelled',
+        plotting:             'Pending',
+        waiting_confirmation: 'Menunggu',
+        confirmed:            'Disetujui',
+        cancelled:            'Ditolak',
     }
     return map[status] ?? status
 }
@@ -770,7 +770,7 @@ function statusLabel(status) {
                             <div class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest">Status Booking:</div>
                             <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-amber-50/80 text-amber-800 px-3 py-1 rounded-full border border-amber-100/70">
                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                <span>Plotting</span>
+                                <span>Pending</span>
                             </div>
                             <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-blue-50/80 text-blue-800 px-3 py-1 rounded-full border border-blue-100/70">
                                 <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>

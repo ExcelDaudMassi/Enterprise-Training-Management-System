@@ -42,13 +42,12 @@ function goToPage(url) {
     if (url) router.get(url, {}, { preserveScroll: true, preserveState: true })
 }
 
-// ─── Status display helpers ───────────────────────────────────
 const STATUS_META = {
     waiting_confirmation: { label: 'Menunggu',  class: 'bg-yellow-100 text-yellow-800 border border-yellow-200' },
     confirmed:            { label: 'Disetujui', class: 'bg-blue-100 text-blue-800 border border-blue-200' },
     final:                { label: 'Final ACC / Persiapan Lapangan', class: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
     cancelled:            { label: 'Ditolak',   class: 'bg-red-100 text-red-800 border border-red-200' },
-    plotting:             { label: 'Plotting',  class: 'bg-purple-100 text-purple-800 border border-purple-200' },
+    plotting:             { label: 'Pending',  class: 'bg-amber-100 text-amber-800 border border-amber-200' },
 }
 
 function isPastH14(tglMulai) {

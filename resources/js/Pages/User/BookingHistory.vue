@@ -15,6 +15,10 @@ const isWindowActive = computed(() => page.props.bookingWindow?.is_active ?? tru
 
 // ─── Status helpers ────────────────────────────────────────────
 const STATUS_META = {
+    plotting: {
+        label: 'Pending',
+        class: 'bg-amber-100 text-amber-800 border border-amber-200',
+    },
     waiting_confirmation: {
         label: 'Menunggu Persetujuan',
         class: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
@@ -253,8 +257,12 @@ async function submitDateChange() {
                                 <div class="flex flex-col gap-1.5">
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 inline-flex items-center gap-1 w-fit"
                                           :class="STATUS_META[b.status]?.class ?? 'bg-gray-100 text-gray-600 border border-gray-200'">
+                                        <!-- plotting (Pending) -->
+                                        <svg v-if="b.status === 'plotting'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
+                                        </svg>
                                         <!-- waiting_confirmation -->
-                                        <svg v-if="b.status === 'waiting_confirmation'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <svg v-else-if="b.status === 'waiting_confirmation'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
                                         </svg>
                                         <!-- confirmed -->
