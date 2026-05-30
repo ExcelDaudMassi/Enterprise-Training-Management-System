@@ -602,10 +602,10 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         </div>
 
         <!-- ── Top Row Layout: 2x2 Stats Grid + Donut Chart ─────────────── -->
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             
-            <!-- Left Side: 2x2 Stats Grid (40% width) -->
-            <div class="lg:col-span-2 grid grid-cols-2 gap-4">
+            <!-- Left Side: 2x2 Stats Grid (50% width) -->
+            <div class="lg:col-span-1 grid grid-cols-2 gap-4">
                 <button
                     v-for="card in cards"
                     :key="card.key"
@@ -638,8 +638,8 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 </button>
             </div>
             
-            <!-- Right Side: Donut Chart (60% width) -->
-            <div class="lg:col-span-3 bg-white rounded-lg shadow-xs p-5 flex flex-col items-stretch justify-between h-full">
+            <!-- Right Side: Donut Chart (50% width) -->
+            <div class="lg:col-span-1 bg-white rounded-lg shadow-xs p-5 flex flex-col items-stretch justify-between h-full">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                         <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
