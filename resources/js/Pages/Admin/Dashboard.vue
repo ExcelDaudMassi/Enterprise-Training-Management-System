@@ -426,7 +426,7 @@ function statusLabel(status) {
 const cards = [
     {
         key:     'pending_approval',
-        label:   'Menunggu Approval',
+        label:   'Approve',
         sub:     'Perlu tindakan segera',
         icon:    '⏳',
         filter:  'waiting_confirmation',
@@ -441,24 +441,8 @@ const cards = [
         },
     },
     {
-        key:     'confirmed_this_month',
-        label:   'Confirmed Bulan Ini',
-        sub:     'Booking yang sudah disetujui',
-        icon:    '✅',
-        filter:  'confirmed',
-        theme: {
-            bg:     'bg-emerald-50',
-            border: 'border-transparent',
-            icon:   'bg-emerald-100 text-emerald-600',
-            num:    'text-emerald-700',
-            label:  'text-emerald-600',
-            badge:  'bg-emerald-100 text-emerald-700',
-            hover:  'hover:shadow-emerald-100',
-        },
-    },
-    {
         key:     'urgent_h14',
-        label:   'Urgent — H-14',
+        label:   'H - 14',
         sub:     'Mulai dalam 14 hari, belum di-ACC',
         icon:    '🚨',
         filter:  'urgent',
@@ -473,8 +457,24 @@ const cards = [
         },
     },
     {
+        key:     'confirmed_this_month',
+        label:   'Terkonfirmasi',
+        sub:     'Booking yang sudah disetujui',
+        icon:    '✅',
+        filter:  'confirmed',
+        theme: {
+            bg:     'bg-emerald-50',
+            border: 'border-transparent',
+            icon:   'bg-emerald-100 text-emerald-600',
+            num:    'text-emerald-700',
+            label:  'text-emerald-600',
+            badge:  'bg-emerald-100 text-emerald-700',
+            hover:  'hover:shadow-emerald-100',
+        },
+    },
+    {
         key:     'rooms_today',
-        label:   'Ruangan Terpakai',
+        label:   'Ruangan terpakai',
         sub:     'Hari ini',
         icon:    '🏢',
         filter:  'confirmed',
@@ -557,39 +557,63 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             </div>
         </div>
 
-        <!-- ── 4 Stats Cards ────────────────────────────────────────── -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-            <button
-                v-for="card in cards"
-                :key="card.key"
-                @click="goToFilter(card.filter)"
-                class="text-left border-0 rounded-lg p-5 transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
-                :class="[card.theme.bg, card.theme.border, card.theme.hover]"
-            >
-                <!-- Icon + number row -->
-                <div class="flex items-start justify-between mb-3">
-                    <span class="w-10 h-10 flex items-center justify-center rounded-xl text-lg shrink-0"
-                          :class="card.theme.icon">
-                        <!-- SVGs based on card key -->
-                        <svg v-if="card.key === 'pending_approval'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0a9 9 0 0118 0z"/></svg>
-                        <svg v-else-if="card.key === 'confirmed_this_month'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
-                        <svg v-else-if="card.key === 'urgent_h14'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        <svg v-else-if="card.key === 'rooms_today'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        <!-- ── Top Row Layout: 2x2 Stats Grid + Donut Chart ─────────────── -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            
+            <!-- Left Side: 2x2 Stats Grid -->
+            <div class="lg:col-span-2 grid grid-cols-2 gap-4">
+                <button
+                    v-for="card in cards"
+                    :key="card.key"
+                    @click="goToFilter(card.filter)"
+                    class="text-left border-0 rounded-lg p-5 transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 flex flex-col justify-between"
+                    :style="{ backgroundColor: card.theme.bg + '15' }"
+                >
+                    <!-- Icon + number row -->
+                    <div class="flex items-start justify-between mb-3 w-full">
+                        <span class="w-10 h-10 flex items-center justify-center rounded-xl text-lg shrink-0"
+                              :class="card.theme.icon">
+                            <!-- SVGs based on card key -->
+                            <svg v-if="card.key === 'pending_approval'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0a9 9 0 0118 0z"/></svg>
+                            <svg v-else-if="card.key === 'confirmed_this_month'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
+                            <svg v-else-if="card.key === 'urgent_h14'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <svg v-else-if="card.key === 'rooms_today'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </span>
+                        <span class="text-[9px] font-bold uppercase px-2.5 py-1 rounded-full tracking-wider border transition-colors bg-white/70"
+                              :class="card.theme.badge">Tinjau →</span>
+                    </div>
+
+                    <!-- Number + Label Section -->
+                    <div class="mt-auto">
+                        <p class="text-4xl font-black leading-none mb-2 transition-transform group-hover:scale-103"
+                           :class="card.theme.num">
+                            {{ props.stats[card.key] ?? 0 }}
+                        </p>
+                        <p class="text-xs font-extrabold uppercase tracking-wide" :class="card.theme.label">{{ card.label }}</p>
+                        <p class="text-[10px] text-gray-400 font-medium mt-1 leading-snug">{{ card.sub }}</p>
+                    </div>
+                </button>
+            </div>
+            
+            <!-- Right Side: Donut Chart -->
+            <div class="lg:col-span-1 bg-white rounded-lg shadow-xs p-5 flex flex-col items-stretch justify-between h-full">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/>
+                        </svg>
                     </span>
-                    <span class="text-[9px] font-bold uppercase px-2.5 py-1 rounded-full tracking-wider border transition-colors bg-white/70"
-                          :class="card.theme.badge">Tinjau →</span>
+                    <h3 class="text-xs font-black text-gray-600 uppercase tracking-widest">Statistik Proporsi Booking</h3>
                 </div>
+                <div class="w-full flex-1 flex items-center justify-center min-h-[220px]" v-if="props.bookings.length > 0">
+                    <VueApexCharts type="donut" width="100%" height="220" :options="chartOptions" :series="chartSeries" />
+                </div>
+                <div v-else class="text-gray-400 text-xs font-semibold italic flex-1 flex items-center justify-center">
+                    Belum ada data booking tahun ini
+                </div>
+            </div>
 
-                <!-- Number -->
-                <p class="text-4xl font-black leading-none mb-2 transition-transform group-hover:scale-103"
-                   :class="card.theme.num">
-                    {{ props.stats[card.key] ?? 0 }}
-                </p>
-
-                <!-- Label + sub -->
-                <p class="text-xs font-extrabold uppercase tracking-wide" :class="card.theme.label">{{ card.label }}</p>
-                <p class="text-[10px] text-gray-400 font-medium mt-1 leading-snug">{{ card.sub }}</p>
-            </button>
         </div>
 
 
@@ -870,31 +894,9 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             </div>
         </div>
 
-        <!-- ── Chart & Notification Summary ────────────────────────────── -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            
-            <!-- Chart Box -->
-            <div class="bg-white rounded-lg shadow-xs p-5 flex flex-col items-stretch h-full">
-                <div class="flex items-center gap-2 mb-6">
-                    <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                        <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/>
-                        </svg>
-                    </span>
-                    <h3 class="text-xs font-black text-gray-600 uppercase tracking-widest">Statistik Proporsi Booking</h3>
-                </div>
-                <div class="w-full flex-1 flex items-center justify-center min-h-[280px]" v-if="props.bookings.length > 0">
-                    <VueApexCharts type="donut" width="100%" height="280" :options="chartOptions" :series="chartSeries" />
-                </div>
-                <div v-else class="text-gray-400 text-xs font-semibold italic flex-1 flex items-center justify-center">
-                    Belum ada data booking tahun ini
-                </div>
-            </div>
-
-            <!-- Notifications List -->
-            <div v-if="notifications && notifications.length > 0"
-                 class="lg:col-span-2 bg-white rounded-lg shadow-xs overflow-hidden flex flex-col h-full">
+        <!-- ── Notification Summary (Full Width) ───────────────────────── -->
+        <div v-if="notifications && notifications.length > 0" class="mb-6">
+            <div class="bg-white rounded-lg shadow-xs overflow-hidden flex flex-col w-full">
                 <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between bg-gray-50/20 shrink-0">
                     <div class="flex items-center gap-2">
                         <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
@@ -947,17 +949,15 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     </button>
                 </div>
             </div>
-
-            <!-- Empty state kalau tidak ada notifikasi -->
-            <div v-else class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-xs px-5 py-10 text-center flex flex-col items-center justify-center min-h-[340px] h-full">
-                <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <p class="font-extrabold text-gray-800 text-sm">Semua Aman & Terkendali!</p>
-                <p class="text-xs text-gray-400 font-semibold mt-1">Tidak ada pengajuan booking yang perlu tindakan segera saat ini.</p>
+        </div>
+        <div v-else class="bg-white rounded-lg shadow-xs px-5 py-10 text-center flex flex-col items-center justify-center min-h-[180px] h-full mb-6">
+            <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
             </div>
+            <p class="font-extrabold text-gray-800 text-sm">Semua Aman & Terkendali!</p>
+            <p class="text-xs text-gray-400 font-semibold mt-1">Tidak ada pengajuan booking yang perlu tindakan segera saat ini.</p>
         </div>
 
         <!-- ============================================================ -->
