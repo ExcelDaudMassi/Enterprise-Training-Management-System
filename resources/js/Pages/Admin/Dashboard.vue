@@ -41,16 +41,16 @@ function getRoomColor(ruanganId) {
 // ============================================================
 const STATUS_COLORS = {
     plotting: {
-        bg: '#f59e0b',      // Amber 500
-        light: '#fffbeb',   // Amber 50
-        text: '#b45309',    // Amber 700
-        border: '#fcd34d',  // Amber 300
-    },
-    waiting_confirmation: {
         bg: '#3b82f6',      // Blue 500
         light: '#eff6ff',   // Blue 50
         text: '#1d4ed8',    // Blue 700
         border: '#93c5fd',  // Blue 300
+    },
+    waiting_confirmation: {
+        bg: '#f59e0b',      // Amber 500
+        light: '#fffbeb',   // Amber 50
+        text: '#b45309',    // Amber 700
+        border: '#fcd34d',  // Amber 300
     },
     confirmed: {
         bg: '#10b981',      // Emerald 500
@@ -406,16 +406,16 @@ const sortedParticipants = computed(() => {
 // Status badge helper
 // ============================================================
 const STATUS_STYLE = {
-    plotting:             'bg-amber-50 text-amber-800 border border-amber-200',
-    waiting_confirmation: 'bg-yellow-105 text-yellow-800 border border-yellow-250',
+    plotting:             'bg-blue-50 text-blue-800 border border-blue-200',
+    waiting_confirmation: 'bg-amber-50 text-amber-800 border border-amber-200',
     confirmed:            'bg-green-105 text-green-800 border border-green-200',
     cancelled:            'bg-red-100 text-red-800 border border-red-200',
 }
 
 function statusLabel(status) {
     const map = {
-        plotting:             'Pending',
-        waiting_confirmation: 'Menunggu',
+        plotting:             'Plotting',
+        waiting_confirmation: 'Pending',
         confirmed:            'Disetujui',
         cancelled:            'Ditolak',
     }
@@ -426,7 +426,7 @@ function statusLabel(status) {
 const cards = [
     {
         key:     'pending_approval',
-        label:   'Approve',
+        label:   'Pending',
         sub:     'Perlu tindakan segera',
         icon:    '⏳',
         filter:  'waiting_confirmation',
@@ -516,8 +516,8 @@ const chartSeries = computed(() => {
 const chartOptions = computed(() => {
     return {
         chart: { type: 'donut', fontFamily: 'inherit' },
-        labels: ['Menunggu ACC', 'Disetujui', 'Pending', 'Dibatalkan'],
-        colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'], // Blue, Emerald, Amber, Red
+        labels: ['Pending', 'Disetujui', 'Plotting', 'Dibatalkan'],
+        colors: ['#f59e0b', '#10b981', '#3b82f6', '#ef4444'], // Amber, Emerald, Blue, Red
         plotOptions: {
             pie: {
                 donut: {
@@ -1002,7 +1002,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             </div>
                             <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-blue-50/80 text-blue-800 px-3 py-1 rounded-full border border-blue-100/70">
                                 <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                <span>Menunggu Persetujuan</span>
+                                <span>Plotting</span>
                             </div>
                             <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-emerald-50/80 text-emerald-800 px-3 py-1 rounded-full border border-emerald-100/70">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
