@@ -33,7 +33,6 @@ class RoomController extends Controller
         $allRooms = Ruangan::all(['id', 'nama_ruang']);
 
         return Inertia::render('Admin/Rooms/Index', [
-            'auth'  => ['user' => ['name' => Auth::user()->name, 'email' => Auth::user()->email, 'role' => Auth::user()->role]],
             'rooms' => $rooms,
             'allRooms' => $allRooms,
         ]);

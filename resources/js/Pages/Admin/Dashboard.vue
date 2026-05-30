@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+
+defineOptions({ layout: AdminLayout })
+
 import { router } from '@inertiajs/vue3'
 import VueApexCharts from 'vue3-apexcharts'
 
@@ -504,7 +507,6 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 </script>
 
 <template>
-    <AdminLayout :auth="auth" :bookingWindow="bookingWindow" :notifications="notifications">
 
         <!-- ── Page Header ──────────────────────────────────────────── -->
         <div class="mb-6">
@@ -1087,5 +1089,4 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             </div>
         </Teleport>
 
-    </AdminLayout>
 </template>

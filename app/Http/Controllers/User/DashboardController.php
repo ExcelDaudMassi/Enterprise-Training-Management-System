@@ -77,13 +77,6 @@ class DashboardController extends Controller
             'myBookings'  => $myBookings,
             'selectedYear'    => $year,
             'selectedRuangan' => $ruanganFilter ? (int) $ruanganFilter : null,
-            'auth' => [
-                'user' => [
-                    'name'   => Auth::user()->name,
-                    'divisi' => Auth::user()->divisi,
-                    'role'   => Auth::user()->role,
-                ],
-            ],
         ]);
     }
 }

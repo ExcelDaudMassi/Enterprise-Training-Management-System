@@ -3,6 +3,8 @@ import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { useForm } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 
+defineOptions({ layout: AdminLayout })
+
 const props = defineProps({
     auth:     Object,
     rooms:    Array,
@@ -107,8 +109,6 @@ const filteredRooms = computed(() => {
 </script>
 
 <template>
-    <AdminLayout :auth="auth">
-
         <!-- ── Page Header ──────────────────────────────────────── -->
         <div class="mb-6 flex items-center justify-between">
             <div>
@@ -411,5 +411,4 @@ const filteredRooms = computed(() => {
             </Transition>
         </Teleport>
 
-    </AdminLayout>
 </template>

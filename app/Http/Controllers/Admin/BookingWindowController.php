@@ -35,7 +35,6 @@ class BookingWindowController extends Controller
 
         return \Inertia\Inertia::render('Admin/BookingWindowHistory', [
             'windows' => $windows,
-            'auth'    => ['user' => ['name' => auth()->user()->name, 'role' => auth()->user()->role]],
         ]);
     }
 

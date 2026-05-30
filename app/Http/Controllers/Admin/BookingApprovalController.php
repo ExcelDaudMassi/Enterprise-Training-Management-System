@@ -82,7 +82,6 @@ class BookingApprovalController extends Controller
         $paginated->setCollection($bookings);
 
         return Inertia::render('Admin/BookingApproval', [
-            'auth'         => ['user' => ['name' => Auth::user()->name, 'role' => Auth::user()->role]],
             'bookings'     => $paginated,
             'activeFilter' => $filter,
             'search'       => $request->query('search', ''),
@@ -145,7 +144,6 @@ class BookingApprovalController extends Controller
         });
 
         return Inertia::render('Admin/BookingRecap', [
-            'auth'     => ['user' => ['name' => Auth::user()->name, 'email' => Auth::user()->email, 'role' => Auth::user()->role]],
             'bookings' => $bookings,
             'filter'   => $filter,
             'today'    => $today->toDateString(),

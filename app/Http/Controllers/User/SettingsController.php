@@ -15,16 +15,7 @@ class SettingsController extends Controller
      */
     public function editPassword()
     {
-        return Inertia::render('User/PasswordSettings', [
-            'auth' => [
-                'user' => [
-                    'name'   => Auth::user()->name,
-                    'divisi' => Auth::user()->divisi,
-                    'role'   => Auth::user()->role,
-                    'email'  => Auth::user()->email,
-                ],
-            ],
-        ]);
+        return Inertia::render('User/PasswordSettings');
     }
 
     /**

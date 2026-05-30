@@ -1,13 +1,29 @@
 <script setup>
 import { Link, useForm, usePage, router } from '@inertiajs/vue3'
-import { computed, ref, onMounted, onUnmounted, provide, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, provide, watch, watchEffect } from 'vue'
 import Swal from 'sweetalert2'
 
 defineProps({
-    auth: Object,
+    // Auth is accessed via usePage() — shared globally by HandleInertiaRequests
 })
 
 const page = usePage()
+
+// Persistent cache — once auth is set it never goes null during navigation
+const _authCache = ref(page.props.auth ?? null)
+const auth = computed(() => _authCache.value)
+
+watchEffect(() => {
+    const a = page.props.auth
+    if (a?.user) _authCache.value = a
+})
+
+// Also refresh on every Inertia navigate event (belt-and-suspenders)
+const _stopNav = router.on('navigate', () => {
+    const a = page.props.auth
+    if (a?.user) _authCache.value = a
+})
+
 const currentUrl = computed(() => page.url)
 
 const isDetailActive = ref(currentUrl.value.includes('/detail'))
@@ -160,6 +176,7 @@ onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside)
     if (pollingInterval) clearInterval(pollingInterval)
     if (unregisterStartListener) unregisterStartListener()
+    _stopNav()
 })
 
 function toggleSidebar() {
@@ -214,8 +231,8 @@ provide('collapseDetailMenu', () => {
 
             <!-- User Info -->
             <div class="px-4 py-3 border-b border-gray-100">
-                <p class="text-xs font-semibold text-gray-800 truncate">{{ auth.user.name }}</p>
-                <p class="text-[10px] text-gray-500 truncate">{{ auth.user.divisi ?? '-' }}</p>
+                <p class="text-xs font-semibold text-gray-800 truncate">{{ auth?.user?.name }}</p>
+                <p class="text-[10px] text-gray-500 truncate">{{ auth?.user?.divisi ?? '-' }}</p>
                 <span class="inline-block mt-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full">USER</span>
             </div>
 
@@ -397,7 +414,7 @@ provide('collapseDetailMenu', () => {
                         </div>
                     </div>
 
-                    <span class="text-xs text-gray-400 hidden sm:inline">{{ auth.user.email }}</span>
+                    <span class="text-xs text-gray-400 hidden sm:inline">{{ auth?.user?.email }}</span>
                 </div>
             </header>
 

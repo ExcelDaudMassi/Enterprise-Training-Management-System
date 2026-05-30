@@ -184,7 +184,6 @@ class DashboardController extends Controller
         });
 
         return Inertia::render('Admin/Dashboard', [
-            'auth'           => ['user' => ['name' => Auth::user()->name, 'email' => Auth::user()->email, 'role' => Auth::user()->role]],
             'stats'          => $stats,
             'bookingWindow'  => $bookingWindow,
             'notifications'  => $notifications,

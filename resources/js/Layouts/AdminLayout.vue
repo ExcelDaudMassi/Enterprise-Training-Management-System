@@ -1,13 +1,30 @@
 <script setup>
 import { Link, useForm, usePage, router } from '@inertiajs/vue3'
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch, watchEffect } from 'vue'
 import Swal from 'sweetalert2'
 
 const props = defineProps({
-    auth: Object,
+    // Auth is accessed via usePage() — shared globally by HandleInertiaRequests
 })
 
 const page = usePage()
+
+// Persistent cache — once auth is set it never goes null during navigation
+const _authCache = ref(page.props.auth ?? null)
+const auth = computed(() => _authCache.value)
+
+watchEffect(() => {
+    const a = page.props.auth
+    if (a?.user) _authCache.value = a
+})
+
+// Also refresh on every Inertia navigate event (belt-and-suspenders)
+const _stopNav = router.on('navigate', () => {
+    const a = page.props.auth
+    if (a?.user) _authCache.value = a
+})
+onUnmounted(() => _stopNav())
+
 const currentUrl = computed(() => page.url)
 
 const bookingWindow = computed(() => page.props.bookingWindow)
@@ -91,6 +108,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
+    _stopNav()
 })
 
 function toggleSidebar() {
@@ -154,90 +172,90 @@ watch(() => page.props.flash, (newVal) => {
         <!-- Sidebar Admin -->
         <!-- ======================================================= -->
         <aside 
-            class="fixed inset-y-0 left-0 z-40 w-56 bg-gray-900 text-gray-100 flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out lg:static lg:translate-x-0 h-screen"
+            class="fixed inset-y-0 left-0 z-40 w-56 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out lg:static lg:translate-x-0 h-screen"
             :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-56'"
         >
 
             <!-- Logo / Brand -->
-            <div class="px-4 py-4 border-b border-gray-700">
-                <span class="font-bold text-white text-sm">📋 BBSO Booking</span>
-                <p class="text-[10px] text-gray-500 mt-0.5">Admin Panel</p>
+            <div class="px-4 py-4 border-b border-gray-100 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <span class="font-bold text-gray-800 text-sm">BBSO Booking <span class="text-[10px] text-gray-400 font-normal ml-1">Admin</span></span>
             </div>
 
             <!-- Admin Info -->
-            <div class="px-4 py-3 border-b border-gray-700">
-                <p class="text-xs font-semibold text-white truncate">{{ auth.user.name }}</p>
-                <p class="text-[10px] text-gray-400 truncate">{{ auth.user.email }}</p>
-                <span class="inline-block mt-1 px-2 py-0.5 bg-red-900 text-red-300 text-[10px] font-bold rounded-full">ADMIN</span>
+            <div class="px-4 py-3 border-b border-gray-100">
+                <p class="text-xs font-semibold text-gray-800 truncate">{{ auth?.user?.name }}</p>
+                <p class="text-[10px] text-gray-500 truncate">{{ auth?.user?.email }}</p>
+                <span class="inline-block mt-1 px-2 py-0.5 bg-red-50 text-red-700 text-[10px] font-bold rounded-full">ADMIN</span>
             </div>
 
             <!-- Navigation Menu -->
-            <nav class="flex-1 px-2 py-3 space-y-0.5">
+            <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
                 <Link
                     href="/admin/dashboard"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
-                    :class="isActive('/admin/dashboard') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
+                    :class="isActive('/admin/dashboard') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <span class="text-base">🏠</span> Dashboard
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Dashboard
                 </Link>
 
-                <div class="px-3 py-2 text-[10px] text-gray-600 uppercase tracking-wider mt-2">Manajemen</div>
+                <div class="px-3 py-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-2">Manajemen</div>
 
                 <Link
                     href="/admin/bookings"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
-                    :class="isActive('/admin/bookings') && !isActive('/admin/booking-recap') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
+                    :class="isActive('/admin/bookings') && !isActive('/admin/booking-recap') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <span class="text-base">⚙️</span> Manajemen Booking
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Manajemen Booking
                 </Link>
 
                 <Link
                     href="/admin/booking-recap"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
-                    :class="isActive('/admin/booking-recap') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
+                    :class="isActive('/admin/booking-recap') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <span class="text-base">📋</span> Rekap Booking
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg> Rekap Booking
                 </Link>
 
                 <Link
                     href="/admin/booking-windows"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
-                    :class="isActive('/admin/booking-windows') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
+                    :class="isActive('/admin/booking-windows') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <span class="text-base">📅</span> Riwayat Window
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z"/></svg> Riwayat Window
                 </Link>
 
-                <div class="px-3 py-2 text-[10px] text-gray-600 uppercase tracking-wider mt-2">Master Data</div>
+                <div class="px-3 py-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-2">Master Data</div>
 
                 <Link
                     href="/admin/rooms"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
-                    :class="isActive('/admin/rooms') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
+                    :class="isActive('/admin/rooms') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <span class="text-base">🏢</span> Master Ruangan
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Master Ruangan
                 </Link>
 
-                <div class="px-3 py-2 text-[10px] text-gray-600 uppercase tracking-wider mt-2">Sistem</div>
+                <div class="px-3 py-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-2">Sistem</div>
 
                 <Link
                     href="/admin/settings"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
-                    :class="isActive('/admin/settings') ? 'bg-gray-700 text-white font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'"
+                    :class="isActive('/admin/settings') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <span class="text-base">⚙️</span> Pengaturan
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Pengaturan
                 </Link>
             </nav>
 
             <!-- Bottom Actions -->
-            <div class="px-2 py-3 border-t border-gray-700 space-y-1">
+            <div class="px-2 py-3 border-t border-gray-100 space-y-1">
                 <!-- Switch to User (Dev Only) -->
                 <button
                     @click="switchToUser"
                     :disabled="switchForm.processing"
-                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-amber-400 hover:bg-gray-800 transition-colors font-medium"
+                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors font-medium cursor-pointer"
                     title="Kembali ke Akun Departemen (Dev Only)"
                 >
-                    <span class="text-base">🔄</span>
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                     <span class="truncate">{{ switchForm.processing ? 'Switching...' : 'Switch ke User' }}</span>
                 </button>
 
@@ -245,9 +263,9 @@ watch(() => page.props.flash, (newVal) => {
                 <button
                     @click="logout"
                     :disabled="logoutForm.processing"
-                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-red-400 hover:bg-gray-800 transition-colors"
+                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                 >
-                    <span class="text-base">🚪</span> Logout
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Logout
                 </button>
             </div>
         </aside>
@@ -386,7 +404,7 @@ watch(() => page.props.flash, (newVal) => {
                     </div>
 
                     <!-- Admin name -->
-                    <span class="text-sm text-gray-600 font-medium">{{ auth.user.name }}</span>
+                    <span class="text-sm text-gray-600 font-medium">{{ auth?.user?.name }}</span>
                 </div>
             </header>
 

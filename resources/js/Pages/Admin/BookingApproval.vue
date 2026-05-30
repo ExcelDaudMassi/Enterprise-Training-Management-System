@@ -2,6 +2,8 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { useForm, usePage, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
+
+defineOptions({ layout: AdminLayout })
 import axios from 'axios'
 
 const props = defineProps({
@@ -278,7 +280,6 @@ const layoutLabels = {
 </script>
 
 <template>
-    <AdminLayout :auth="auth">
         <!-- ── Page Header ─────────────────────────────────────── -->
         <div class="mb-5 flex items-center justify-between">
             <div>
@@ -1259,5 +1260,4 @@ const layoutLabels = {
                 </div>
             </Transition>
         </Teleport>
-    </AdminLayout>
 </template>

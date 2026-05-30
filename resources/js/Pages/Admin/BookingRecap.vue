@@ -2,6 +2,8 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { useForm, usePage, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
+
+defineOptions({ layout: AdminLayout })
 import axios from 'axios'
 
 const props = defineProps({
@@ -173,7 +175,6 @@ function exportExcel() {
 </script>
 
 <template>
-    <AdminLayout :auth="auth">
         <!-- ── Page Header ─────────────────────────────────────── -->
         <div class="mb-5 flex items-center justify-between">
             <div>
@@ -815,5 +816,4 @@ function exportExcel() {
 
 
 
-    </AdminLayout>
 </template>

@@ -46,7 +46,6 @@ class BookingHistoryController extends Controller
             ]);
 
         return Inertia::render('User/BookingHistory', [
-            'auth'     => ['user' => ['name' => Auth::user()->name, 'role' => Auth::user()->role, 'email' => Auth::user()->email, 'divisi' => Auth::user()->divisi ?? null]],
             'bookings' => $bookings,
         ]);
     }
@@ -93,7 +92,6 @@ class BookingHistoryController extends Controller
             ]);
 
         return Inertia::render('User/BookingActive', [
-            'auth'     => ['user' => ['name' => Auth::user()->name, 'role' => Auth::user()->role, 'email' => Auth::user()->email, 'divisi' => Auth::user()->divisi ?? null]],
             'bookings' => $bookings,
         ]);
     }
@@ -128,14 +126,6 @@ class BookingHistoryController extends Controller
         ];
 
         return Inertia::render('User/BookingDetail', [
-            'auth'    => [
-                'user' => [
-                    'name'   => Auth::user()->name, 
-                    'role'   => Auth::user()->role,
-                    'email'  => Auth::user()->email,
-                    'divisi' => Auth::user()->divisi,
-                ]
-            ],
             'booking' => $bookingData,
         ]);
     }

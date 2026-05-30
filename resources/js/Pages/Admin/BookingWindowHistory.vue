@@ -1,6 +1,8 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 
+defineOptions({ layout: AdminLayout })
+
 const props = defineProps({
     auth: Object,
     windows: Array,
@@ -13,7 +15,6 @@ function formatDate(d) {
 </script>
 
 <template>
-    <AdminLayout :auth="auth">
         <div class="mb-6">
             <h1 class="text-xl font-bold text-gray-900">Riwayat Window Booking</h1>
             <p class="text-sm text-gray-500 mt-1">Daftar semua periode pembukaan window booking beserta rekapitulasi datanya.</p>
@@ -63,5 +64,4 @@ function formatDate(d) {
                 </tbody>
             </table>
         </div>
-    </AdminLayout>
 </template>
