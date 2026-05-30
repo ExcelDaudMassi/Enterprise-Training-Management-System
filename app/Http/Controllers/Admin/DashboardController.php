@@ -19,24 +19,49 @@ class DashboardController extends Controller
         $now       = Carbon::now();
         $h14Cutoff = $today->copy()->addDays(14);
 
-        // ── 4 Stats Cards ──────────────────────────────────────────────
+        // ── Tahun filter (dipakai untuk stats cards & donut chart) ─────
+        $activeWindowForYear = \App\Models\BookingWindow::active()->latest('id')->first();
+        $year = (int) $request->get('year', $activeWindowForYear?->tahun ?? 2027);
+        $yearStart = Carbon::create($year, 1, 1)->startOfDay();
+        $yearEnd   = Carbon::create($year, 12, 31)->endOfDay();
+
+        // H-14 cutoff kontekstual:
+        // – Untuk tahun berjalan: 14 hari dari hari ini
+        // – Untuk tahun lain (masa lalu / depan): seluruh tahun tersebut
+        $currentYear = $today->year;
+        if ($year === $currentYear) {
+            $h14YearStart = $today->copy();
+            $h14YearEnd   = $h14Cutoff->copy();
+        } else {
+            $h14YearStart = $yearStart->copy();
+            $h14YearEnd   = $yearEnd->copy();
+        }
+
+        // ── 4 Stats Cards (berdasarkan tahun yang dipilih) ─────────────
         $stats = [
-            // Kartu 1 – Menunggu ACC Tahap 1
-            'pending_approval' => Booking::where('status', Booking::STATUS_WAITING_CONFIRMATION)->count(),
+            // Kartu 1 – Pending (menunggu ACC) untuk tahun yang dipilih
+            'pending_approval' => Booking::where('status', Booking::STATUS_WAITING_CONFIRMATION)
+                ->where(function ($q) use ($yearStart, $yearEnd) {
+                    $q->whereBetween('tgl_mulai', [$yearStart, $yearEnd])
+                      ->orWhereBetween('tgl_selesai', [$yearStart, $yearEnd]);
+                })
+                ->count(),
 
-            // Kartu 2 – Confirmed bulan berjalan
+            // Kartu 2 – Confirmed untuk tahun yang dipilih
             'confirmed_this_month' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINAL])
-                ->whereMonth('tgl_mulai', $today->month)
-                ->whereYear('tgl_mulai', $today->year)
+                ->where(function ($q) use ($yearStart, $yearEnd) {
+                    $q->whereBetween('tgl_mulai', [$yearStart, $yearEnd])
+                      ->orWhereBetween('tgl_selesai', [$yearStart, $yearEnd]);
+                })
                 ->count(),
 
-            // Kartu 3 – H-14: confirmed & mulai dalam <= 14 hari (butuh ACC Final)
+            // Kartu 3 – H-14: confirmed & mulai dalam jangka H-14 kontekstual
             'urgent_h14' => Booking::where('status', Booking::STATUS_CONFIRMED)
-                ->where('tgl_mulai', '<=', $h14Cutoff)
-                ->where('tgl_mulai', '>=', $today)
+                ->where('tgl_mulai', '<=', $h14YearEnd)
+                ->where('tgl_mulai', '>=', $h14YearStart)
                 ->count(),
 
-            // Kartu 4 – Ruangan terpakai hari ini (confirmed, final, ATAU final_confirmed)
+            // Kartu 4 – Ruangan terpakai hari ini (selalu hari ini, tidak difilter tahun)
             'rooms_today' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINAL])
                 ->where('tgl_mulai', '<=', $today)
                 ->where('tgl_selesai', '>=', $today)
@@ -134,17 +159,16 @@ class DashboardController extends Controller
             ->values();
 
         // ── DATA KALENDER (Sama seperti User Dashboard) ─────────────────
-        $year = (int) $request->get('year', $activeWindow?->tahun ?? 2027);
         $ruanganFilter = $request->get('ruangan_id');
 
         $ruanganList = Ruangan::all(['id', 'nama_ruang', 'lokasi_gedung', 'kapasitas_max']);
 
+        // Sertakan cancelled agar donut chart bisa menampilkan semua status dengan akurat
         $bookingQuery = Booking::with(['ruangan:id,nama_ruang', 'user:id,name,divisi', 'participants'])
             ->where(function ($query) use ($year) {
                 $query->whereYear('tgl_mulai', $year)
                       ->orWhereYear('tgl_selesai', $year);
-            })
-            ->whereNotIn('status', ['cancelled']);
+            });
 
         if ($ruanganFilter) {
             $bookingQuery->where('ruangan_id', $ruanganFilter);

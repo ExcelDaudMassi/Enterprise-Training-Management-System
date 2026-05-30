@@ -526,34 +526,57 @@ function formatDate(d) {
 // ============================================================
 const chartSeries = computed(() => {
     let pending = 0, confirmed = 0, h14 = 0, cancelled = 0
-    
-    // Hitung tanggal batas H-14 secara presisi
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const h14Cutoff = new Date()
-    h14Cutoff.setDate(today.getDate() + 14)
-    h14Cutoff.setHours(23, 59, 59, 999)
 
+    // Gunakan tahun yang dipilih user
+    const selectedYear = props.selectedYear
+    const currentYear = new Date().getFullYear()
+    const currentDate = new Date()
+    currentDate.setHours(0, 0, 0, 0)
+
+    // Tentukan jangka H-14 berdasarkan konteks tahun
+    let h14Start, h14End
+    if (selectedYear === currentYear) {
+        // Tahun ini: H-14 dihitung dari hari ini sampai 14 hari ke depan
+        h14Start = new Date(currentDate)
+        h14End = new Date(currentDate)
+        h14End.setDate(h14End.getDate() + 14)
+        h14End.setHours(23, 59, 59, 999)
+    } else {
+        // Tahun lain (masa lalu / depan): semua booking confirmed = sudah "H-14" dalam konteksnya
+        // Gunakan seluruh tahun tersebut sebagai jangka valid
+        h14Start = new Date(selectedYear, 0, 1)   // 1 Jan tahun tersebut
+        h14End   = new Date(selectedYear, 11, 31, 23, 59, 59, 999)  // 31 Des tahun tersebut
+    }
+
+    // Juga sertakan cancelled dalam bookings (cancelled disaring dari backend, tapi hitung manual)
+    // Gunakan semua bookings yang masuk ke props
     props.bookings.forEach(b => {
         if (b.status === 'cancelled') {
             cancelled++
-        }
-        else if (b.status === 'waiting_confirmation' || b.status === 'plotting') {
+        } else if (b.status === 'waiting_confirmation' || b.status === 'plotting') {
             pending++
-        }
-        else if (b.status === 'confirmed') {
+        } else if (b.status === 'confirmed') {
             const startDate = new Date(b.tgl_mulai)
-            // Jika masuk dalam batas H-14 & belum final (masih status confirmed)
-            if (startDate >= today && startDate <= h14Cutoff) {
-                h14++
+            startDate.setHours(0, 0, 0, 0)
+
+            if (selectedYear === currentYear) {
+                // Untuk tahun berjalan: H-14 = confirmed & mulai dalam 14 hari dari sekarang
+                if (startDate >= h14Start && startDate <= h14End) {
+                    h14++
+                } else {
+                    confirmed++
+                }
             } else {
-                confirmed++
+                // Untuk tahun lain: seluruh confirmed masuk ke "H-14" (karena semuanya sudah dalam periode)
+                h14++
             }
-        }
-        else if (b.status === 'final' || b.status === 'final_confirmed') {
+        } else if (b.status === 'final' || b.status === 'final_confirmed') {
             confirmed++
         }
     })
+
+    // Tambahkan cancelled yang juga ada di stats tapi di-filter dari bookings
+    // (backend whereNotIn cancelled, jadi kita ambil dari stats jika ada)
     return [pending, confirmed, h14, cancelled]
 })
 
