@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 
 defineOptions({ layout: AdminLayout })
@@ -22,13 +22,13 @@ const props = defineProps({
 // Warna per ruangan (index-based, statis) — Palette baru yang tidak bentrok dengan warna status
 // ============================================================
 const ROOM_COLORS = [
-    { bg: '#6366f1', light: '#e0e7ff', text: '#312e81' }, // Indigo  - Ruang 1
-    { bg: '#a855f7', light: '#f3e8ff', text: '#581c87' }, // Purple  - Ruang 2
-    { bg: '#ec4899', light: '#fce7f3', text: '#831843' }, // Pink    - Ruang 3
-    { bg: '#06b6d4', light: '#e0f7fa', text: '#164e63' }, // Cyan    - Ruang 4
-    { bg: '#14b8a6', light: '#ccfbf1', text: '#134e4a' }, // Teal    - Ruang 5
-    { bg: '#f43f5e', light: '#ffe4e6', text: '#881337' }, // Rose    - Ruang 6
-    { bg: '#d946ef', light: '#fae8ff', text: '#701a75' }, // Fuchsia - Ruang 7
+    { bg: '#2563eb', light: '#dbeafe', text: '#1e3a8a' }, // Blue    - Ruang 1
+    { bg: '#7c3aed', light: '#ede9fe', text: '#3b0764' }, // Violet  - Ruang 2
+    { bg: '#e11d48', light: '#ffe4e6', text: '#881337' }, // Rose    - Ruang 3
+    { bg: '#d97706', light: '#fef3c7', text: '#78350f' }, // Amber   - Ruang 4
+    { bg: '#059669', light: '#d1fae5', text: '#064e3b' }, // Emerald - Ruang 5
+    { bg: '#0284c7', light: '#e0f2fe', text: '#0c4a6e' }, // Sky     - Ruang 6
+    { bg: '#ea580c', light: '#ffedd5', text: '#7c2d12' }, // Orange  - Ruang 7
 ]
 
 function getRoomColor(ruanganId) {
@@ -75,6 +75,24 @@ function getStatusColor(status) {
 // ============================================================
 const filterYear = ref(props.selectedYear)
 const filterRuangan = ref(props.selectedRuangan)
+const isFilterOpen = ref(false)
+const isYearOpen = ref(false)
+const filterRef = ref(null)
+const yearRef = ref(null)
+
+function handleFilterClickOutside(e) {
+    if (filterRef.value && !filterRef.value.contains(e.target)) {
+        isFilterOpen.value = false
+    }
+    if (yearRef.value && !yearRef.value.contains(e.target)) {
+        isYearOpen.value = false
+    }
+}
+
+onMounted(() => document.addEventListener('click', handleFilterClickOutside))
+onUnmounted(() => document.removeEventListener('click', handleFilterClickOutside))
+
+const YEAR_OPTIONS = [2024, 2025, 2026, 2027, 2028]
 
 watch(() => props.selectedYear, (newYear) => {
     filterYear.value = newYear
@@ -84,7 +102,24 @@ watch(() => props.selectedRuangan, (newRuangan) => {
     filterRuangan.value = newRuangan
 })
 
+const selectedRuanganLabel = computed(() => {
+    if (!filterRuangan.value) return 'Semua Ruangan'
+    const room = props.ruanganList?.find(r => r.id === filterRuangan.value)
+    return room?.nama_ruang ?? 'Semua Ruangan'
+})
+
+const selectedRuanganColor = computed(() => {
+    if (!filterRuangan.value) return null
+    const idx = props.ruanganList?.findIndex(r => r.id === filterRuangan.value) ?? -1
+    return idx >= 0 ? ROOM_COLORS[idx % ROOM_COLORS.length].bg : null
+})
+
+const hasActiveFilter = computed(() => {
+    return filterYear.value !== new Date().getFullYear() || filterRuangan.value !== null
+})
+
 function applyFilter() {
+    isFilterOpen.value = false
     router.get('/admin/dashboard', {
         year: filterYear.value,
         ruangan_id: filterRuangan.value || undefined,
@@ -92,6 +127,12 @@ function applyFilter() {
         preserveState: true,
         preserveScroll: true,
     })
+}
+
+function resetFilter() {
+    filterYear.value = new Date().getFullYear()
+    filterRuangan.value = null
+    applyFilter()
 }
 
 // ============================================================
@@ -509,108 +550,299 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 <template>
 
         <!-- ── Page Header ──────────────────────────────────────────── -->
-        <div class="mb-6">
-            <h1 class="text-xl font-bold text-gray-900">Dashboard</h1>
-            <p class="text-sm text-gray-400 mt-0.5">{{ today }}</p>
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+                <h1 class="text-2xl font-black text-gray-900 tracking-tight">Dashboard Admin</h1>
+                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mt-1">{{ today }}</p>
+            </div>
         </div>
 
         <!-- ── 4 Stats Cards ────────────────────────────────────────── -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
             <button
                 v-for="card in cards"
                 :key="card.key"
                 @click="goToFilter(card.filter)"
-                class="text-left border rounded-lg p-5 transition-all duration-200 shadow-sm hover:shadow-md group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                class="text-left border border-gray-100 rounded-2xl p-5 transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
                 :class="[card.theme.bg, card.theme.border, card.theme.hover]"
             >
                 <!-- Icon + number row -->
                 <div class="flex items-start justify-between mb-3">
-                    <span class="w-10 h-10 flex items-center justify-center rounded-lg text-lg"
-                          :class="card.theme.icon">{{ card.icon }}</span>
-                    <span class="text-[10px] font-semibold uppercase px-2 py-1 rounded-full tracking-wider"
-                          :class="card.theme.badge">Lihat →</span>
+                    <span class="w-10 h-10 flex items-center justify-center rounded-xl text-lg shrink-0"
+                          :class="card.theme.icon">
+                        <!-- SVGs based on card key -->
+                        <svg v-if="card.key === 'pending_approval'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0a9 9 0 0118 0z"/></svg>
+                        <svg v-else-if="card.key === 'confirmed_this_month'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
+                        <svg v-else-if="card.key === 'urgent_h14'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <svg v-else-if="card.key === 'rooms_today'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </span>
+                    <span class="text-[9px] font-bold uppercase px-2.5 py-1 rounded-full tracking-wider border transition-colors bg-white/70"
+                          :class="card.theme.badge">Tinjau →</span>
                 </div>
 
                 <!-- Number -->
-                <p class="text-4xl font-extrabold leading-none mb-2 transition-transform group-hover:scale-105"
+                <p class="text-4xl font-black leading-none mb-2 transition-transform group-hover:scale-103"
                    :class="card.theme.num">
                     {{ props.stats[card.key] ?? 0 }}
                 </p>
 
                 <!-- Label + sub -->
-                <p class="text-sm font-semibold" :class="card.theme.label">{{ card.label }}</p>
-                <p class="text-[11px] text-gray-400 mt-0.5">{{ card.sub }}</p>
+                <p class="text-xs font-extrabold uppercase tracking-wide" :class="card.theme.label">{{ card.label }}</p>
+                <p class="text-[10px] text-gray-400 font-medium mt-1 leading-snug">{{ card.sub }}</p>
             </button>
         </div>
 
         <!-- ── Quick Info: Booking Window status ─────────────────────── -->
         <div v-if="bookingWindow" class="mb-6">
             <div
-                class="flex items-center gap-3 rounded-lg border px-5 py-3.5"
+                class="flex items-center gap-3.5 rounded-2xl border px-5 py-4 shadow-3xs"
                 :class="bookingWindow.is_active
-                    ? 'bg-emerald-50 border-emerald-200'
-                    : 'bg-gray-50 border-gray-200'"
+                    ? 'bg-emerald-50/50 border-emerald-250'
+                    : 'bg-gray-50/80 border-gray-200'"
             >
-                <span class="w-3 h-3 rounded-full flex-shrink-0 transition-all"
-                      :class="bookingWindow.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'"></span>
+                <div class="w-10 h-10 flex items-center justify-center rounded-xl text-lg shrink-0"
+                      :class="bookingWindow.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold"
-                       :class="bookingWindow.is_active ? 'text-emerald-800' : 'text-gray-600'">
+                    <p class="text-sm font-extrabold"
+                       :class="bookingWindow.is_active ? 'text-emerald-800' : 'text-gray-700'">
                         {{ bookingWindow.is_active ? 'Window Booking Sedang Aktif' : 'Window Booking Tutup' }}
                     </p>
-                    <p class="text-xs mt-0.5"
+                    <p class="text-xs font-medium mt-0.5 leading-snug"
                        :class="bookingWindow.is_active ? 'text-emerald-600' : 'text-gray-400'">
                         <template v-if="bookingWindow.is_active">
-                            Periode: {{ bookingWindow.nama }} · Ditutup: {{ formatDate(bookingWindow.end_date) }}
+                            Periode: <span class="font-bold text-emerald-700">{{ bookingWindow.nama }}</span> &nbsp;·&nbsp; Batas Pengajuan: <span class="font-bold">{{ formatDate(bookingWindow.end_date) }}</span>
                         </template>
                         <template v-else>
-                            User tidak bisa mengajukan booking baru. Klik tombol "Buka" di navbar untuk membuka window.
+                            User saat ini tidak dapat mengajukan booking baru. Klik tombol "Buka" di navbar kanan atas untuk membuka window.
                         </template>
                     </p>
                 </div>
-                <span class="text-2xl flex-shrink-0">{{ bookingWindow.is_active ? '🟢' : '⛔' }}</span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold border uppercase shrink-0"
+                      :class="bookingWindow.is_active ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-gray-200 text-gray-600 border-gray-300'">
+                    {{ bookingWindow.is_active ? 'Open' : 'Closed' }}
+                </span>
             </div>
         </div>
 
         <!-- ============================================================ -->
-        <!-- Filter Area & Kalender (Sama seperti User Dashboard) -->
+        <!-- Filter Area — Premium Panel -->
         <!-- ============================================================ -->
-        <div class="mb-6 flex flex-wrap gap-4 items-end bg-white rounded-lg border border-gray-150 shadow-sm p-4">
-            <!-- Year -->
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Tahun Kalender</label>
-                <select v-model="filterYear" @change="applyFilter" class="border border-gray-250 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option v-for="y in [2025,2026,2027,2028]" :key="y" :value="y">{{ y }}</option>
-                </select>
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-xs mb-6 overflow-hidden">
+
+            <!-- Filter Header -->
+            <div class="px-5 py-3.5 flex items-center justify-between border-b border-gray-100 bg-gray-50/20">
+                <div class="flex items-center gap-2">
+                    <div class="p-1.5 bg-blue-50 rounded-lg text-blue-600">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                        </svg>
+                    </div>
+                    <span class="text-[10px] font-black text-gray-600 uppercase tracking-widest">Filter Tampilan Kalender</span>
+                    <span v-if="hasActiveFilter" class="ml-1 px-2 py-0.5 text-[9px] font-black bg-blue-50 text-blue-700 border border-blue-100 rounded-full uppercase tracking-wider">Aktif</span>
+                </div>
+                <button
+                    v-if="hasActiveFilter"
+                    @click="resetFilter"
+                    class="text-[10.5px] text-gray-400 hover:text-red-600 font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Reset Filter
+                </button>
             </div>
 
-            <!-- Ruangan -->
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 mb-1">Filter Ruangan</label>
-                <select v-model="filterRuangan" @change="applyFilter" class="border border-gray-250 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option :value="null">Semua Ruangan</option>
-                    <option v-for="r in ruanganList" :key="r.id" :value="r.id">{{ r.nama_ruang }}</option>
-                </select>
+            <!-- Filter Controls -->
+            <div class="px-5 py-4 flex flex-wrap items-end gap-4">
+
+                <!-- Tahun Select -->
+                <div ref="yearRef" class="flex flex-col gap-1.5 min-w-[130px]">
+                    <label class="flex items-center gap-1.5 text-[9.5px] font-black text-gray-400 uppercase tracking-widest">
+                        <svg class="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Tahun
+                    </label>
+                    <div class="relative">
+                        <!-- Trigger Display -->
+                        <div
+                            @click="isYearOpen = !isYearOpen"
+                            class="w-full h-9 pl-3 pr-8 bg-gray-50 border border-gray-200 rounded-lg text-xs font-extrabold flex items-center gap-2 cursor-pointer select-none transition"
+                            :class="isYearOpen ? 'ring-2 ring-blue-500 border-blue-400 bg-white' : 'hover:border-gray-300'"
+                        >
+                            <span class="w-5 h-5 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
+                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </span>
+                            <span class="text-gray-800">{{ filterYear }}</span>
+                            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none transition-transform" :class="isYearOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                        <!-- Dropdown -->
+                        <Transition
+                            enter-active-class="transition-all duration-200 ease-out"
+                            enter-from-class="opacity-0 translate-y-1 scale-98"
+                            enter-to-class="opacity-100 translate-y-0 scale-100"
+                            leave-active-class="transition-all duration-150 ease-in"
+                            leave-from-class="opacity-100 translate-y-0 scale-100"
+                            leave-to-class="opacity-0 translate-y-1 scale-98"
+                        >
+                            <div
+                                v-if="isYearOpen"
+                                class="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 overflow-hidden"
+                            >
+                                <button
+                                    v-for="y in YEAR_OPTIONS"
+                                    :key="y"
+                                    @click="filterYear = y; isYearOpen = false"
+                                    class="w-full flex items-center gap-3 px-3 py-2 text-xs transition text-left hover:bg-gray-50 cursor-pointer"
+                                    :class="filterYear === y ? 'bg-blue-50 font-extrabold text-blue-700' : 'text-gray-700 font-semibold'"
+                                >
+                                    <span class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center"
+                                        :style="filterYear === y ? 'background:#dbeafe' : 'background:#f3f4f6'"
+                                    >
+                                        <svg class="w-3 h-3" :class="filterYear === y ? 'text-blue-600' : 'text-gray-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </span>
+                                    <span>{{ y }}</span>
+                                    <svg v-if="filterYear === y" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                </button>
+                            </div>
+                        </Transition>
+                    </div>
+                </div>
+
+                <!-- Ruangan Select -->
+                <div ref="filterRef" class="flex flex-col gap-1.5 min-w-[220px]">
+                    <label class="flex items-center gap-1.5 text-[9.5px] font-black text-gray-400 uppercase tracking-widest">
+                        <svg class="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        Ruangan
+                    </label>
+                    <div class="relative">
+                        <!-- Trigger Display -->
+                        <div
+                            @click="isFilterOpen = !isFilterOpen"
+                            class="w-full h-9 pl-3 pr-8 bg-gray-50 border border-gray-200 rounded-lg text-xs font-extrabold flex items-center gap-2 cursor-pointer select-none transition"
+                            :class="isFilterOpen ? 'ring-2 ring-blue-500 border-blue-400 bg-white' : 'hover:border-gray-300'"
+                        >
+                            <!-- Icon box — dot warna jika ruangan dipilih, grid icon jika semua -->
+                            <span
+                                v-if="selectedRuanganColor"
+                                class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center"
+                                :style="{ backgroundColor: selectedRuanganColor + '22' }"
+                            >
+                                <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: selectedRuanganColor }"></span>
+                            </span>
+                            <span v-else class="w-5 h-5 rounded-md bg-gray-100 flex items-center justify-center shrink-0">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                </svg>
+                            </span>
+                            <span class="text-gray-805 truncate">{{ selectedRuanganLabel }}</span>
+                            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none transition-transform" :class="isFilterOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                        <!-- Dropdown Options -->
+                        <Transition
+                            enter-active-class="transition-all duration-200 ease-out"
+                            enter-from-class="opacity-0 translate-y-1 scale-98"
+                            enter-to-class="opacity-100 translate-y-0 scale-100"
+                            leave-active-class="transition-all duration-150 ease-in"
+                            leave-from-class="opacity-100 translate-y-0 scale-100"
+                            leave-to-class="opacity-0 translate-y-1 scale-98"
+                        >
+                            <div
+                                v-if="isFilterOpen"
+                                class="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 overflow-hidden"
+                            >
+                                <!-- Semua Ruangan -->
+                                <button
+                                    @click="filterRuangan = null; isFilterOpen = false"
+                                    class="w-full flex items-center gap-3 px-3 py-2 text-xs hover:bg-gray-50 transition text-left cursor-pointer font-semibold"
+                                    :class="filterRuangan === null ? 'bg-blue-50 font-extrabold text-blue-700' : 'text-gray-700'"
+                                >
+                                    <span class="w-5 h-5 rounded-md bg-gray-100 flex items-center justify-center shrink-0">
+                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                        </svg>
+                                    </span>
+                                    <span>Semua Ruangan</span>
+                                    <svg v-if="filterRuangan === null" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                </button>
+                                <div class="my-1 border-t border-gray-100"></div>
+                                <!-- Per Ruangan -->
+                                <button
+                                    v-for="(r, idx) in ruanganList"
+                                    :key="r.id"
+                                    @click="filterRuangan = r.id; isFilterOpen = false"
+                                    class="w-full flex items-center gap-3 px-3 py-2 text-xs hover:bg-gray-50 transition text-left cursor-pointer font-semibold"
+                                    :class="filterRuangan === r.id ? 'bg-blue-50 font-extrabold text-blue-700' : 'text-gray-700'"
+                                >
+                                    <span
+                                        class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center"
+                                        :style="{ backgroundColor: ROOM_COLORS[idx % ROOM_COLORS.length].light }"
+                                    >
+                                        <span
+                                            class="w-2.5 h-2.5 rounded-full"
+                                            :style="{ backgroundColor: ROOM_COLORS[idx % ROOM_COLORS.length].bg }"
+                                        ></span>
+                                    </span>
+                                    <span>{{ r.nama_ruang }}</span>
+                                    <svg v-if="filterRuangan === r.id" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                </button>
+                            </div>
+                        </Transition>
+                    </div>
+                </div>
+
+                <!-- Tombol Terapkan -->
+                <button
+                    @click="applyFilter"
+                    class="h-9 px-5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-xs font-bold text-white rounded-lg shadow-xs transition flex items-center gap-2 select-none shrink-0 cursor-pointer"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                    </svg>
+                    Terapkan
+                </button>
+
             </div>
 
-            <!-- Legend Warna Ruangan -->
-            <div class="flex flex-wrap gap-2 ml-auto">
-                <div
+            <!-- Legend Ruangan -->
+            <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/40 flex flex-wrap gap-2">
+                <span class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest self-center mr-1">Warna Ruangan:</span>
+                <button
                     v-for="(r, idx) in ruanganList"
                     :key="r.id"
-                    class="flex items-center gap-1 text-xs"
+                    @click="filterRuangan = r.id; applyFilter()"
+                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-3xs"
+                    :style="{
+                        backgroundColor: filterRuangan === r.id ? ROOM_COLORS[idx % ROOM_COLORS.length].light : '#f9fafb',
+                        borderColor: filterRuangan === r.id ? ROOM_COLORS[idx % ROOM_COLORS.length].bg : '#e5e7eb',
+                        color: filterRuangan === r.id ? ROOM_COLORS[idx % ROOM_COLORS.length].text : '#4b5563'
+                    }"
+                    :title="`Filter cepat: ${r.nama_ruang}`"
                 >
                     <span
-                        class="w-2.5 h-2.5 rounded-full inline-block"
+                        class="w-2 h-2 rounded-full shrink-0 animate-pulse"
                         :style="{ backgroundColor: ROOM_COLORS[idx % ROOM_COLORS.length].bg }"
                     ></span>
                     {{ r.nama_ruang }}
-                </div>
+                </button>
             </div>
+
         </div>
 
         <!-- Kalender Grid -->
-        <div class="bg-white rounded-lg border border-gray-150 shadow-sm p-5 mb-6">
+        <div class="bg-white rounded-2xl border border-gray-150 shadow-sm p-5 mb-6">
             <h3 class="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-1.5">
                 <span>📅</span> Kalender Pemesanan Ruangan — {{ selectedYear }}
             </h3>
@@ -619,10 +851,9 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 <div 
                     v-for="(monthName, monthIdx) in MONTH_NAMES" 
                     :key="monthIdx" 
-                    class="group/month relative border border-gray-100 rounded p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
+                    class="group/month relative border border-gray-100 rounded-2xl p-3 bg-gray-50/30 transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
                     :class="getMonthOriginClass(monthIdx)"
                 >
-
                     <!-- Nama Bulan -->
                     <div @click="openModal(selectedYear, monthIdx)" class="text-xs font-bold text-center text-gray-800 mb-2 border-b border-gray-100 pb-1 cursor-pointer hover:text-blue-600 transition">{{ monthName }}</div>
 
@@ -640,7 +871,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             <!-- Tanggal berisi -->
                             <div
                                 v-else
-                                class="h-8 flex flex-col items-center justify-start cursor-pointer rounded relative group transition-all duration-200"
+                                class="h-8 flex flex-col items-center justify-start cursor-pointer rounded-lg relative group transition-all duration-200"
                                 :class="[
                                     isToday(selectedYear, monthIdx, day) ? 'ring-1 ring-blue-500 font-bold bg-white shadow-sm' : '',
                                     getDateHighlightClass(selectedYear, monthIdx, day) || 'bg-white/40 hover:bg-white hover:shadow-sm'
@@ -675,71 +906,89 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
             <!-- Chart Box -->
-            <div class="bg-white rounded-lg border border-gray-150 shadow-sm p-5 flex flex-col items-center justify-center">
-                <h3 class="text-sm font-semibold text-gray-800 mb-6 flex items-center gap-1.5 w-full">
-                    <span>📊</span> Statistik Proporsi Booking
-                </h3>
-                <div class="w-full flex-1 flex items-center justify-center" v-if="props.bookings.length > 0">
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 flex flex-col items-stretch h-full">
+                <div class="flex items-center gap-2 mb-6">
+                    <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/>
+                        </svg>
+                    </span>
+                    <h3 class="text-xs font-black text-gray-600 uppercase tracking-widest">Statistik Proporsi Booking</h3>
+                </div>
+                <div class="w-full flex-1 flex items-center justify-center min-h-[280px]" v-if="props.bookings.length > 0">
                     <VueApexCharts type="donut" width="100%" height="280" :options="chartOptions" :series="chartSeries" />
                 </div>
-                <div v-else class="text-gray-400 text-xs italic flex-1 flex items-center">
+                <div v-else class="text-gray-400 text-xs font-semibold italic flex-1 flex items-center justify-center">
                     Belum ada data booking tahun ini
                 </div>
             </div>
 
             <!-- Notifications List -->
             <div v-if="notifications && notifications.length > 0"
-                 class="lg:col-span-2 bg-white rounded-lg border border-gray-150 shadow-sm overflow-hidden flex flex-col">
-            <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-gray-800">Notifikasi Terbaru</h2>
-                <span class="text-xs bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full">
-                    {{ notifications.length }} item
-                </span>
-            </div>
-
-            <div class="divide-y divide-gray-50">
-                <button
-                    v-for="n in notifications.slice(0, 6)"
-                    :key="n.booking_id + n.type"
-                    @click="goToFilter(n.filter)"
-                    class="w-full text-left px-5 py-3 flex items-start gap-3 transition-colors cursor-pointer"
-                    :class="{
-                        'hover:bg-red-50':   n.type === 'overdue',
-                        'hover:bg-amber-50': n.type === 'urgent',
-                        'hover:bg-blue-50':  n.type === 'new',
-                    }"
-                >
-                    <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0"
-                          :class="{
-                              'bg-red-500':   n.type === 'overdue',
-                              'bg-amber-500': n.type === 'urgent',
-                              'bg-blue-500':  n.type === 'new',
-                          }"></span>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-800 truncate">{{ n.label }}</p>
-                        <p class="text-xs text-gray-500 truncate">{{ n.sub }}</p>
+                 class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden flex flex-col h-full">
+                <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between bg-gray-50/20 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </span>
+                        <h2 class="text-xs font-black text-gray-600 uppercase tracking-widest">Notifikasi Terbaru</h2>
                     </div>
-                    <span class="text-[10px] text-gray-400 flex-shrink-0 mt-0.5">{{ n.created_at }}</span>
-                    <svg class="w-3.5 h-3.5 text-gray-300 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </button>
-            </div>
+                    <span class="text-[10px] bg-red-50 text-red-755 border border-red-100 font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                        {{ notifications.length }} item
+                    </span>
+                </div>
 
-            <div v-if="notifications.length > 6"
-                 class="px-5 py-2.5 bg-gray-50 border-t border-gray-100 text-center">
-                <button @click="goToFilter('waiting_confirmation')"
-                        class="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
-                    Lihat {{ notifications.length - 6 }} notifikasi lainnya →
-                </button>
-            </div>
+                <div class="divide-y divide-gray-100 flex-1 overflow-y-auto max-h-[300px]">
+                    <button
+                        v-for="n in notifications.slice(0, 6)"
+                        :key="n.booking_id + n.type"
+                        @click="goToFilter(n.filter)"
+                        class="w-full text-left px-5 py-3.5 flex items-center gap-3.5 transition-all duration-200 cursor-pointer"
+                        :class="{
+                            'hover:bg-red-50 bg-red-50/5':   n.type === 'overdue',
+                            'hover:bg-amber-50 bg-amber-50/5': n.type === 'urgent',
+                            'hover:bg-blue-50 bg-blue-50/5':  n.type === 'new',
+                        }"
+                    >
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0"
+                              :class="{
+                                  'bg-red-500 animate-pulse':   n.type === 'overdue',
+                                  'bg-amber-500 animate-pulse': n.type === 'urgent',
+                                  'bg-blue-500':  n.type === 'new',
+                              }"></span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-extrabold text-gray-800 truncate">{{ n.label }}</p>
+                            <p class="text-[11px] text-gray-500 font-semibold truncate mt-0.5">{{ n.sub }}</p>
+                        </div>
+                        <span class="text-[10px] text-gray-400 font-bold shrink-0 mt-0.5">{{ n.created_at }}</span>
+                        <svg class="w-3.5 h-3.5 text-gray-300 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div v-if="notifications.length > 6"
+                     class="px-5 py-3 bg-gray-50/50 border-t border-gray-100 text-center shrink-0">
+                    <button @click="goToFilter('waiting_confirmation')"
+                            class="text-xs text-blue-600 hover:text-blue-700 active:text-blue-800 font-black transition-colors cursor-pointer inline-flex items-center gap-1 select-none">
+                        Lihat {{ notifications.length - 6 }} notifikasi lainnya 
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Empty state kalau tidak ada notifikasi -->
-            <div v-else class="lg:col-span-2 bg-white rounded-lg border border-gray-150 shadow-sm px-5 py-8 text-center text-gray-400 text-sm flex flex-col items-center justify-center">
-                <p class="text-3xl mb-3">🎉</p>
-                <p class="font-medium text-gray-600 text-base">Semua aman!</p>
-                <p class="text-xs mt-1">Tidak ada booking yang menunggu perhatian saat ini.</p>
+            <div v-else class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-xs px-5 py-10 text-center flex flex-col items-center justify-center min-h-[340px] h-full">
+                <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <p class="font-extrabold text-gray-800 text-sm">Semua Aman & Terkendali!</p>
+                <p class="text-xs text-gray-400 font-semibold mt-1">Tidak ada pengajuan booking yang perlu tindakan segera saat ini.</p>
             </div>
         </div>
 
@@ -749,7 +998,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <Teleport to="body">
             <div
                 v-if="modalOpen"
-                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+                class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
                 @click.self="closeModal"
             >
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-100 h-[85vh] min-h-[550px] transition-all">
@@ -757,13 +1006,21 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     <!-- Header -->
                     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
                         <div class="flex items-center gap-3">
-                            <span class="text-xl">📊</span>
+                            <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/>
+                                </svg>
+                            </span>
                             <div>
                                 <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">{{ modalDate }}</h4>
                                 <p class="text-[10px] text-gray-400 font-semibold mt-1.5 uppercase tracking-wider">Diagram Gantt Jadwal Penggunaan Ruangan</p>
                             </div>
                         </div>
-                        <button @click="closeModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer focus:outline-none">&times;</button>
+                        <button @click="closeModal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none shrink-0">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
                     </div>
 
                     <!-- Gantt Body -->
@@ -784,8 +1041,9 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                 <span>Disetujui</span>
                             </div>
-                            <div class="ml-auto text-[10px] text-gray-400 font-bold hidden md:block">
-                                💡 Arahkan kursor (hover) pada bar diagram untuk melihat detail lengkap.
+                            <div class="ml-auto text-[10px] text-gray-400 font-bold hidden md:flex items-center gap-1 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100 select-none">
+                                <svg class="w-3.5 h-3.5 text-amber-500 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                <span>Arahkan kursor (hover) pada bar diagram untuk melihat detail lengkap.</span>
                             </div>
                         </div>
                         
@@ -909,7 +1167,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <Teleport to="body">
             <div
                 v-if="detailModalOpen"
-                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4"
+                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
                 @click.self="closeDetailModal"
             >
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-100 h-[85vh] min-h-[550px]">
@@ -917,7 +1175,11 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     <!-- ── Header (sama gaya dengan Gantt modal) ── -->
                     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
                         <div class="flex items-center gap-3">
-                            <span class="text-xl">📋</span>
+                            <span class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </span>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">
@@ -926,10 +1188,10 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                     <span
                                         class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border"
                                         :class="{
-                                            'bg-yellow-50 text-yellow-700 border-yellow-200': selectedDetailBooking?.status === 'waiting_confirmation',
-                                            'bg-emerald-50 text-emerald-700 border-emerald-200': selectedDetailBooking?.status === 'confirmed',
-                                            'bg-red-50 text-red-700 border-red-200': selectedDetailBooking?.status === 'cancelled',
-                                            'bg-amber-50 text-amber-700 border-amber-200': selectedDetailBooking?.status === 'plotting',
+                                            'bg-yellow-50 text-yellow-755 border-yellow-200': selectedDetailBooking?.status === 'waiting_confirmation',
+                                            'bg-emerald-50 text-emerald-700 border-emerald-250': selectedDetailBooking?.status === 'confirmed',
+                                            'bg-red-50 text-red-755 border-red-200': selectedDetailBooking?.status === 'cancelled',
+                                            'bg-amber-50 text-amber-700 border-amber-205': selectedDetailBooking?.status === 'plotting',
                                         }"
                                     >
                                         {{ statusLabel(selectedDetailBooking?.status) }}
@@ -942,7 +1204,11 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 </p>
                             </div>
                         </div>
-                        <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer focus:outline-none">&times;</button>
+                        <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none shrink-0">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
                     </div>
 
                     <!-- ── Info Bar (ringkas seperti legend di Gantt) ── -->
