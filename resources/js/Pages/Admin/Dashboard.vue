@@ -451,7 +451,7 @@ function statusLabel(status) {
         waiting_confirmation: 'Pending',
         confirmed:            'Disetujui',
         cancelled:            'Dibatalkan',
-        final:                'Final ACC / Persiapan Lapangan',
+        final:                'ACC Final',
         done:                 'Selesai',
     }
     return map[status] ?? status

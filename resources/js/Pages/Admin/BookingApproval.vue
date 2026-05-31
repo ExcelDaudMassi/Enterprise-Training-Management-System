@@ -45,7 +45,7 @@ function goToPage(url) {
 const STATUS_META = {
     waiting_confirmation: { label: 'Menunggu',  class: 'bg-yellow-100 text-yellow-800 border border-yellow-200' },
     confirmed:            { label: 'Disetujui', class: 'bg-blue-100 text-blue-800 border border-blue-200' },
-    final:                { label: 'Final ACC / Persiapan Lapangan', class: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
+    final:                { label: 'ACC Final', class: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
     cancelled:            { label: 'Ditolak',   class: 'bg-red-100 text-red-800 border border-red-200' },
     plotting:             { label: 'Pending',  class: 'bg-amber-100 text-amber-800 border border-amber-200' },
 }
@@ -280,186 +280,202 @@ const layoutLabels = {
 
 <template>
         <!-- ── Page Header ─────────────────────────────────────── -->
-        <div class="mb-5 flex items-center justify-between">
+        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-bold text-gray-900">⚙️ Manajemen Booking</h1>
-                <p class="text-sm text-gray-500 mt-1">Kelola dan proses pengajuan peminjaman ruangan</p>
+                <h1 class="text-2xl font-black bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Manajemen Booking</h1>
+                <p class="text-sm text-slate-500 mt-1 font-medium">Kelola dan proses pengajuan peminjaman ruangan dengan mudah</p>
             </div>
         </div>
 
 
         <!-- Tabs -->
-        <div class="flex flex-wrap gap-1 mb-4 bg-gray-100 p-1 rounded w-fit">
+        <div class="flex flex-wrap items-center gap-1.5 mb-5 bg-slate-100/80 backdrop-blur p-1.5 rounded-xl w-fit shadow-inner">
             <button
                 v-for="tab in tabs" :key="tab.key"
                 @click="switchTab(tab.key)"
-                class="px-3 py-1.5 rounded text-xs font-medium transition"
+                class="px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300"
                 :class="activeTab === tab.key
-                    ? 'bg-white text-gray-800 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'"
+                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200/50 scale-100'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 hover:scale-95'"
             >
                 {{ tab.label }}
             </button>
         </div>
 
         <!-- Search Bar -->
-        <div class="flex items-center gap-2 mb-4">
-            <div class="relative flex-1 max-w-xs">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
-                </svg>
+        <div class="flex flex-wrap items-center gap-3 mb-5">
+            <div class="relative flex-1 max-w-md group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+                    </svg>
+                </div>
                 <input
                     v-model="searchQuery"
                     @keyup.enter="doSearch"
                     type="text"
                     placeholder="Cari nama acara, pemohon, divisi..."
-                    class="w-full pl-9 pr-4 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white"
+                    class="w-full pl-11 pr-4 py-2.5 text-sm border-0 ring-1 ring-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white shadow-sm transition-all placeholder:text-slate-400"
                 />
             </div>
             <button @click="doSearch"
-                class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
+                class="px-5 py-2.5 text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-sm hover:shadow transition-all active:scale-95">
                 Cari
             </button>
             <button v-if="searchQuery" @click="searchQuery = ''; doSearch()"
-                class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg transition">
+                class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white ring-1 ring-slate-200 hover:bg-slate-50 rounded-xl transition-all active:scale-95 shadow-sm">
                 Reset
             </button>
-            <span class="text-xs text-gray-400 ml-auto">
-                {{ bookings.total }} hasil ditemukan
-            </span>
+            <div class="ml-auto flex items-center">
+                <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                    {{ bookings.total }} hasil ditemukan
+                </span>
+            </div>
         </div>
 
         <!-- Table -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-100">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Acara / Pemohon</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Ruangan</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Jadwal</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Peserta</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Fasilitas</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
-                    <tr v-if="bookings.data.length === 0">
-                        <td colspan="7" class="px-6 py-12 text-center text-gray-400 text-sm">
-                            <div class="flex flex-col items-center gap-2">
-                                <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                Tidak ada data booking untuk tab ini.
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-for="b in bookings.data" :key="b.id" class="hover:bg-gray-50 transition-colors align-top">
-                        <td class="px-4 py-3">
-                            <div class="text-sm font-semibold text-gray-900">{{ b.nama_training }}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">{{ b.pemohon }} · <span class="font-medium text-gray-600">{{ b.divisi }}</span></div>
-                            <div class="text-xs text-gray-400">PIC: {{ b.pic }}</div>
-                            <div class="text-xs text-gray-300 mt-0.5 mb-1">Diajukan: {{ b.created_at }}</div>
-                            <!-- Alert Merah jika confirmed & sudah lewat batas H-14 -->
-                            <div v-if="b.status === 'confirmed' && isPastH14(b.tgl_mulai)" class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded shadow-sm">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                Lewat Batas ACC-2
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="text-sm text-gray-800 font-medium">{{ b.ruangan }}</div>
-                            <div class="text-xs text-gray-400 capitalize mt-0.5">Layout: {{ b.layout || '-' }}</div>
-                        </td>
-                        <td class="px-4 py-3 text-xs text-gray-700">
-                            <div class="font-medium">{{ formatDate(b.tgl_mulai) }}</div>
-                            <div class="text-gray-400">s/d</div>
-                            <div class="font-medium">{{ formatDate(b.tgl_selesai) }}</div>
-                            <!-- Countdown -->
-                            <div v-if="b.days_to_start !== null && b.status === 'confirmed' && b.days_to_start >= 0"
-                                 class="mt-1 font-semibold text-[11px]"
-                                 :class="b.days_to_start <= 14 ? 'text-red-600 bg-red-50 border border-red-100 px-1 py-0.5 rounded inline-block' : 'text-gray-500 bg-gray-50 border border-gray-100 px-1 py-0.5 rounded inline-block'">
-                                H-{{ b.days_to_start }}
-                            </div>
-                            <div v-if="b.is_overdue_acc2" class="text-red-600 font-bold mt-1.5 flex items-center gap-1 text-[11px]">
-                                ⛔ Tanggal sudah lewat
-                            </div>
-                            <!-- Usulan Ubah Tanggal -->
-                            <div v-if="b.has_pending_date_change" class="mt-1.5 text-orange-600 text-[11px] font-bold bg-orange-50 border border-orange-100 p-1 rounded">
-                                📅 Usulan: {{ formatDate(b.proposed_tgl_mulai) }} – {{ formatDate(b.proposed_tgl_selesai) }}
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <div class="text-sm font-bold text-gray-800">{{ b.jumlah_peserta }}</div>
-                            <div class="text-xs text-gray-400">peserta</div>
-                            <div class="text-xs text-gray-500 mt-1">+{{ b.jumlah_panitia }} panitia</div>
-                        </td>
-                        <td class="px-4 py-3 text-xs text-gray-600 space-y-1">
-                            <div v-if="b.is_hybrid" class="flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0"></span>Hybrid
-                            </div>
-                            <div v-if="b.is_flipchart" class="flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0"></span>Flipchart
-                            </div>
-                            <div v-if="!b.is_hybrid && !b.is_flipchart" class="text-gray-300">—</div>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold"
-                                  :class="STATUS_META[b.status]?.class ?? 'bg-gray-100 text-gray-600 border border-gray-200'">
-                                {{ STATUS_META[b.status]?.label ?? b.status }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex flex-col gap-1.5">
-                                <!-- Detail Button (always visible) -->
-                                <button @click="openDetail(b)"
-                                    class="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium py-1.5 px-3 rounded-lg transition border border-blue-200">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    Lihat Detail
-                                </button>
-                                <!-- Approve/Reject (only for waiting) -->
-                                <div v-if="b.status === 'waiting_confirmation'" class="flex gap-1.5">
-                                    <button @click="confirmApprove(b)"
-                                        class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1.5 px-2 rounded-lg transition">
-                                        ✓ Setujui
-                                    </button>
-                                    <button @click="confirmReject(b)"
-                                        class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold py-1.5 px-2 rounded-lg transition border border-red-200">
-                                        ✕ Tolak
-                                    </button>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative z-10">
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-fixed divide-y divide-slate-100">
+                    <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
+                        <tr>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[22%]">Acara / Pemohon</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Ruangan</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Jadwal</th>
+                            <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Peserta</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Fasilitas</th>
+                            <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Status</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-slate-100">
+                        <tr v-if="bookings.data.length === 0">
+                            <td colspan="7" class="px-6 py-16 text-center">
+                                <div class="flex flex-col items-center justify-center gap-3">
+                                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 mb-2">
+                                        <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                    </div>
+                                    <span class="text-sm font-semibold text-slate-500">Tidak ada data booking</span>
                                 </div>
-                                <!-- Tahap 3: Perubahan Tanggal -->
-                                <template v-if="b.has_pending_date_change">
-                                    <button @click="openApproveDate(b)"
-                                            class="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 px-2 rounded-lg transition font-semibold">
-                                        ✓ ACC Ubah Tanggal
-                                    </button>
-                                    <button @click="openRejectDate(b)"
-                                            class="bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs py-1.5 px-2 rounded-lg transition font-semibold border border-orange-200">
-                                        ✕ Tolak Ubah Tanggal
-                                    </button>
-                                </template>
-                                <!-- Tahap 4: ACC Final / Final Confirm -->
-                                <template v-if="b.can_be_finalized && !b.is_overdue_acc2">
-                                    <button @click="openFinal(b)"
-                                            class="w-full flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-1.5 px-2 rounded-lg transition shadow-sm">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        🏁 ACC Final
-                                    </button>
-                                </template>
-                                <!-- Tahap 5: ACC Terlambat -->
-                                <template v-if="b.can_be_finalized && b.is_overdue_acc2">
-                                    <button @click="openFinalLate(b)"
-                                            class="w-full flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold py-1.5 px-2 rounded-lg transition shadow-sm">
-                                        ⚠️ ACC Terlambat
-                                    </button>
-                                </template>
-                                <!-- Catatan penolakan jika ditolak -->
-                                <div v-if="b.status === 'cancelled' && b.catatan_admin" class="text-xs text-red-600 italic max-w-[160px] truncate" :title="b.catatan_admin">
-                                    ⚠ {{ b.catatan_admin }}
+                            </td>
+                        </tr>
+                        <tr v-for="b in bookings.data" :key="b.id" class="hover:bg-slate-50/50 transition-all duration-300 align-top group">
+                            <td class="px-5 py-4">
+                                <div class="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-2">{{ b.nama_training }}</div>
+                                <div class="text-xs text-slate-500 mt-1 flex items-center gap-1"><span class="font-semibold text-slate-700">{{ b.pemohon }}</span> &bull; {{ b.divisi }}</div>
+                                <div class="text-xs text-slate-400 mt-0.5">PIC: <span class="font-medium">{{ b.pic }}</span></div>
+                                <div class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{{ b.created_at }}</div>
+                                <!-- Alert Merah jika confirmed & sudah lewat batas H-14 -->
+                                <div v-if="b.status === 'confirmed' && isPastH14(b.tgl_mulai)" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-1 rounded-md mt-2 shadow-sm">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Lewat Batas ACC-2
                                 </div>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-lg border border-slate-200">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    {{ b.ruangan }}
+                                </div>
+                                <div class="text-[11px] text-slate-400 capitalize mt-2 flex items-center gap-1">Layout: <span class="font-medium text-slate-600">{{ b.layout || '-' }}</span></div>
+                            </td>
+                            <td class="px-5 py-4 text-xs text-slate-700">
+                                <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block mb-1">{{ formatDate(b.tgl_mulai) }}</div>
+                                <div class="text-slate-400 text-[10px] ml-2 mb-1">s/d</div>
+                                <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block">{{ formatDate(b.tgl_selesai) }}</div>
+                                <!-- Countdown -->
+                                <div v-if="b.days_to_start !== null && b.status === 'confirmed' && b.days_to_start >= 0"
+                                     class="mt-2 font-bold text-[11px] w-fit shadow-sm"
+                                     :class="b.days_to_start <= 14 ? 'text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md' : 'text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md'">
+                                    H-{{ b.days_to_start }}
+                                </div>
+                                <div v-if="b.is_overdue_acc2" class="text-red-600 font-bold mt-2 flex items-center gap-1.5 text-[11px] bg-red-50 px-2 py-1 rounded border border-red-100">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                    Tanggal lewat
+                                </div>
+                                <!-- Usulan Ubah Tanggal -->
+                                <div v-if="b.has_pending_date_change" class="mt-2 text-orange-700 text-[11px] font-bold bg-orange-50 border border-orange-200 p-1.5 rounded-md shadow-sm">
+                                    📅 Usulan: {{ formatDate(b.proposed_tgl_mulai) }} – {{ formatDate(b.proposed_tgl_selesai) }}
+                                </div>
+                            </td>
+                            <td class="px-5 py-4 text-center">
+                                <div class="inline-flex flex-col items-center bg-blue-50/50 border border-blue-100 px-3 py-1.5 rounded-xl">
+                                    <div class="text-lg font-black text-blue-700 leading-none">{{ b.jumlah_peserta }}</div>
+                                    <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Peserta</div>
+                                </div>
+                                <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Panitia</div>
+                            </td>
+                            <td class="px-5 py-4 text-xs text-slate-600 space-y-1.5">
+                                <div v-if="b.is_hybrid" class="flex items-center gap-2 bg-purple-50 text-purple-700 font-semibold px-2 py-1 rounded-md border border-purple-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0 animate-pulse"></span>Hybrid
+                                </div>
+                                <div v-if="b.is_flipchart" class="flex items-center gap-2 bg-orange-50 text-orange-700 font-semibold px-2 py-1 rounded-md border border-orange-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
+                                </div>
+                                <div v-if="!b.is_hybrid && !b.is_flipchart" class="text-slate-300 font-medium">—</div>
+                            </td>
+                            <td class="px-5 py-4 text-center">
+                                <span class="px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm"
+                                      :class="STATUS_META[b.status]?.class ?? 'bg-slate-100 text-slate-600 border border-slate-200'">
+                                    {{ STATUS_META[b.status]?.label ?? b.status }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="flex flex-col gap-2">
+                                    <!-- Detail Button -->
+                                    <button @click="openDetail(b)"
+                                        class="group/btn flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 text-[11px] font-bold py-2 px-3 rounded-xl transition-all border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow">
+                                        <svg class="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-blue-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        Lihat Detail
+                                    </button>
+                                    <!-- Approve/Reject (only for waiting) -->
+                                    <div v-if="b.status === 'waiting_confirmation'" class="grid grid-cols-2 gap-2">
+                                        <button @click="confirmApprove(b)"
+                                            class="flex items-center justify-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-[11px] font-bold py-2 px-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-95">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            Setuju
+                                        </button>
+                                        <button @click="confirmReject(b)"
+                                            class="flex items-center justify-center gap-1 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-[11px] font-bold py-2 px-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-95">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            Tolak
+                                        </button>
+                                    </div>
+                                    <!-- Tahap 3: Perubahan Tanggal -->
+                                    <template v-if="b.has_pending_date_change">
+                                        <button @click="openApproveDate(b)"
+                                                class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] py-2 px-2 rounded-xl transition-all font-bold shadow-sm active:scale-95">
+                                            ✓ ACC Ubah Tanggal
+                                        </button>
+                                        <button @click="openRejectDate(b)"
+                                                class="bg-white hover:bg-orange-50 border border-orange-200 text-orange-600 text-[11px] py-2 px-2 rounded-xl transition-all font-bold shadow-sm active:scale-95">
+                                            ✕ Tolak Ubah
+                                        </button>
+                                    </template>
+                                    <!-- Tahap 4: ACC Final / Final Confirm -->
+                                    <template v-if="b.can_be_finalized && !b.is_overdue_acc2">
+                                        <button @click="openFinal(b)"
+                                                class="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white text-[11px] font-bold py-2 px-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-95">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            🏁 ACC Final
+                                        </button>
+                                    </template>
+                                    <!-- Tahap 5: ACC Terlambat -->
+                                    <template v-if="b.can_be_finalized && b.is_overdue_acc2">
+                                        <button @click="openFinalLate(b)"
+                                                class="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-[11px] font-bold py-2 px-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-95">
+                                            ⚠️ ACC Terlambat
+                                        </button>
+                                    </template>
+                                    <!-- Catatan penolakan -->
+                                    <div v-if="b.status === 'cancelled' && b.catatan_admin" class="text-[10px] text-rose-600 font-medium bg-rose-50 border border-rose-100 p-1.5 rounded-lg line-clamp-2 mt-1" :title="b.catatan_admin">
+                                        ⚠ {{ b.catatan_admin }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Pagination Controls -->
@@ -513,7 +529,7 @@ const layoutLabels = {
                 leave-to-class="opacity-0"
             >
                 <div v-if="showDetailModal"
-                     class="fixed inset-0 bg-black/60 z-50 flex items-start justify-end p-4 pt-16 sm:pt-4"
+                     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-start justify-end p-4 pt-16 sm:pt-4"
                      @click.self="closeDetail">
 
                     <!-- Slide-over Panel (lebar penuh layar kanan) -->
@@ -527,37 +543,39 @@ const layoutLabels = {
                         appear
                     >
                         <div v-if="showDetailModal"
-                             class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-full max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden">
+                             class="relative bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 w-full max-w-2xl h-full max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden ring-1 ring-slate-900/5">
 
                             <!-- ── Panel Header ── -->
-                            <div class="flex-shrink-0 px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-slate-800 to-slate-700">
-                                <div class="flex items-center justify-between">
+                            <div class="flex-shrink-0 px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+                                <!-- Decorative blob -->
+                                <div class="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl"></div>
+                                <div class="relative flex items-center justify-between">
                                     <div class="flex-1 min-w-0 pr-4">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Detail Booking</span>
+                                            <span class="text-xs font-bold text-blue-300 uppercase tracking-wider">Detail Booking</span>
                                             <span v-if="detailData"
-                                                  class="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                                  :class="STATUS_META[detailData.booking.status]?.class ?? 'bg-gray-100 text-gray-600'">
+                                                  class="px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm"
+                                                  :class="STATUS_META[detailData.booking.status]?.class ?? 'bg-slate-100 text-slate-600'">
                                                 {{ STATUS_META[detailData.booking.status]?.label ?? detailData.booking.status }}
                                             </span>
                                         </div>
-                                        <h2 class="text-base font-bold text-white mt-1 truncate">
+                                        <h2 class="text-lg font-black text-white mt-1.5 truncate drop-shadow-sm">
                                             {{ detailData?.booking?.nama_training ?? '—' }}
                                         </h2>
                                     </div>
-                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                    <div class="flex items-center gap-3 flex-shrink-0">
                                         <!-- Tombol Download Excel Detail -->
                                         <a v-if="detailData"
                                            :href="`/admin/bookings/${detailData.booking.id}/export-detail`"
                                            target="_blank"
-                                           class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm"
+                                           class="inline-flex items-center gap-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/30 text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm backdrop-blur-sm"
                                            title="Download Excel daftar peserta & panitia"
                                         >
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                            Excel Peserta
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                            Export
                                         </a>
-                                        <button @click="closeDetail" class="text-slate-400 hover:text-white transition-colors">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        <button @click="closeDetail" class="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 p-1.5 rounded-full transition-all backdrop-blur-sm">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                         </button>
                                     </div>
                                 </div>
@@ -566,61 +584,64 @@ const layoutLabels = {
                             <!-- ── Loading State (Skeleton) ── -->
                             <div v-if="detailLoading" class="flex-1 flex flex-col p-6 animate-pulse">
                                 <!-- Tabs Skeleton -->
-                                <div class="flex gap-4 mb-6 border-b border-gray-100 pb-2">
-                                    <div class="h-8 w-24 bg-gray-200 rounded"></div>
-                                    <div class="h-8 w-24 bg-gray-200 rounded"></div>
-                                    <div class="h-8 w-24 bg-gray-200 rounded"></div>
+                                <div class="flex gap-4 mb-6 border-b border-slate-100 pb-2">
+                                    <div class="h-8 w-24 bg-slate-200 rounded-lg"></div>
+                                    <div class="h-8 w-24 bg-slate-200 rounded-lg"></div>
+                                    <div class="h-8 w-24 bg-slate-200 rounded-lg"></div>
                                 </div>
                                 
                                 <!-- Content Box 1 Skeleton -->
-                                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-5">
-                                    <div class="h-4 w-48 bg-gray-200 rounded mb-4"></div>
+                                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 mb-5">
+                                    <div class="h-4 w-48 bg-slate-200 rounded mb-4"></div>
                                     <div class="grid grid-cols-2 gap-4">
                                         <div v-for="i in 4" :key="i">
-                                            <div class="h-3 w-16 bg-gray-200 rounded mb-2"></div>
-                                            <div class="h-4 w-32 bg-gray-200 rounded"></div>
+                                            <div class="h-3 w-16 bg-slate-200 rounded mb-2"></div>
+                                            <div class="h-4 w-32 bg-slate-200 rounded"></div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Content Box 2 Skeleton -->
-                                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                    <div class="h-4 w-40 bg-gray-200 rounded mb-4"></div>
+                                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                    <div class="h-4 w-40 bg-slate-200 rounded mb-4"></div>
                                     <div class="grid grid-cols-2 gap-4">
                                         <div v-for="i in 6" :key="'sec'+i">
-                                            <div class="h-3 w-16 bg-gray-200 rounded mb-2"></div>
-                                            <div class="h-4 w-28 bg-gray-200 rounded"></div>
+                                            <div class="h-3 w-16 bg-slate-200 rounded mb-2"></div>
+                                            <div class="h-4 w-28 bg-slate-200 rounded"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- ── Error State ── -->
-                            <div v-else-if="detailError" class="flex-1 flex items-center justify-center p-6">
-                                <div class="text-center text-red-500">
-                                    <svg class="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
-                                    <p class="text-sm font-medium">{{ detailError }}</p>
+                            <div v-else-if="detailError" class="flex-1 flex items-center justify-center p-6 bg-slate-50">
+                                <div class="text-center text-rose-500 bg-rose-50 border border-rose-100 p-6 rounded-2xl shadow-sm">
+                                    <svg class="w-12 h-12 mx-auto mb-3 text-rose-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                                    <p class="text-sm font-bold">{{ detailError }}</p>
                                 </div>
                             </div>
 
                             <!-- ── Content ── -->
-                            <div v-else-if="detailData" class="flex-1 overflow-hidden flex flex-col">
+                            <div v-else-if="detailData" class="flex-1 overflow-hidden flex flex-col bg-slate-50/30">
                                 <!-- Sub-tabs -->
-                                <div class="flex-shrink-0 flex border-b border-gray-100 px-6 pt-3 gap-0">
+                                <div class="flex-shrink-0 flex border-b border-slate-200 px-6 pt-4 gap-2 bg-white">
                                     <button v-for="tab in [
                                         { key: 'info',    label: '📋 Informasi', count: null },
                                         { key: 'peserta', label: '👥 Peserta',   count: detailData.total_peserta },
                                         { key: 'panitia', label: '🎯 Panitia',   count: detailData.total_panitia },
-                                        { key: 'log',     label: '🕒 Log Aktivitas', count: detailData.logs.length },
+                                        { key: 'log',     label: '🕒 Log',       count: detailData.logs.length },
                                     ]" :key="tab.key"
                                         @click="detailTab = tab.key"
-                                        class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors mr-1"
+                                        class="px-4 py-2.5 text-xs font-bold border-b-2 transition-all mr-1 rounded-t-lg"
                                         :class="detailTab === tab.key
                                             ? 'border-blue-600 text-blue-700 bg-blue-50/50'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'"
                                     >
                                         {{ tab.label }}
-                                        <span v-if="tab.count !== null" class="ml-1 text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full font-bold">{{ tab.count }}</span>
+                                        <span v-if="tab.count !== null" class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold transition-colors"
+                                              :class="detailTab === tab.key ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'">
+                                            {{ tab.count }}
+                                        </span>
                                     </button>
                                 </div>
 

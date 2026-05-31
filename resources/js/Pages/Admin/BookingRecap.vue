@@ -27,7 +27,7 @@ const activeTab = ref(filterToTab[props.activeFilter] ?? 'all')
 const tabs = [
     { key: 'waiting_confirmation', label: 'Menunggu' },
     { key: 'confirmed',            label: 'Disetujui' },
-    { key: 'final',                label: 'Final ACC / Persiapan Lapangan' },
+    { key: 'final',                label: 'ACC Final' },
     { key: 'cancelled',            label: 'Ditolak' },
     { key: 'urgent',               label: '🚨 H-14' },
     { key: 'overdue',              label: '⛔ Lewat Tenggat' },
@@ -37,7 +37,7 @@ const tabs = [
 const statusMeta = {
     waiting_confirmation: { label: 'Menunggu',  class: 'bg-yellow-100 text-yellow-800 border border-yellow-200' },
     confirmed:            { label: 'Disetujui', class: 'bg-blue-100 text-blue-800 border border-blue-200' },
-    final:                { label: 'Final ACC / Persiapan Lapangan',     class: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
+    final:                { label: 'ACC Final',     class: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
     cancelled:            { label: 'Ditolak',   class: 'bg-red-100 text-red-800 border border-red-200' },
     plotting:             { label: 'Pending',  class: 'bg-amber-100 text-amber-800 border border-amber-200' },
 }

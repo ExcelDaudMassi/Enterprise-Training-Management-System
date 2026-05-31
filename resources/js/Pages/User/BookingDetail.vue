@@ -27,7 +27,7 @@ const STATUS_META = {
     waiting_confirmation: { label: 'Menunggu Persetujuan', class: 'bg-yellow-50 text-yellow-800 border border-yellow-250/60' },
     confirmed:            { label: 'Disetujui',            class: 'bg-indigo-50 text-indigo-800 border border-indigo-250/60' },
     cancelled:            { label: 'Dibatalkan',           class: 'bg-red-50 text-red-800 border border-red-250/60' },
-    final:                { label: 'Final ACC / Persiapan Lapangan', class: 'bg-green-50 text-green-800 border border-green-250/60' },
+    final:                { label: 'ACC Final', class: 'bg-green-50 text-green-800 border border-green-250/60' },
 }
 
 function formatDate(d) {
@@ -447,7 +447,7 @@ function getAvatarBg(id) {
                                 </div>
                             </div>
 
-                            <!-- Step 3: Final ACC / Persiapan Lapangan -->
+                            <!-- Step 3: ACC Final -->
                             <div class="flex gap-3">
                                 <div class="flex flex-col items-center">
                                     <div class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0"

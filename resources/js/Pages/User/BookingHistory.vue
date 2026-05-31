@@ -27,7 +27,7 @@ const STATUS_META = {
         class: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
     },
     final: {
-        label: 'Final ACC / Persiapan Lapangan',
+        label: 'ACC Final',
         class: 'bg-green-100 text-green-800 border border-green-200',
     },
     cancelled: {
