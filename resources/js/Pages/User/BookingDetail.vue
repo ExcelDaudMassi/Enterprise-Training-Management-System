@@ -44,6 +44,37 @@ const showParticipantModal = ref(false)
 const participantLoading = ref(false)
 const participantError = ref('')
 
+const showDateModal = ref(false)
+const dateLoading = ref(false)
+const dateError = ref('')
+const dateForm = ref({ proposed_tgl_mulai: '', proposed_tgl_selesai: '', alasan: '' })
+
+function openDateChange() {
+    dateError.value = ''
+    dateForm.value = {
+        proposed_tgl_mulai:   props.booking.tgl_mulai ?? '',
+        proposed_tgl_selesai: props.booking.tgl_selesai ?? '',
+        alasan: ''
+    }
+    showDateModal.value = true
+}
+
+async function submitDateChange() {
+    dateLoading.value = true
+    dateError.value   = ''
+    try {
+        await window.axios.post(`/api/booking/${props.booking.id}/request-date-change`, dateForm.value)
+        showDateModal.value = false
+        window.location.reload()
+    } catch (e) {
+        dateError.value = e.response?.data?.message
+            ?? e.response?.data?.errors?.proposed_tgl_mulai?.[0]
+            ?? 'Terjadi kesalahan.'
+    } finally {
+        dateLoading.value = false
+    }
+}
+
 async function submitCancel() {
     cancelLoading.value = true
     cancelError.value = ''
@@ -388,6 +419,16 @@ function getAvatarBg(id) {
                             Unduh Tiket / PDF
                         </a>
 
+                        <!-- Ubah Tanggal Booking -->
+                        <button v-if="booking.can_request_date_change" 
+                                @click="openDateChange" 
+                                class="w-full inline-flex items-center justify-center gap-2 border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 py-2.5 px-4 rounded-md text-xs font-bold transition shadow-sm active:scale-[0.98] select-none cursor-pointer">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                            </svg>
+                            Ajukan Ubah Tanggal
+                        </button>
+
                         <!-- Update Participants -->
                         <button v-if="booking.can_update_participants" 
                                 @click="showParticipantModal = true" 
@@ -545,6 +586,54 @@ function getAvatarBg(id) {
                             class="w-full py-2 border border-gray-200 rounded-md text-xs font-bold text-gray-700 hover:bg-gray-50 transition select-none cursor-pointer">
                         Batal
                     </button>
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- ── MODAL: Ubah Tanggal ── -->
+        <Teleport to="body">
+            <div v-if="showDateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-md shadow-xl w-full max-w-md p-6 border border-gray-100">
+                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-50 border border-blue-100 rounded-full mb-4">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                        </svg>
+                    </div>
+                    <h2 class="text-base font-bold text-center text-gray-900 mb-1">Ajukan Perubahan Tanggal</h2>
+                    <p class="text-[11px] text-center text-gray-500 mb-4">
+                        Tanggal baru perlu disetujui admin. Tanggal lama tetap berlaku sampai disetujui.
+                    </p>
+                    <div class="space-y-3 mb-4">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Tanggal Mulai Baru</label>
+                            <input type="date" v-model="dateForm.proposed_tgl_mulai"
+                                   class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Tanggal Selesai Baru</label>
+                            <input type="date" v-model="dateForm.proposed_tgl_selesai"
+                                   class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Alasan (Opsional)</label>
+                            <textarea v-model="dateForm.alasan" rows="2"
+                                      placeholder="Misalnya: Narasumber tidak bisa hadir..."
+                                      class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+                        </div>
+                    </div>
+                    <div v-if="dateError" class="mt-3 text-xs text-red-650 bg-red-50 border border-red-150 rounded-sm p-3 font-semibold mb-4">
+                        {{ dateError }}
+                    </div>
+                    <div class="flex gap-3">
+                        <button @click="showDateModal = false"
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">
+                            Batal
+                        </button>
+                        <button @click="submitDateChange" :disabled="dateLoading"
+                                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold disabled:opacity-50 transition cursor-pointer select-none">
+                            {{ dateLoading ? 'Mengirim...' : 'Ajukan Perubahan' }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </Teleport>

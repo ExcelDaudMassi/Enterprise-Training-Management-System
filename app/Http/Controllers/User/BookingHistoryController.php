@@ -38,6 +38,16 @@ class BookingHistoryController extends Controller
                 'catatan_acc_terlambat'   => $b->catatan_acc_terlambat,
                 'jumlah_peserta'          => $b->participants->where('tipe', 'peserta')->count(),
                 'jumlah_panitia'          => $b->participants->where('tipe', 'panitia')->count(),
+                'participants'            => $b->participants->map(fn($p) => [
+                    'id'      => $p->id,
+                    'tipe'    => $p->tipe,
+                    'nama'    => $p->nama,
+                    'nrp'     => $p->nrp,
+                    'jabatan' => $p->jabatan,
+                    'site'    => $p->site,
+                    'no_hp'   => $p->no_hp,
+                    'gender'  => $p->gender,
+                ])->values(),
                 'created_at'              => $b->created_at->format('d M Y, H:i'),
                 // Flag aksi yang tersedia — dikonsumsi langsung oleh frontend
                 'can_cancel'              => $b->canBeCancelled(),
@@ -141,5 +151,16 @@ class BookingHistoryController extends Controller
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.booking-ticket', compact('booking'));
         
         return $pdf->download('Bukti_Booking_' . preg_replace('/[^A-Za-z0-9\-]/', '_', $booking->nama_training) . '.pdf');
+    }
+
+    public function exportDetail(Booking $booking)
+    {
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $path = (new \App\Services\BookingExcelExportService())->generate($booking);
+
+        return response()->download($path, basename($path))->deleteFileAfterSend(true);
     }
 }
