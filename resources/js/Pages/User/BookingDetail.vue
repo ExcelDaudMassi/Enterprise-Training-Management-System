@@ -514,10 +514,17 @@ function getAvatarBg(id) {
         </div>
 
         <!-- ── MODAL: Konfirmasi Batalkan Booking ── -->
-        <Teleport to="body">
-            <div v-if="showCancelModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-md border border-gray-100 shadow-xl w-full max-w-md p-6">
-                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-50 border border-red-100 rounded-full mb-4">
+    <Teleport to="body">
+        <Transition 
+            enter-active-class="transition-all ease-out duration-300" 
+            enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0" 
+            enter-to-class="opacity-100 scale-100 translate-y-0" 
+            leave-active-class="transition-all ease-in duration-200" 
+            leave-from-class="opacity-100 scale-100 translate-y-0" 
+            leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
+            <div v-if="showCancelModal" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-md border border-blue-900 shadow-xl w-full max-w-md p-6">
+                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-50 border border-red-200 rounded-full mb-4">
                         <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -540,20 +547,28 @@ function getAvatarBg(id) {
                             Tutup
                         </button>
                         <button @click="submitCancel" :disabled="cancelLoading"
-                                class="flex-1 px-4 py-2 bg-red-650 hover:bg-red-700 text-white rounded-md text-xs font-bold disabled:opacity-50 transition select-none cursor-pointer">
+                                class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-bold disabled:opacity-50 transition select-none cursor-pointer">
                             {{ cancelLoading ? 'Membatalkan...' : 'Ya, Batalkan' }}
                         </button>
                     </div>
                 </div>
             </div>
-        </Teleport>
+        </Transition>
+    </Teleport>
 
         <!-- ── MODAL: Update File Excel Peserta ── -->
-        <Teleport to="body">
-            <div v-if="showParticipantModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-md border border-gray-100 shadow-xl w-full max-w-md p-6">
-                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-50 border border-blue-100 rounded-full mb-4">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <Teleport to="body">
+        <Transition 
+            enter-active-class="transition-all ease-out duration-300" 
+            enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0" 
+            enter-to-class="opacity-100 scale-100 translate-y-0" 
+            leave-active-class="transition-all ease-in duration-200" 
+            leave-from-class="opacity-100 scale-100 translate-y-0" 
+            leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
+            <div v-if="showParticipantModal" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-md border-t-4 border-yellow-400 shadow-xl w-full max-w-md p-6">
+                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-800 border border-blue-900 rounded-full mb-4">
+                        <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                         </svg>
                     </div>
@@ -583,19 +598,27 @@ function getAvatarBg(id) {
                     </div>
                     
                     <button @click="showParticipantModal = false" :disabled="participantLoading"
-                            class="w-full py-2 border border-gray-200 rounded-md text-xs font-bold text-gray-700 hover:bg-gray-50 transition select-none cursor-pointer">
+                            class="w-full py-2 bg-blue-800 text-white rounded-md text-xs font-bold hover:bg-blue-900 transition select-none cursor-pointer">
                         Batal
                     </button>
                 </div>
             </div>
-        </Teleport>
+        </Transition>
+    </Teleport>
 
         <!-- ── MODAL: Ubah Tanggal ── -->
-        <Teleport to="body">
-            <div v-if="showDateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-md shadow-xl w-full max-w-md p-6 border border-gray-100">
-                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-50 border border-blue-100 rounded-full mb-4">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <Teleport to="body">
+        <Transition 
+            enter-active-class="transition-all ease-out duration-300" 
+            enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0" 
+            enter-to-class="opacity-100 scale-100 translate-y-0" 
+            leave-active-class="transition-all ease-in duration-200" 
+            leave-from-class="opacity-100 scale-100 translate-y-0" 
+            leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
+            <div v-if="showDateModal" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-md shadow-xl w-full max-w-md p-6 border-t-4 border-yellow-400">
+                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-800 rounded-full mb-4 shadow-sm">
+                        <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                         </svg>
                     </div>
@@ -630,12 +653,13 @@ function getAvatarBg(id) {
                             Batal
                         </button>
                         <button @click="submitDateChange" :disabled="dateLoading"
-                                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold disabled:opacity-50 transition cursor-pointer select-none">
+                                class="flex-1 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 rounded-md text-xs font-bold disabled:opacity-50 transition shadow-sm cursor-pointer select-none">
                             {{ dateLoading ? 'Mengirim...' : 'Ajukan Perubahan' }}
                         </button>
                     </div>
                 </div>
             </div>
-        </Teleport>
+        </Transition>
+    </Teleport>
 
 </template>

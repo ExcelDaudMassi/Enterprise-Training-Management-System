@@ -360,23 +360,33 @@ function downloadExcel(booking) {
 
     <!-- ── MODAL: Detail Rekapan ── -->
     <Teleport to="body">
-        <div v-if="showRecapModal && selectedBooking" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <div>
-                        <h2 class="text-lg font-bold text-gray-900 leading-tight">Detail Rekapan Booking</h2>
-                        <p class="text-[11px] text-gray-500 mt-0.5">ID: #{{ String(selectedBooking.id).padStart(5, '0') }}</p>
+        <Transition 
+            enter-active-class="transition-all ease-out duration-300" 
+            enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0" 
+            enter-to-class="opacity-100 scale-100 translate-y-0" 
+            leave-active-class="transition-all ease-in duration-200" 
+            leave-from-class="opacity-100 scale-100 translate-y-0" 
+            leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
+            <div v-if="showRecapModal && selectedBooking" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                    
+                    <!-- Modal Header -->
+                    <div class="px-6 py-4 flex justify-between items-center bg-blue-800 text-white border-b-4 border-yellow-400">
+                        <div>
+                            <h2 class="text-lg font-bold leading-tight flex items-center gap-2">
+                                <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                                Detail Rekapan Booking
+                            </h2>
+                            <p class="text-[11px] text-blue-200 mt-0.5">ID: #{{ String(selectedBooking.id).padStart(5, '0') }}</p>
+                        </div>
+                        <button @click="showRecapModal = false" class="text-blue-200 hover:text-white transition bg-blue-700/50 hover:bg-blue-600 rounded-full p-1.5 cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
-                    <button @click="showRecapModal = false" class="text-gray-400 hover:text-gray-600 transition bg-white hover:bg-gray-100 rounded-full p-1.5 cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- Modal Body -->
+                    
+                    <!-- Modal Body -->
                 <div class="p-6 overflow-y-auto">
                     <div class="space-y-6">
                         
@@ -475,8 +485,8 @@ function downloadExcel(booking) {
 
                 <!-- Modal Footer -->
                 <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
-                    <button @click="downloadExcel(selectedBooking)" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <button @click="downloadExcel(selectedBooking)" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 text-xs font-bold rounded-lg transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                         </svg>
                         Download Excel
@@ -486,7 +496,8 @@ function downloadExcel(booking) {
                     </button>
                 </div>
             </div>
-        </div>
+            </div>
+        </Transition>
     </Teleport>
 
 </template>
