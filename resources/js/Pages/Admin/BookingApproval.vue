@@ -335,7 +335,7 @@ const layoutLabels = {
 
         <!-- Table -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative z-10">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <table class="min-w-full table-fixed divide-y divide-slate-100">
                     <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
                         <tr>

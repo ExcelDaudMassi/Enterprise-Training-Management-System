@@ -110,14 +110,14 @@ const filteredRooms = computed(() => {
 
 <template>
         <!-- ── Page Header ──────────────────────────────────────── -->
-        <div class="mb-6 flex items-center justify-between">
+        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-bold text-gray-900">Master Data Ruangan</h1>
-                <p class="text-sm text-gray-500 mt-0.5">Kelola kapasitas, lokasi, dan konfigurasi gabungan ruang training.</p>
+                <h1 class="text-2xl font-black bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Master Data Ruangan</h1>
+                <p class="text-sm text-slate-500 mt-1 font-medium">Kelola kapasitas, lokasi, dan konfigurasi gabungan ruang training.</p>
             </div>
             <button
                 @click="openCreate"
-                class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
+                class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold rounded-xl shadow-sm transition-all active:scale-95"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -128,43 +128,47 @@ const filteredRooms = computed(() => {
 
         <!-- ── Stats Bar ─────────────────────────────────────────── -->
         <div class="grid grid-cols-3 gap-4 mb-6">
-            <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <div class="bg-white/80 backdrop-blur rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-600 shadow-inner">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-black text-gray-800">{{ rooms.length }}</p>
-                    <p class="text-xs text-gray-500">Total Ruangan</p>
+                    <p class="text-2xl font-black text-slate-800 leading-none">{{ rooms.length }}</p>
+                    <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">Total Ruangan</p>
                 </div>
             </div>
-            <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            <div class="bg-white/80 backdrop-blur rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-emerald-600 shadow-inner">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-black text-gray-800">{{ rooms.filter(r => r.bisa_digabung).length }}</p>
-                    <p class="text-xs text-gray-500">Bisa Digabungkan</p>
+                    <p class="text-2xl font-black text-slate-800 leading-none">{{ rooms.filter(r => r.bisa_digabung).length }}</p>
+                    <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">Bisa Digabung</p>
                 </div>
             </div>
-            <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <div class="bg-white/80 backdrop-blur rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center text-amber-600 shadow-inner">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-black text-gray-800">{{ rooms.reduce((a, r) => a + r.kapasitas_max, 0) }}</p>
-                    <p class="text-xs text-gray-500">Total Kapasitas (orang)</p>
+                    <p class="text-2xl font-black text-slate-800 leading-none">{{ rooms.reduce((a, r) => a + r.kapasitas_max, 0) }}</p>
+                    <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">Kapasitas (Orang)</p>
                 </div>
             </div>
         </div>
 
         <!-- ── Search ────────────────────────────────────────────── -->
-        <div class="mb-4 relative">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <div class="mb-6 relative group">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500 text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+                </svg>
+            </div>
             <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="Cari nama ruangan atau lokasi gedung..."
-                class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+                class="w-full pl-11 pr-4 py-3 text-sm border-0 ring-1 ring-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white shadow-sm transition-all placeholder:text-slate-400"
             />
         </div>
 
@@ -178,70 +182,61 @@ const filteredRooms = computed(() => {
 
             <div
                 v-for="room in filteredRooms" :key="room.id"
-                class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+                class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group"
             >
                 <!-- Card Header -->
-                <div class="px-5 py-4 bg-gradient-to-br from-slate-700 to-slate-800 flex items-start justify-between">
-                    <div class="min-w-0">
-                        <h3 class="text-base font-bold text-white truncate">{{ room.nama_ruang }}</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">{{ room.lokasi_gedung || 'Lokasi tidak diisi' }}</p>
+                <div class="px-5 py-5 border-b border-slate-100 flex items-start justify-between bg-white relative overflow-hidden group-hover:bg-slate-50/50 transition-colors">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-100 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="min-w-0 relative z-10">
+                        <h3 class="text-lg font-black text-slate-800 truncate group-hover:text-blue-700 transition-colors">{{ room.nama_ruang }}</h3>
+                        <p class="text-[11px] text-slate-500 mt-1 font-medium">{{ room.lokasi_gedung || 'Lokasi tidak diisi' }}</p>
                     </div>
-                    <div class="flex flex-col items-end gap-1.5 ml-3 flex-shrink-0">
+                    <div class="flex flex-col items-end gap-1.5 ml-3 flex-shrink-0 relative z-10">
                         <span v-if="room.bisa_digabung"
-                              class="px-2 py-0.5 rounded-full bg-teal-400/20 text-teal-300 text-[10px] font-bold tracking-wide border border-teal-500/30">
+                              class="px-2 py-0.5 rounded-md bg-teal-400/20 text-teal-300 text-[10px] font-bold tracking-wide border border-teal-500/30">
                             🔗 GABUNG
                         </span>
                     </div>
                 </div>
 
                 <!-- Card Body -->
-                <div class="px-5 py-4 space-y-3">
+                <div class="px-5 py-5 space-y-4">
                     <!-- Kapasitas -->
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
+                            <svg class="w-4.5 h-4.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400">Kapasitas Maksimal</p>
-                            <p class="text-sm font-bold text-gray-800">{{ room.kapasitas_max }} orang</p>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Kapasitas Maksimal</p>
+                            <p class="text-sm font-black text-slate-800">{{ room.kapasitas_max }} orang</p>
                         </div>
                     </div>
 
-                    <!-- Pasangan Ruang -->
-                    <div v-if="room.bisa_digabung" class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400">Pasangan Gabungan</p>
-                            <p class="text-sm font-medium text-teal-700">{{ room.pasangan_nama ?? '(Belum diset)' }}</p>
-                        </div>
-                    </div>
 
                     <!-- Booking Aktif -->
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 border border-amber-100">
+                            <svg class="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400">Booking Aktif</p>
-                            <p class="text-sm font-bold text-gray-800">{{ room.total_bookings }} booking</p>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Booking Aktif</p>
+                            <p class="text-sm font-black text-slate-800">{{ room.total_bookings }} booking</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Card Footer: Actions -->
-                <div class="px-5 py-3 border-t border-gray-100 flex gap-2">
+                <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex gap-2.5">
                     <button @click="openEdit(room)"
-                        class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold transition border border-blue-200">
+                        class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-bold transition-all border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow active:scale-95">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                         Edit
                     </button>
                     <button @click="openDelete(room)"
-                        class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-xs font-semibold transition border border-red-200"
+                        class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 rounded-xl text-xs font-bold transition-all border border-slate-200 hover:border-rose-300 shadow-sm hover:shadow active:scale-95"
                         :disabled="room.total_bookings > 0"
                         :title="room.total_bookings > 0 ? 'Tidak bisa dihapus — ruangan memiliki booking aktif' : 'Hapus ruangan'"
-                        :class="room.total_bookings > 0 ? 'opacity-40 cursor-not-allowed' : ''"
+                        :class="room.total_bookings > 0 ? 'opacity-40 cursor-not-allowed hover:bg-white hover:text-slate-700 hover:border-slate-200 hover:shadow-sm active:scale-100' : ''"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         Hapus
@@ -264,15 +259,15 @@ const filteredRooms = computed(() => {
                 leave-to-class="opacity-0"
             >
                 <div v-if="showFormModal"
-                     class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                      @click.self="closeFormModal">
-                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                    <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full max-w-md overflow-hidden ring-1 ring-slate-900/5">
 
                         <!-- Modal Header -->
-                        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r"
-                             :class="isEditing ? 'from-blue-700 to-blue-600' : 'from-slate-700 to-slate-600'">
-                            <h2 class="text-base font-bold text-white">{{ isEditing ? 'Edit Ruangan' : 'Tambah Ruangan Baru' }}</h2>
-                            <p class="text-xs mt-0.5" :class="isEditing ? 'text-blue-200' : 'text-slate-400'">
+                        <div class="px-6 py-5 border-b border-slate-100 bg-white relative overflow-hidden">
+                            <div class="absolute -top-8 -right-8 w-24 h-24 bg-blue-50 rounded-full blur-xl"></div>
+                            <h2 class="text-lg font-black text-slate-800 relative z-10">{{ isEditing ? 'Edit Ruangan' : 'Tambah Ruangan Baru' }}</h2>
+                            <p class="text-xs mt-1 relative z-10 text-slate-500">
                                 {{ isEditing ? `Mengedit: ${editingRoom?.nama_ruang}` : 'Isi informasi ruangan training baru.' }}
                             </p>
                         </div>
@@ -355,13 +350,13 @@ const filteredRooms = computed(() => {
                             <!-- Action Buttons -->
                             <div class="flex gap-3 pt-2">
                                 <button type="button" @click="closeFormModal"
-                                    class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                    class="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-95">
                                     Batal
                                 </button>
                                 <button type="submit" :disabled="form.processing"
-                                    class="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors shadow-sm disabled:opacity-60"
-                                    :class="isEditing ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-700 hover:bg-slate-800'">
-                                    {{ form.processing ? 'Menyimpan...' : (isEditing ? '✓ Perbarui Ruangan' : '✓ Tambah Ruangan') }}
+                                    class="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm active:scale-95 disabled:opacity-60 disabled:active:scale-100"
+                                    :class="isEditing ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700' : 'bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900'">
+                                    {{ form.processing ? 'Menyimpan...' : (isEditing ? '✓ Perbarui' : '✓ Tambah Ruangan') }}
                                 </button>
                             </div>
                         </form>
@@ -384,25 +379,25 @@ const filteredRooms = computed(() => {
                 leave-to-class="opacity-0"
             >
                 <div v-if="showDeleteModal"
-                     class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                      @click.self="closeDeleteModal">
-                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                    <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full max-w-sm overflow-hidden ring-1 ring-slate-900/5">
                         <div class="p-6">
-                            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                            <div class="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-4 border-4 border-rose-50">
+                                <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
                             </div>
-                            <h3 class="text-base font-bold text-gray-900 text-center mb-1">Hapus Ruangan?</h3>
-                            <p class="text-sm text-gray-500 text-center">
-                                Ruangan <strong>{{ deletingRoom?.nama_ruang }}</strong> akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
+                            <h3 class="text-lg font-black text-slate-800 text-center mb-1.5">Hapus Ruangan?</h3>
+                            <p class="text-sm text-slate-500 text-center leading-relaxed">
+                                Ruangan <strong class="text-slate-700">{{ deletingRoom?.nama_ruang }}</strong> akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
                             </p>
                         </div>
                         <div class="px-6 pb-6 flex gap-3">
                             <button @click="closeDeleteModal"
-                                class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                class="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-95">
                                 Batal
                             </button>
                             <button @click="submitDelete" :disabled="deleteForm.processing"
-                                class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg text-sm font-semibold">
+                                class="flex-1 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 disabled:opacity-60 text-white rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 disabled:active:scale-100">
                                 {{ deleteForm.processing ? 'Menghapus...' : '🗑 Hapus' }}
                             </button>
                         </div>

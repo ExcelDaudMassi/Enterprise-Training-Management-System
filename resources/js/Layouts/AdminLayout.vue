@@ -190,7 +190,7 @@ watch(() => page.props.flash, (newVal) => {
             </div>
 
             <!-- Navigation Menu -->
-            <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
+            <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <Link
                     href="/admin/dashboard"
                     class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
@@ -409,7 +409,7 @@ watch(() => page.props.flash, (newVal) => {
             </header>
 
             <!-- Page Slot -->
-            <main class="flex-1 p-6 overflow-auto">
+            <main class="flex-1 p-6 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <slot />
             </main>
         </div>

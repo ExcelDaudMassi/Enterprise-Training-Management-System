@@ -176,18 +176,18 @@ function exportExcel() {
 
 <template>
         <!-- ── Page Header ─────────────────────────────────────── -->
-        <div class="mb-5 flex items-center justify-between">
+        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-bold text-gray-900">📋 Rekap Booking</h1>
-                <p class="text-sm text-gray-500 mt-1">Melihat riwayat dan merekap semua pengajuan peminjaman ruangan</p>
+                <h1 class="text-2xl font-black bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Rekap Booking</h1>
+                <p class="text-sm text-slate-500 mt-1 font-medium">Melihat riwayat dan merekap semua pengajuan peminjaman ruangan</p>
             </div>
             <!-- Export Button -->
             <button
                 @click="exportExcel"
-                class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
+                class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-bold rounded-xl shadow-sm transition-all active:scale-95"
                 title="Unduh rekap sesuai tab aktif sebagai file Excel"
             >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 Unduh Rekap ({{ tabs.find(t => t.key === activeTab)?.label }})
@@ -195,100 +195,115 @@ function exportExcel() {
         </div>
 
         <!-- Active filter banner -->
-        <div v-if="activeFilter !== 'all'" class="mb-3 flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+        <div v-if="activeFilter !== 'all'" class="mb-5 flex items-center gap-2 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700 font-bold shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
             Filter aktif dari Dashboard: <strong class="ml-1">{{ tabs.find(t => t.key === activeFilter)?.label ?? activeFilter }}</strong>
         </div>
 
         <!-- Tabs -->
-        <div class="flex flex-wrap gap-1 mb-4 bg-gray-100 p-1 rounded-lg w-fit">
+        <div class="flex flex-wrap items-center gap-1.5 mb-5 bg-slate-100/80 backdrop-blur p-1.5 rounded-xl w-fit shadow-inner">
             <button
                 v-for="tab in tabs" :key="tab.key"
                 @click="activeTab = tab.key"
-                class="px-4 py-1.5 rounded text-sm font-medium transition"
-                :class="activeTab === tab.key ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 flex items-center gap-1.5"
+                :class="activeTab === tab.key
+                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200/50 scale-100'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 hover:scale-95'"
             >
                 {{ tab.label }}
-                <span class="ml-1 text-xs text-gray-400">({{ tabCount(tab.key) }})</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md"
+                      :class="activeTab === tab.key ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500'">
+                    {{ tabCount(tab.key) }}
+                </span>
             </button>
         </div>
 
         <!-- Table -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-100">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Acara / Pemohon</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Ruangan</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Jadwal</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Peserta</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Fasilitas</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
-                    <tr v-if="filteredBookings.length === 0">
-                        <td colspan="7" class="px-6 py-12 text-center text-gray-400 text-sm">
-                            <div class="flex flex-col items-center gap-2">
-                                <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                Tidak ada data booking untuk tab ini.
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-for="b in filteredBookings" :key="b.id" class="hover:bg-gray-50 transition-colors">
-                        <td class="px-4 py-3">
-                            <div class="text-sm font-semibold text-gray-900">{{ b.nama_training }}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">{{ b.pemohon }} · <span class="font-medium text-gray-600">{{ b.divisi }}</span></div>
-                            <div class="text-xs text-gray-400">PIC: {{ b.pic }}</div>
-                            <div class="text-xs text-gray-300 mt-0.5 mb-1">Diajukan: {{ b.created_at }}</div>
-                            <!-- Alert Merah jika confirmed & sudah lewat batas H-14 -->
-                            <div v-if="b.status === 'confirmed' && isPastH14(b.tgl_mulai)" class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded shadow-sm">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                Lewat Batas ACC-2
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="text-sm text-gray-800 font-medium">{{ b.ruangan }}</div>
-                            <div class="text-xs text-gray-400 capitalize mt-0.5">Layout: {{ b.layout || '-' }}</div>
-                        </td>
-                        <td class="px-4 py-3 text-xs text-gray-700">
-                            <div class="font-medium">{{ formatDate(b.tgl_mulai) }}</div>
-                            <div class="text-gray-400">s/d</div>
-                            <div class="font-medium">{{ formatDate(b.tgl_selesai) }}</div>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <div class="text-sm font-bold text-gray-800">{{ b.jumlah_peserta }}</div>
-                            <div class="text-xs text-gray-400">peserta</div>
-                            <div class="text-xs text-gray-500 mt-1">+{{ b.jumlah_panitia }} panitia</div>
-                        </td>
-                        <td class="px-4 py-3 text-xs text-gray-600 space-y-1">
-                            <div v-if="b.is_hybrid" class="flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0"></span>Hybrid
-                            </div>
-                            <div v-if="b.is_flipchart" class="flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0"></span>Flipchart
-                            </div>
-                            <div v-if="!b.is_hybrid && !b.is_flipchart" class="text-gray-300">—</div>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold"
-                                  :class="statusMeta[b.status]?.class ?? 'bg-gray-100 text-gray-600 border border-gray-200'">
-                                {{ statusMeta[b.status]?.label ?? b.status }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex flex-col gap-1.5">
-                                <!-- Detail Button (always visible) -->
-                                <button @click="openDetail(b)"
-                                    class="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium py-1.5 px-3 rounded-lg transition border border-blue-200">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    Lihat Detail
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative z-10">
+            <div class="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <table class="min-w-full table-fixed divide-y divide-slate-100">
+                    <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
+                        <tr>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[22%]">Acara / Pemohon</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Ruangan</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Jadwal</th>
+                            <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Peserta</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Fasilitas</th>
+                            <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Status</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-slate-100">
+                        <tr v-if="filteredBookings.length === 0">
+                            <td colspan="7" class="px-6 py-16 text-center">
+                                <div class="flex flex-col items-center justify-center gap-3">
+                                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 mb-2">
+                                        <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                    </div>
+                                    <span class="text-sm font-semibold text-slate-500">Tidak ada data booking untuk tab ini.</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr v-for="b in filteredBookings" :key="b.id" class="hover:bg-slate-50/50 transition-all duration-300 align-top group">
+                            <td class="px-5 py-4">
+                                <div class="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-2">{{ b.nama_training }}</div>
+                                <div class="text-xs text-slate-500 mt-1 flex items-center gap-1"><span class="font-semibold text-slate-700">{{ b.pemohon }}</span> &bull; {{ b.divisi }}</div>
+                                <div class="text-xs text-slate-400 mt-0.5">PIC: <span class="font-medium">{{ b.pic }}</span></div>
+                                <div class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{{ b.created_at }}</div>
+                                <!-- Alert Merah jika confirmed & sudah lewat batas H-14 -->
+                                <div v-if="b.status === 'confirmed' && isPastH14(b.tgl_mulai)" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-1 rounded-md mt-2 shadow-sm">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Lewat Batas ACC-2
+                                </div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-lg border border-slate-200">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    {{ b.ruangan }}
+                                </div>
+                                <div class="text-[11px] text-slate-400 capitalize mt-2 flex items-center gap-1">Layout: <span class="font-medium text-slate-600">{{ b.layout || '-' }}</span></div>
+                            </td>
+                            <td class="px-5 py-4 text-xs text-slate-700">
+                                <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block mb-1">{{ formatDate(b.tgl_mulai) }}</div>
+                                <div class="text-slate-400 text-[10px] ml-2 mb-1">s/d</div>
+                                <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block">{{ formatDate(b.tgl_selesai) }}</div>
+                            </td>
+                            <td class="px-5 py-4 text-center">
+                                <div class="inline-flex flex-col items-center bg-blue-50/50 border border-blue-100 px-3 py-1.5 rounded-xl">
+                                    <div class="text-lg font-black text-blue-700 leading-none">{{ b.jumlah_peserta }}</div>
+                                    <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Peserta</div>
+                                </div>
+                                <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Panitia</div>
+                            </td>
+                            <td class="px-5 py-4 text-xs text-slate-600 space-y-1.5">
+                                <div v-if="b.is_hybrid" class="flex items-center gap-2 bg-purple-50 text-purple-700 font-semibold px-2 py-1 rounded-md border border-purple-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0 animate-pulse"></span>Hybrid
+                                </div>
+                                <div v-if="b.is_flipchart" class="flex items-center gap-2 bg-orange-50 text-orange-700 font-semibold px-2 py-1 rounded-md border border-orange-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
+                                </div>
+                                <div v-if="!b.is_hybrid && !b.is_flipchart" class="text-slate-300 font-medium">—</div>
+                            </td>
+                            <td class="px-5 py-4 text-center">
+                                <span class="px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm"
+                                      :class="statusMeta[b.status]?.class ?? 'bg-slate-100 text-slate-600 border border-slate-200'">
+                                    {{ statusMeta[b.status]?.label ?? b.status }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="flex flex-col gap-2">
+                                    <!-- Detail Button (always visible) -->
+                                    <button @click="openDetail(b)"
+                                        class="group/btn flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 text-[11px] font-bold py-2 px-3 rounded-xl transition-all border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow">
+                                        <svg class="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-blue-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        Lihat Detail
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
 
@@ -305,7 +320,7 @@ function exportExcel() {
                 leave-to-class="opacity-0"
             >
                 <div v-if="showDetailModal"
-                     class="fixed inset-0 bg-black/60 z-50 flex items-start justify-end p-4 pt-16 sm:pt-4"
+                     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-start justify-end p-4 pt-16 sm:pt-4"
                      @click.self="closeDetail">
 
                     <!-- Slide-over Panel (lebar penuh layar kanan) -->
@@ -319,64 +334,105 @@ function exportExcel() {
                         appear
                     >
                         <div v-if="showDetailModal"
-                             class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-full max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden">
+                             class="relative bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 w-full max-w-2xl h-full max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden ring-1 ring-slate-900/5">
 
                             <!-- ── Panel Header ── -->
-                            <div class="flex-shrink-0 px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-slate-800 to-slate-700">
-                                <div class="flex items-center justify-between">
+                            <div class="flex-shrink-0 px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+                                <!-- Decorative blob -->
+                                <div class="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl"></div>
+                                <div class="relative flex items-center justify-between">
                                     <div class="flex-1 min-w-0 pr-4">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Detail Booking</span>
+                                            <span class="text-xs font-bold text-blue-300 uppercase tracking-wider">Detail Booking</span>
                                             <span v-if="detailData"
-                                                  class="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                                  :class="statusMeta[detailData.booking.status]?.class ?? 'bg-gray-100 text-gray-600'">
+                                                  class="px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm"
+                                                  :class="statusMeta[detailData.booking.status]?.class ?? 'bg-slate-100 text-slate-600'">
                                                 {{ statusMeta[detailData.booking.status]?.label ?? detailData.booking.status }}
                                             </span>
                                         </div>
-                                        <h2 class="text-base font-bold text-white mt-1 truncate">
+                                        <h2 class="text-lg font-black text-white mt-1.5 truncate drop-shadow-sm">
                                             {{ detailData?.booking?.nama_training ?? '—' }}
                                         </h2>
                                     </div>
-                                    <button @click="closeDetail" class="text-slate-400 hover:text-white transition-colors flex-shrink-0">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </button>
+                                    <div class="flex items-center gap-3 flex-shrink-0">
+                                        <!-- Tombol Download Excel Detail -->
+                                        <a v-if="detailData"
+                                           :href="`/admin/bookings/${detailData.booking.id}/export-detail`"
+                                           target="_blank"
+                                           class="inline-flex items-center gap-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/30 text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm backdrop-blur-sm"
+                                           title="Download Excel daftar peserta & panitia"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                            Export
+                                        </a>
+                                        <button @click="closeDetail" class="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 p-1.5 rounded-full transition-all backdrop-blur-sm">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- ── Loading State ── -->
-                            <div v-if="detailLoading" class="flex-1 flex items-center justify-center">
-                                <div class="text-center">
-                                    <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                                    <p class="text-sm text-gray-500">Memuat detail booking...</p>
+                            <!-- ── Loading State (Skeleton) ── -->
+                            <div v-if="detailLoading" class="flex-1 flex flex-col p-6 animate-pulse">
+                                <!-- Tabs Skeleton -->
+                                <div class="flex gap-4 mb-6 border-b border-slate-100 pb-2">
+                                    <div class="h-8 w-24 bg-slate-200 rounded-lg"></div>
+                                    <div class="h-8 w-24 bg-slate-200 rounded-lg"></div>
+                                    <div class="h-8 w-24 bg-slate-200 rounded-lg"></div>
+                                </div>
+                                
+                                <!-- Content Box 1 Skeleton -->
+                                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 mb-5">
+                                    <div class="h-4 w-48 bg-slate-200 rounded mb-4"></div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div v-for="i in 4" :key="i">
+                                            <div class="h-3 w-16 bg-slate-200 rounded mb-2"></div>
+                                            <div class="h-4 w-32 bg-slate-200 rounded"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Content Box 2 Skeleton -->
+                                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                    <div class="h-4 w-40 bg-slate-200 rounded mb-4"></div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div v-for="i in 6" :key="'sec'+i">
+                                            <div class="h-3 w-16 bg-slate-200 rounded mb-2"></div>
+                                            <div class="h-4 w-28 bg-slate-200 rounded"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- ── Error State ── -->
-                            <div v-else-if="detailError" class="flex-1 flex items-center justify-center p-6">
-                                <div class="text-center text-red-500">
-                                    <svg class="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
-                                    <p class="text-sm font-medium">{{ detailError }}</p>
+                            <div v-else-if="detailError" class="flex-1 flex items-center justify-center p-6 bg-slate-50">
+                                <div class="text-center text-rose-500 bg-rose-50 border border-rose-100 p-6 rounded-2xl shadow-sm">
+                                    <svg class="w-12 h-12 mx-auto mb-3 text-rose-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                                    <p class="text-sm font-bold">{{ detailError }}</p>
                                 </div>
                             </div>
 
                             <!-- ── Content ── -->
-                            <div v-else-if="detailData" class="flex-1 overflow-hidden flex flex-col">
+                            <div v-else-if="detailData" class="flex-1 overflow-hidden flex flex-col bg-slate-50/30">
                                 <!-- Sub-tabs -->
-                                <div class="flex-shrink-0 flex border-b border-gray-100 px-6 pt-3 gap-0">
+                                <div class="flex-shrink-0 flex border-b border-slate-200 px-6 pt-4 gap-2 bg-white">
                                     <button v-for="tab in [
                                         { key: 'info',    label: '📋 Informasi', count: null },
                                         { key: 'peserta', label: '👥 Peserta',   count: detailData.total_peserta },
                                         { key: 'panitia', label: '🎯 Panitia',   count: detailData.total_panitia },
-                                        { key: 'log',     label: '🕒 Log Aktivitas', count: detailData.logs.length },
+                                        { key: 'log',     label: '🕒 Log',       count: detailData.logs.length },
                                     ]" :key="tab.key"
                                         @click="detailTab = tab.key"
-                                        class="px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors mr-1"
+                                        class="px-4 py-2.5 text-xs font-bold border-b-2 transition-all mr-1 rounded-t-lg"
                                         :class="detailTab === tab.key
                                             ? 'border-blue-600 text-blue-700 bg-blue-50/50'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'"
                                     >
                                         {{ tab.label }}
-                                        <span v-if="tab.count !== null" class="ml-1 text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full font-bold">{{ tab.count }}</span>
+                                        <span v-if="tab.count !== null" class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold transition-colors"
+                                              :class="detailTab === tab.key ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'">
+                                            {{ tab.count }}
+                                        </span>
                                     </button>
                                 </div>
 
