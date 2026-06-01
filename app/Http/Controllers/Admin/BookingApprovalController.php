@@ -250,263 +250,18 @@ class BookingApprovalController extends Controller
     }
 
     /**
-     * Ekspor detail 1 booking ke Excel:
-     * 1 baris = 1 peserta/panitia, field kosong = N/A
+     * Ekspor detail 1 booking ke Excel menggunakan BookingExcelExportService.
      */
+    public function generateExcelFileForBooking(Booking $booking): string
+    {
+        return (new \App\Services\BookingExcelExportService())->generate($booking);
+    }
+
     public function exportDetail(Booking $booking)
     {
-        $booking->load(['ruangan', 'user', 'participants']);
-
-        $spreadsheet = new Spreadsheet();
-        $sheet       = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Detail Peserta');
-
-        // ── Judul ──
-        $sheet->setCellValue('A1', 'DETAIL PESERTA & PANITIA - ' . strtoupper($booking->nama_training));
-        $sheet->mergeCells('A1:H1');
-        $sheet->getStyle('A1')->applyFromArray([
-            'font'      => ['bold' => true, 'size' => 12, 'color' => ['argb' => 'FFFFFFFF']],
-            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF1E3A5F']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-        ]);
-        $sheet->getRowDimension(1)->setRowHeight(28);
-
-        // ── Info Booking ──
-        $infos = [
-            ['Ruangan',     $booking->ruangan?->nama_ruang ?? 'Ruang Gabungan'],
-            ['Tanggal',     ($booking->tgl_mulai?->format('d M Y') ?? '-') . ' s/d ' . ($booking->tgl_selesai?->format('d M Y') ?? '-')],
-            ['PIC',         $booking->pic ?? '-'],
-            ['No. HP PIC',  $booking->no_hp_pic ?? '-'],
-            ['Pemohon',     $booking->user?->name . ' (' . ($booking->user?->divisi ?? '-') . ')'],
-            ['Diekspor',    now()->format('d M Y, H:i')],
-        ];
-        $infoRow = 2;
-        foreach ($infos as [$label, $value]) {
-            $sheet->setCellValue('A' . $infoRow, $label . ':');
-            $sheet->mergeCells('A' . $infoRow . ':B' . $infoRow);
-            
-            $sheet->setCellValue('C' . $infoRow, $value);
-            $sheet->mergeCells('C' . $infoRow . ':H' . $infoRow);
-            
-            $sheet->getStyle('A' . $infoRow)->getFont()->setBold(true);
-            $sheet->getStyle('A' . $infoRow . ':H' . $infoRow)->getFont()->setSize(9);
-            
-            // Align left explicitly to prevent numeric values (like phone numbers) from right-aligning
-            $sheet->getStyle('A' . $infoRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-            $sheet->getStyle('C' . $infoRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-            
-            $infoRow++;
-        }
-
-        // ── Header Kolom ──
-        $headerRow = $infoRow + 1;
-        $headers = [
-            'A' => 'No.',
-            'B' => 'Tipe',
-            'C' => 'Nama Lengkap',
-            'D' => 'NRP',
-            'E' => 'Jabatan',
-            'F' => 'Site',
-            'G' => 'No HP',
-            'H' => 'Gender',
-        ];
-        foreach ($headers as $col => $label) {
-            $sheet->setCellValue($col . $headerRow, $label);
-        }
-        $sheet->getStyle('A' . $headerRow . ':H' . $headerRow)->applyFromArray([
-            'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
-            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF2563EB']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
-        ]);
-        $sheet->getRowDimension($headerRow)->setRowHeight(20);
-
-        // ── Lebar Kolom ──
-        $sheet->getColumnDimension('A')->setWidth(5);
-        $sheet->getColumnDimension('B')->setWidth(12);
-        $sheet->getColumnDimension('C')->setWidth(30);
-        $sheet->getColumnDimension('D')->setWidth(18);
-        $sheet->getColumnDimension('E')->setWidth(22);
-        $sheet->getColumnDimension('F')->setWidth(18);
-        $sheet->getColumnDimension('G')->setWidth(18);
-        $sheet->getColumnDimension('H')->setWidth(10);
-
-        // ── Baris Data ──
-        $all = collect();
-        foreach ($booking->participants->where('tipe', 'peserta') as $p) {
-            $all->push(['tipe' => 'Peserta', 'data' => $p]);
-        }
-        foreach ($booking->participants->where('tipe', 'panitia') as $p) {
-            $all->push(['tipe' => 'Panitia', 'data' => $p]);
-        }
-
-        $dataRow = $headerRow + 1;
-        foreach ($all as $i => $item) {
-            $p    = $item['data'];
-            $tipe = $item['tipe'];
-            $isEven = ($dataRow % 2 === 0);
-
-            $sheet->setCellValue('A' . $dataRow, $i + 1);
-            $sheet->setCellValue('B' . $dataRow, $tipe);
-            $sheet->setCellValue('C' . $dataRow, $p->nama ?: 'N/A');
-            $sheet->setCellValue('D' . $dataRow, $p->nrp ?: 'N/A');
-            $sheet->setCellValue('E' . $dataRow, $p->jabatan ?: 'N/A');
-            $sheet->setCellValue('F' . $dataRow, $p->site ?: 'N/A');
-            $sheet->setCellValue('G' . $dataRow, $p->no_hp ?: 'N/A');
-            $sheet->setCellValue('H' . $dataRow, $p->gender ?: 'N/A');
-
-            // Zebra
-            if ($isEven) {
-                $sheet->getStyle('A' . $dataRow . ':H' . $dataRow)->applyFromArray([
-                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFF0F9FF']],
-                ]);
-            }
-
-            // Warna badge Tipe
-            if ($tipe === 'Panitia') {
-                $sheet->getStyle('B' . $dataRow)->applyFromArray([
-                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFEF3C7']],
-                    'font' => ['bold' => true, 'color' => ['argb' => 'FFD97706']],
-                ]);
-            } else {
-                $sheet->getStyle('B' . $dataRow)->applyFromArray([
-                    'font' => ['color' => ['argb' => 'FF1D4ED8']],
-                ]);
-            }
-
-            $sheet->getStyle('A' . $dataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('D' . $dataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('H' . $dataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-            $dataRow++;
-        }
-
-        // ── Row Total ──
-        $sheet->setCellValue('A' . $dataRow, 'TOTAL');
-        $sheet->setCellValue('C' . $dataRow, $all->count() . ' orang');
-        $sheet->getStyle('A' . $dataRow . ':H' . $dataRow)->applyFromArray([
-            'font' => ['bold' => true],
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFE2E8F0']],
-        ]);
-
-        // ── Border ──
-        if ($dataRow > $headerRow + 1) {
-            $sheet->getStyle('A' . $headerRow . ':H' . ($dataRow))->applyFromArray([
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color'       => ['argb' => 'FFE2E8F0'],
-                    ],
-                ],
-            ]);
-        }
-
-        // ── Seksi Tata Letak & Kebutuhan Tambahan ──
-        $layoutStartRow = $dataRow + 3;
-        
-        $sheet->setCellValue('A' . $layoutStartRow, 'INFORMASI TATA LETAK & KEBUTUHAN TAMBAHAN');
-        $sheet->mergeCells('A' . $layoutStartRow . ':H' . $layoutStartRow);
-        $sheet->getStyle('A' . $layoutStartRow)->applyFromArray([
-            'font'      => ['bold' => true, 'size' => 10, 'color' => ['argb' => 'FFFFFFFF']],
-            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF1E3A5F']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-        ]);
-        $sheet->getRowDimension($layoutStartRow)->setRowHeight(24);
-        
-        $layoutInfos = [
-            ['Tata Letak (Layout)',   ucfirst($booking->layout_preferensi)],
-            ['Kebutuhan Hybrid',       $booking->is_hybrid ? 'AKTIF (Kamera & Mic)' : 'TIDAK AKTIF'],
-            ['Papan Tulis Flipchart',  $booking->is_flipchart ? 'AKTIF' : 'TIDAK AKTIF'],
-            ['Catatan Tambahan',        $booking->catatan_admin ?: '-'],
-        ];
-        
-        $subInfoRow = $layoutStartRow + 2;
-        foreach ($layoutInfos as [$label, $value]) {
-            $sheet->setCellValue('A' . $subInfoRow, $label . ':');
-            $sheet->mergeCells('A' . $subInfoRow . ':B' . $subInfoRow);
-            
-            $sheet->setCellValue('C' . $subInfoRow, $value);
-            $sheet->mergeCells('C' . $subInfoRow . ':H' . $subInfoRow);
-            
-            $sheet->getStyle('A' . $subInfoRow)->getFont()->setBold(true);
-            $sheet->getStyle('A' . $subInfoRow . ':H' . $subInfoRow)->getFont()->setSize(9);
-            
-            $sheet->getStyle('A' . $subInfoRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-            $sheet->getStyle('C' . $subInfoRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-            $subInfoRow++;
-        }
-        
-        $imgRow = $subInfoRow + 1;
-        $sheet->setCellValue('A' . ($imgRow - 1), 'Visual Denah / Tata Letak Ruangan:');
-        $sheet->mergeCells('A' . ($imgRow - 1) . ':H' . ($imgRow - 1));
-        $sheet->getStyle('A' . ($imgRow - 1))->getFont()->setBold(true)->setSize(9);
-        $sheet->getStyle('A' . ($imgRow - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-        
-        $imagePath = null;
-        $isPdf = false;
-        
-        if ($booking->layout_preferensi === 'custom') {
-            if ($booking->layout_custom_path) {
-                $fullPath = storage_path('app/public/' . $booking->layout_custom_path);
-                if (file_exists($fullPath)) {
-                    $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
-                    if (in_array($ext, ['png', 'jpg', 'jpeg'])) {
-                        $imagePath = $fullPath;
-                    } else {
-                        $isPdf = true;
-                    }
-                }
-            }
-        } else {
-            $stdPath = public_path('layouts/' . $booking->layout_preferensi . '.png');
-            if (file_exists($stdPath)) {
-                $imagePath = $stdPath;
-            }
-        }
-        
-        if ($imagePath) {
-            $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
-            $drawing->setName('Denah Ruangan');
-            $drawing->setDescription('Denah Ruangan');
-            $drawing->setPath($imagePath);
-            $drawing->setHeight(160); // Set height to 160 pixels
-            $drawing->setCoordinates('C' . $imgRow);
-            $drawing->setOffsetX(10);
-            $drawing->setOffsetY(10);
-            $drawing->setWorksheet($sheet);
-            
-            $sheet->getRowDimension($imgRow)->setRowHeight(180);
-        } elseif ($isPdf) {
-            $sheet->setCellValue('C' . $imgRow, 'Denah kustom diunggah dalam format PDF. Silakan lihat berkas langsung di portal admin.');
-            $sheet->mergeCells('C' . $imgRow . ':H' . $imgRow);
-            $sheet->getStyle('C' . $imgRow)->getFont()->setItalic(true)->setSize(9);
-            $sheet->getRowDimension($imgRow)->setRowHeight(24);
-        } else {
-            $sheet->setCellValue('C' . $imgRow, 'Tidak ada denah visual tersedia.');
-            $sheet->mergeCells('C' . $imgRow . ':H' . $imgRow);
-            $sheet->getStyle('C' . $imgRow)->getFont()->setItalic(true)->setSize(9);
-            $sheet->getRowDimension($imgRow)->setRowHeight(24);
-        }
-
-        // ── Output ──
-        $namaTrainingClean = preg_replace('/[^A-Za-z0-9\-]/', '-', $booking->nama_training);
-        $namaTrainingClean = preg_replace('/-+/', '-', $namaTrainingClean);
-        $namaTrainingClean = trim($namaTrainingClean, '-');
-
-        $pemohonClean = preg_replace('/[^A-Za-z0-9\-]/', '-', $booking->user?->name ?? 'Pemohon');
-        $pemohonClean = preg_replace('/-+/', '-', $pemohonClean);
-        $pemohonClean = trim($pemohonClean, '-');
-
-        $tglFormat = $booking->tgl_mulai->format('Ymd') . '-' . $booking->tgl_selesai->format('Ymd');
-        
-        $filename = $namaTrainingClean . '-' . $pemohonClean . '-' . $tglFormat . '.xlsx';
-        $writer    = new Xlsx($spreadsheet);
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-
-        $writer->save('php://output');
-        exit;
+        $filePath  = $this->generateExcelFileForBooking($booking);
+        $cleanName = preg_replace('/^temp_excel_[a-z0-9]+_/', '', basename($filePath));
+        return response()->download($filePath, $cleanName)->deleteFileAfterSend(true);
     }
 
     /**
@@ -749,6 +504,8 @@ class BookingApprovalController extends Controller
                 ]);
 
                 \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} disetujui oleh admin ID #" . auth()->id());
+
+
             });
 
             return back()->with('success', "Booking #{$booking->id} berhasil disetujui.");
@@ -797,6 +554,8 @@ class BookingApprovalController extends Controller
                 ]);
 
                 \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} ditolak oleh admin ID #" . auth()->id());
+
+
             });
 
             return back()->with('success', "Booking #{$booking->id} telah ditolak.");
@@ -838,6 +597,8 @@ class BookingApprovalController extends Controller
                 ]);
 
                 \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} di-ACC tahap 2 oleh admin ID #" . auth()->id());
+
+                $this->notifyFrontdesk($booking);
             });
 
             return back()->with('success', "Booking #{$booking->id} berhasil di-ACC tahap 2 (Final Confirmation).");
@@ -879,6 +640,8 @@ class BookingApprovalController extends Controller
                 ]);
 
                 \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} di-ACC Final oleh admin ID #" . Auth::id());
+
+                $this->notifyFrontdesk($booking);
             });
 
             return back()->with('success', "Booking #{$booking->id} berhasil di-ACC Final. Status: FINAL.");
@@ -927,6 +690,8 @@ class BookingApprovalController extends Controller
                 ]);
 
                 \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} di-ACC Final Terlambat oleh admin ID #" . Auth::id());
+
+                $this->notifyFrontdesk($booking);
             });
 
             return back()->with('success', "Booking #{$booking->id} di-ACC Terlambat dan kini berstatus FINAL.");
@@ -951,6 +716,8 @@ class BookingApprovalController extends Controller
             'proposed_tgl_selesai' => null,
             'status_perubahan'     => Booking::CHANGE_APPROVED,
         ]);
+
+
 
         return back()->with('success', "Perubahan tanggal untuk Booking #{$booking->id} telah disetujui.");
     }
@@ -977,6 +744,8 @@ class BookingApprovalController extends Controller
             'status_perubahan'     => Booking::CHANGE_REJECTED,
             'catatan_admin'        => $request->catatan_admin,
         ]);
+
+
 
         return back()->with('success', "Usulan perubahan tanggal Booking #{$booking->id} ditolak. Tanggal lama tetap berlaku.");
     }
@@ -1088,5 +857,68 @@ class BookingApprovalController extends Controller
             'can_be_finalized'        => $b->canBeFinalized(),
             'has_pending_date_change' => $b->hasPendingDateChange(),
         ];
+    }
+
+    /**
+     * Kirim notifikasi WA detail ke Frontdesk saat booking mencapai status Final.
+     */
+    private function notifyFrontdesk(Booking $booking)
+    {
+        $frontdeskPhone = config('services.fonnte.frontdesk_target');
+        if (empty($frontdeskPhone)) return;
+
+        $booking->loadMissing(['ruangan', 'participants']);
+        $ruangName = $booking->ruangan->nama_ruang ?? 'Ruangan';
+        $tglMulai = \Carbon\Carbon::parse($booking->tgl_mulai)->translatedFormat('d M Y');
+        $tglSelesai = \Carbon\Carbon::parse($booking->tgl_selesai)->translatedFormat('d M Y');
+        $tglStr = $tglMulai === $tglSelesai ? $tglMulai : "{$tglMulai} s/d {$tglSelesai}";
+        $jmlPeserta = $booking->participants->where('tipe', 'peserta')->count();
+        $layout = ucfirst($booking->layout_preferensi);
+        
+        $kebutuhan = collect([
+            $booking->is_hybrid ? 'Hybrid (Kamera & Mic)' : null,
+            $booking->is_flipchart ? 'Papan Flipchart' : null
+        ])->filter()->implode(', ');
+        if (empty($kebutuhan)) {
+            $kebutuhan = '-';
+        }
+
+        // Buat signed URL yang berlaku 7 hari (tanpa perlu login)
+        $shareUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'booking.share',
+            now()->addDays(7),
+            ['booking' => $booking->id]
+        );
+
+        // Persingkat URL dengan TinyURL agar bisa langsung diklik di WhatsApp
+        // (WhatsApp tidak mengenali domain .test / IP lokal sebagai hyperlink)
+        $shortUrl = $this->shortenUrl($shareUrl);
+
+        $msg = "*INFORMASI TRAINING BARU (FINAL)*\n\nHalo Frontdesk,\nTerdapat jadwal training baru yang telah di-ACC Final dan perlu disiapkan:\n\n*Nama Training:* {$booking->nama_training}\n*Ruangan:* {$ruangName}\n*Tanggal:* {$tglStr}\n*PIC:* {$booking->pic}\n*Peserta:* {$jmlPeserta} Orang\n*Tata Letak:* {$layout}\n*Tambahan:* {$kebutuhan}\n\n📋 *Lihat Detail Peserta & Panitia:*\n{$shortUrl}\n\n_(Link berlaku 7 hari)_\n\nMohon segera dipersiapkan sesuai kebutuhan. Terima kasih!";
+
+        \App\Jobs\SendWhatsAppNotification::dispatch($frontdeskPhone, $msg);
+    }
+
+    /**
+     * Persingkat URL panjang menggunakan TinyURL API (gratis, tanpa API key).
+     * Fallback ke URL asli jika TinyURL tidak bisa dihubungi.
+     */
+    private function shortenUrl(string $longUrl): string
+    {
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(5)
+                ->get('https://tinyurl.com/api-create.php', ['url' => $longUrl]);
+
+            if ($response->successful() && str_starts_with(trim($response->body()), 'https://')) {
+                return trim($response->body());
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('TinyURL shortening failed, using original URL.', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // Fallback: kembalikan URL asli jika TinyURL gagal
+        return $longUrl;
     }
 }

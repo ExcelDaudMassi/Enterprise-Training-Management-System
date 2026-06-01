@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'fonnte' => [
+        'token' => env('FONNTE_TOKEN'),
+        'frontdesk_target' => env('FONNTE_FRONTDESK_TARGET'),
+    ],
+
 ];

@@ -8,6 +8,7 @@ use App\Http\Controllers\User\BookingManageController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\BookingApprovalController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\BookingShareController;
 use Illuminate\Support\Facades\Route;
 
 // ============================================================
@@ -115,3 +116,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 // Default: redirect root ke halaman login
 Route::get('/', fn() => redirect()->route('login'));
+
+// ============================================================
+// Publik: Halaman detail booking via signed URL (tanpa login)
+// Dibagikan via WA ke Frontdesk saat booking di-ACC Final
+// ============================================================
+Route::get('/booking/{booking}/share', [BookingShareController::class, 'show'])
+     ->name('booking.share');
+Route::get('/booking/{booking}/share/download', [BookingShareController::class, 'download'])
+     ->name('booking.share.download');
