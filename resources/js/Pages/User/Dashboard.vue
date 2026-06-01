@@ -399,17 +399,41 @@ function closeModal() {
 }
 
 // ============================================================
-// Detail Modal state untuk Popup Informasi Acara/Training
+// Detail Tooltip state untuk Popup Informasi Acara/Training
 // ============================================================
 const detailModalOpen = ref(false)
 const selectedDetailBooking = ref(null)
+const tooltipStyle = ref({ top: '0px', left: '0px' })
 
-function openDetailModal(booking) {
+function openDetailTooltip(booking, event) {
     selectedDetailBooking.value = booking
     detailModalOpen.value = true
+    updateTooltipPosition(event)
 }
 
-function closeDetailModal() {
+function updateTooltipPosition(event) {
+    if (detailModalOpen.value) {
+        let top = event.clientY + 15
+        let left = event.clientX + 15
+        
+        const tooltipWidth = 320
+        const tooltipHeight = 300
+        
+        if (left + tooltipWidth > window.innerWidth) {
+            left = event.clientX - tooltipWidth - 15
+        }
+        if (top + tooltipHeight > window.innerHeight) {
+            top = event.clientY - tooltipHeight - 15
+        }
+        
+        tooltipStyle.value = {
+            top: top + 'px',
+            left: left + 'px'
+        }
+    }
+}
+
+function closeDetailTooltip() {
     detailModalOpen.value = false
     selectedDetailBooking.value = null
 }
@@ -680,7 +704,7 @@ function getVisualStatus(b) {
                     :title="`Filter: ${r.nama_ruang}`"
                 >
                     <span
-                        class="w-2 h-2 rounded-full shrink-0"
+                        class="w-2 h-2 rounded-full shrink-0 animate-pulse"
                         :style="{ backgroundColor: ROOM_COLORS[idx % ROOM_COLORS.length].bg }"
                     ></span>
                     {{ r.nama_ruang }}
@@ -890,8 +914,10 @@ function getVisualStatus(b) {
                                         <div
                                             v-for="b in room.bookings"
                                             :key="b.id"
-                                            @click="openDetailModal(b)"
-                                            class="absolute h-7 rounded-lg px-2 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] hover:-translate-y-[0.5px] transition-all cursor-pointer group select-none"
+                                            @mouseenter="openDetailTooltip(b, $event)"
+                                            @mousemove="updateTooltipPosition($event)"
+                                            @mouseleave="closeDetailTooltip"
+                                            class="absolute h-9 rounded-xl px-2.5 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] hover:-translate-y-[0.5px] transition-all cursor-default group select-none"
                                             :style="{
                                                 left: `calc(${b.startPct}% + 3px)`,
                                                 width: `calc(${b.widthPct}% - 6px)`,
@@ -900,14 +926,13 @@ function getVisualStatus(b) {
                                                 color: getStatusColor(getVisualStatus(b)).text,
                                                 borderColor: getStatusColor(getVisualStatus(b)).bg
                                             }"
-                                            :title="`${b.nama_ruang} — ${b.nama_training} (${b.divisi}) — ${formatDateRange(b.tgl_mulai, b.tgl_selesai)}`"
                                         >
-                                            <div class="flex items-center gap-1.5 min-w-0 w-full">
-                                                <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }" :title="`Ruangan: ${b.nama_ruang}`"></span>
-                                                <span class="font-extrabold text-[10px] truncate leading-none mt-0.5">{{ b.nama_training }}</span>
+                                            <div class="flex items-center gap-2 min-w-0 w-full">
+                                                <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"></span>
+                                                <span class="font-extrabold text-[11px] truncate leading-none">{{ b.nama_training }}</span>
                                                 
                                                 <!-- Status indicator dot at the end -->
-                                                <span class="w-1.5 h-1.5 rounded-full shrink-0 ml-auto shadow-xs" :class="[
+                                                <span class="w-2 h-2 rounded-full shrink-0 ml-auto shadow-xs" :class="[
                                                     getVisualStatus(b) === 'plotting' ? 'bg-red-500 animate-pulse' : '',
                                                     getVisualStatus(b) === 'waiting_confirmation' ? 'bg-amber-500 animate-pulse' : '',
                                                     getVisualStatus(b) === 'confirmed' ? 'bg-emerald-500' : ''
@@ -964,91 +989,77 @@ function getVisualStatus(b) {
                             </span>
                         </td>
                         <td class="px-3 py-2">
-                            <button class="text-blue-600 hover:underline text-xs">Detail</button>
+                            <Link :href="`/user/booking/${b.id}/detail`" class="text-blue-600 hover:underline text-xs font-semibold">Detail</Link>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Modal: Detail Booking Training -->
+        <!-- Popover: Detail Booking Training (Hover Tooltip) -->
         <Teleport to="body">
             <div
                 v-if="detailModalOpen"
-                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
-                @click.self="closeDetailModal"
+                class="fixed z-[120] flex flex-col pointer-events-none animate-fade-in drop-shadow-xl"
+                :style="tooltipStyle"
             >
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col border border-gray-100 transition-all">
+                <div class="bg-white rounded-xl shadow-2xl w-[320px] overflow-hidden flex flex-col border border-gray-200">
                     
                     <!-- Header -->
-                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
-                        <div class="flex items-center gap-3">
-                            <svg class="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <div>
-                                <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">Detail Pemesanan</h4>
-                            </div>
+                    <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <h4 class="font-extrabold text-gray-800 text-xs leading-none">Detail Pemesanan</h4>
                         </div>
-                        <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-700 text-3xl leading-none cursor-pointer focus:outline-none">&times;</button>
                     </div>
 
                     <!-- Body -->
-                    <div class="p-6 space-y-4 text-xs text-gray-700">
+                    <div class="p-4 space-y-3 text-[10px] text-gray-700">
                         <div>
-                            <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Nama Acara / Training</span>
-                            <span class="font-bold text-gray-800 text-sm leading-snug block mt-0.5">{{ selectedDetailBooking?.nama_training }}</span>
+                            <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Nama Acara / Training</span>
+                            <span class="font-bold text-gray-800 text-xs leading-snug block mt-0.5">{{ selectedDetailBooking?.nama_training }}</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
+                        <div class="grid grid-cols-2 gap-3 border-t border-gray-100 pt-2.5">
                             <div>
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Ruangan</span>
+                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Ruangan</span>
                                 <div class="flex items-center gap-1.5 mt-0.5">
-                                    <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking?.ruangan_id).bg }"></span>
+                                    <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking?.ruangan_id).bg }"></span>
                                     <span class="font-bold text-gray-800">{{ selectedDetailBooking?.nama_ruang }}</span>
                                 </div>
                             </div>
                             <div>
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Gabung Ruangan</span>
+                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Gabung Ruangan</span>
                                 <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.gabung_ruang ? 'Ya (2 Ruangan)' : 'Tidak' }}</span>
                             </div>
                         </div>
-                        <div class="border-t border-gray-100 pt-3">
-                            <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Tanggal Pelaksanaan</span>
+                        <div class="border-t border-gray-100 pt-2.5">
+                            <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Tanggal Pelaksanaan</span>
                             <span class="font-bold text-gray-800 block mt-0.5">{{ formatDateRange(selectedDetailBooking?.tgl_mulai, selectedDetailBooking?.tgl_selesai) }}</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
+                        <div class="grid grid-cols-2 gap-3 border-t border-gray-100 pt-2.5">
                             <div>
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Pemohon</span>
+                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Pemohon</span>
                                 <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pemohon }}</span>
-                                <span class="text-[9px] text-gray-400 block mt-0.5">Divisi: {{ selectedDetailBooking?.divisi }}</span>
+                                <span class="text-[8px] text-gray-400 block mt-0.5">Divisi: {{ selectedDetailBooking?.divisi }}</span>
                             </div>
                             <div>
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">PIC Acara</span>
+                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">PIC Acara</span>
                                 <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pic || '-' }}</span>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-3">
+                        <div class="grid grid-cols-2 gap-3 border-t border-gray-100 pt-2.5">
                             <div>
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Jenis Pemesanan</span>
+                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Jenis Pemesanan</span>
                                 <span class="font-bold text-gray-800 block mt-0.5 capitalize">{{ selectedDetailBooking?.fase }}</span>
                             </div>
                             <div>
-                                <span class="text-[10px] text-gray-400 block font-semibold uppercase tracking-wider">Status Booking</span>
-                                <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase mt-1 tracking-wider" :class="STATUS_STYLE[getVisualStatus(selectedDetailBooking)] || 'bg-gray-150 text-gray-700'">
+                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Status Booking</span>
+                                <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase mt-1 tracking-wider" :class="STATUS_STYLE[getVisualStatus(selectedDetailBooking)] || 'bg-gray-150 text-gray-700'">
                                     {{ statusLabel(getVisualStatus(selectedDetailBooking)) }}
                                 </span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Footer -->
-                    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
-                        <button 
-                            @click="closeDetailModal" 
-                            class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2.5 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
-                        >
-                            Tutup
-                        </button>
-                    </div>
-
                 </div>
             </div>
         </Teleport>

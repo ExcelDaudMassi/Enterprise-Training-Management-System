@@ -1845,23 +1845,37 @@ const getLayoutDesc = (layout) => {
             <!-- ======================================================= -->
             <!-- SUCCESS PAGE -->
             <!-- ======================================================= -->
-            <div v-if="submitSuccess" class="bg-white rounded-3xl shadow-xl border border-gray-100 p-12 text-center relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-emerald-500"></div>
-                <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-5xl mb-6 shadow-inner animate-[bounce_1s_ease-in-out_1]">
-                    <span class="animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_1_reverse] absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-20"></span>
-                    <span class="relative">✨</span>
+            <div v-if="submitSuccess" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 flex flex-col items-center justify-center min-h-[450px] relative overflow-hidden">
+                <!-- Background Decoration -->
+                <div class="absolute -top-32 -right-32 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+                <div class="absolute -bottom-32 -left-32 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+
+                <!-- Success Icon -->
+                <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm ring-[10px] ring-blue-50/40 relative z-10">
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
                 </div>
-                <h2 class="text-3xl font-black text-gray-900 mb-3 tracking-tight">Booking Berhasil Terkirim!</h2>
-                <p class="text-gray-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">Luar biasa! Pengajuan ruangan Anda telah masuk ke sistem dan diamankan. Tim kami akan segera meninjau pesanan Anda.</p>
+
+                <!-- Title & Description -->
+                <h2 class="text-2xl font-extrabold text-gray-800 mb-3 tracking-tight relative z-10">Booking Berhasil Terkirim!</h2>
+                <p class="text-gray-500 text-[13px] max-w-[400px] text-center mx-auto mb-8 leading-relaxed relative z-10">
+                    Luar biasa! Pengajuan ruangan Anda telah masuk ke sistem dan diamankan. Tim kami akan segera meninjau pesanan Anda maksimal 1x24 jam.
+                </p>
                 
-                <div class="bg-gradient-to-br from-gray-50 to-white p-6 rounded-2xl inline-block mx-auto border border-gray-200 shadow-sm mb-8 w-full max-w-xs">
-                    <p class="text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-1">ID Referensi Anda</p>
-                    <p class="text-3xl font-mono font-black text-blue-700 tracking-tight">#{{ String(bookingId).padStart(5, '0') }}</p>
+                <!-- Reference ID Card -->
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-8 min-w-[260px] text-center relative z-10">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5">ID Referensi Anda</p>
+                    <p class="text-3xl font-black text-blue-700 tracking-tight">#{{ String(bookingId).padStart(5, '0') }}</p>
                 </div>
                 
-                <div>
-                    <Link href="/user/booking/history" class="bg-green-600 hover:bg-green-700 text-white font-black py-3 px-8 rounded-xl text-sm transition shadow-lg hover:shadow-xl inline-flex items-center gap-2 transform hover:-translate-y-0.5">
-                        Lihat Riwayat Booking →
+                <!-- Action Button -->
+                <div class="relative z-10">
+                    <Link href="/user/booking/history" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-7 rounded-lg text-xs transition shadow-sm flex items-center gap-2 group">
+                        <span>Lihat Riwayat Booking</span>
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
                     </Link>
                 </div>
             </div>

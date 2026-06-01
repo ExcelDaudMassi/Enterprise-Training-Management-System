@@ -1130,7 +1130,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                             v-for="b in room.bookings"
                                             :key="b.id"
                                             @click="openDetailModal(b)"
-                                            class="absolute h-7 rounded-lg px-2 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] hover:-translate-y-[0.5px] transition-all cursor-pointer group select-none"
+                                            class="absolute h-9 rounded-xl px-2.5 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] hover:-translate-y-[0.5px] transition-all cursor-pointer group select-none"
                                             :style="{
                                                 left: `calc(${b.startPct}% + 3px)`,
                                                 width: `calc(${b.widthPct}% - 6px)`,
@@ -1141,12 +1141,12 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                             }"
                                             :title="`${b.nama_ruang} — ${b.nama_training} (${b.divisi}) — ${formatDateRange(b.tgl_mulai, b.tgl_selesai)}`"
                                         >
-                                            <div class="flex items-center gap-1.5 min-w-0 w-full">
-                                                <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }" :title="`Ruangan: ${b.nama_ruang}`"></span>
-                                                <span class="font-extrabold text-[10px] truncate leading-none mt-0.5">{{ b.nama_training }}</span>
+                                            <div class="flex items-center gap-2 min-w-0 w-full">
+                                                <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }" :title="`Ruangan: ${b.nama_ruang}`"></span>
+                                                <span class="font-extrabold text-[11px] truncate leading-none">{{ b.nama_training }}</span>
                                                 
                                                 <!-- Status indicator dot at the end -->
-                                                <span class="w-1.5 h-1.5 rounded-full shrink-0 ml-auto shadow-xs" :class="[
+                                                <span class="w-2 h-2 rounded-full shrink-0 ml-auto shadow-xs" :class="[
                                                     getVisualStatus(b) === 'plotting' ? 'bg-red-500 animate-pulse' : '',
                                                     getVisualStatus(b) === 'waiting_confirmation' ? 'bg-amber-500 animate-pulse' : '',
                                                     getVisualStatus(b) === 'confirmed' ? 'bg-emerald-500' : ''
