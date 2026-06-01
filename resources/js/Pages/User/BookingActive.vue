@@ -210,10 +210,17 @@ async function submitCancel() {
         </div>
 
         <!-- Modal: Konfirmasi Batalkan -->
-        <Teleport to="body">
-            <div v-if="showCancelModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+    <Teleport to="body">
+        <Transition 
+            enter-active-class="transition-all ease-out duration-300" 
+            enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0" 
+            enter-to-class="opacity-100 scale-100 translate-y-0" 
+            leave-active-class="transition-all ease-in duration-200" 
+            leave-from-class="opacity-100 scale-100 translate-y-0" 
+            leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
+            <div v-if="showCancelModal" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl border border-blue-900 shadow-xl w-full max-w-md p-6">
+                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-50 border border-red-200 rounded-full mb-4">
                         <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -222,7 +229,7 @@ async function submitCancel() {
                     <h2 class="text-lg font-bold text-center text-gray-900 mb-2">Batalkan Booking?</h2>
                     <p class="text-sm text-center text-gray-600 mb-1">
                         Anda yakin ingin membatalkan:
-                        <strong class="text-gray-800">{{ selectedBooking?.nama_training }}</strong>?
+                        <strong class="text-gray-800 block mt-0.5">{{ selectedBooking?.nama_training }}</strong>?
                     </p>
                     <p class="text-xs text-center text-red-500 mb-4">Tindakan ini permanen dan tidak dapat diurungkan.</p>
                     <div v-if="cancelError" class="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
@@ -230,15 +237,16 @@ async function submitCancel() {
                     </div>
                     <div class="flex gap-3">
                         <button @click="showCancelModal = false"
-                                class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">
                             Kembali
                         </button>
                         <button @click="submitCancel" :disabled="cancelLoading"
-                                class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium disabled:opacity-50 transition">
+                                class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-bold disabled:opacity-50 transition cursor-pointer select-none">
                             {{ cancelLoading ? 'Membatalkan...' : 'Ya, Batalkan' }}
                         </button>
                     </div>
                 </div>
             </div>
-        </Teleport>
+        </Transition>
+    </Teleport>
 </template>

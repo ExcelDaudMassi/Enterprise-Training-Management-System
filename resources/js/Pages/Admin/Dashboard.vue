@@ -1235,24 +1235,32 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
         <!-- Modal: Detail Booking Training -->
         <Teleport to="body">
+            <Transition
+                enter-active-class="transition-all ease-out duration-300"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all ease-in duration-200"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+            >
             <div
                 v-if="detailModalOpen"
-                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in"
+                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
                 @click.self="closeDetailModal"
             >
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-100 h-[85vh] min-h-[550px]">
+                <div class="bg-white rounded-xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-blue-900 h-[85vh] min-h-[550px]">
 
-                    <!-- ── Header (sama gaya dengan Gantt modal) ── -->
-                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
+                    <!-- ── Header PAMA Theme ── -->
+                    <div class="px-6 py-4 border-b-4 border-yellow-400 bg-blue-800 flex items-center justify-between shrink-0">
                         <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24">
+                            <span class="w-9 h-9 rounded-lg bg-blue-700 text-yellow-400 flex items-center justify-center shrink-0 border border-blue-600 shadow-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
                             </span>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">
+                                    <h4 class="font-extrabold text-white text-sm sm:text-base leading-none">
                                         {{ selectedDetailBooking?.nama_training || 'Detail Pemesanan' }}
                                     </h4>
                                     <span
@@ -1261,15 +1269,15 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                     >
                                         {{ statusLabel(getVisualStatus(selectedDetailBooking)) }}
                                     </span>
-                                    <span v-if="selectedDetailBooking?.gabung_ruang" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">🔗 Gabung Ruang</span>
+                                    <span v-if="selectedDetailBooking?.gabung_ruang" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-900/40 text-teal-300 border border-teal-600">🔗 Gabung Ruang</span>
                                 </div>
-                                <p class="text-[10px] text-gray-400 font-semibold mt-1.5 uppercase tracking-wider">
+                                <p class="text-[10px] text-blue-200 font-semibold mt-1.5 uppercase tracking-wider">
                                     {{ formatDateRange(selectedDetailBooking?.tgl_mulai, selectedDetailBooking?.tgl_selesai) }}
                                     &nbsp;·&nbsp; {{ selectedDetailBooking?.gabung_ruang ? 'Ruang Gabungan (2+3)' : (selectedDetailBooking?.nama_ruang || '-') }}
                                 </p>
                             </div>
                         </div>
-                        <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none shrink-0">
+                        <button @click="closeDetailModal" class="text-blue-200 hover:text-white hover:bg-blue-700 p-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none shrink-0">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -1394,14 +1402,14 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                     <!-- ── Footer ── -->
                     <div class="shrink-0 px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                        <p class="text-[10px] text-gray-400">
+                        <p class="text-[10px] text-gray-500 font-semibold">
                             📅 Diajukan: {{ formatIndoDateTime(selectedDetailBooking?.created_at) }}
                         </p>
                         <div class="flex items-center gap-2">
                             <a v-if="selectedDetailBooking"
                                :href="`/admin/bookings/${selectedDetailBooking.id}/export-detail`"
                                target="_blank"
-                               class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold px-3 py-2 rounded-lg transition shadow-sm cursor-pointer"
+                               class="inline-flex items-center gap-1.5 bg-yellow-400 hover:bg-yellow-500 text-blue-900 text-[11px] font-bold px-3 py-2 rounded-md transition shadow-sm cursor-pointer select-none"
                                title="Unduh Excel daftar peserta & panitia"
                             >
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -1409,7 +1417,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             </a>
                             <button
                                 @click="closeDetailModal"
-                                class="bg-white border border-gray-200 text-gray-700 font-semibold text-xs px-4 py-2 rounded-lg hover:bg-gray-100 transition shadow-sm cursor-pointer"
+                                class="border border-gray-300 text-gray-700 font-bold text-xs px-4 py-2 rounded-md hover:bg-gray-100 transition shadow-sm cursor-pointer select-none"
                             >
                                 Tutup
                             </button>
@@ -1418,6 +1426,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                 </div>
             </div>
+            </Transition>
         </Teleport>
 
 </template>

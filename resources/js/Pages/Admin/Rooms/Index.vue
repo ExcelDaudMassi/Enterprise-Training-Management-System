@@ -251,23 +251,25 @@ const filteredRooms = computed(() => {
         <!-- ══════════════════════════════════════════════════════════ -->
         <Teleport to="body">
             <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showFormModal"
-                     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                     class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                      @click.self="closeFormModal">
-                    <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full max-w-md overflow-hidden ring-1 ring-slate-900/5">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-blue-900">
 
                         <!-- Modal Header -->
-                        <div class="px-6 py-5 border-b border-slate-100 bg-white relative overflow-hidden">
-                            <div class="absolute -top-8 -right-8 w-24 h-24 bg-blue-50 rounded-full blur-xl"></div>
-                            <h2 class="text-lg font-black text-slate-800 relative z-10">{{ isEditing ? 'Edit Ruangan' : 'Tambah Ruangan Baru' }}</h2>
-                            <p class="text-xs mt-1 relative z-10 text-slate-500">
+                        <div class="px-6 py-5 border-b-4 border-yellow-400 bg-blue-800 text-white relative overflow-hidden">
+                            <h2 class="text-lg font-bold relative z-10 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z" /></svg>
+                                {{ isEditing ? 'Edit Ruangan' : 'Tambah Ruangan Baru' }}
+                            </h2>
+                            <p class="text-xs mt-1.5 relative z-10 text-blue-200">
                                 {{ isEditing ? `Mengedit: ${editingRoom?.nama_ruang}` : 'Isi informasi ruangan training baru.' }}
                             </p>
                         </div>
@@ -350,12 +352,11 @@ const filteredRooms = computed(() => {
                             <!-- Action Buttons -->
                             <div class="flex gap-3 pt-2">
                                 <button type="button" @click="closeFormModal"
-                                    class="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-95">
+                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">
                                     Batal
                                 </button>
                                 <button type="submit" :disabled="form.processing"
-                                    class="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-sm active:scale-95 disabled:opacity-60 disabled:active:scale-100"
-                                    :class="isEditing ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700' : 'bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900'">
+                                    class="flex-1 px-4 py-2 rounded-md text-sm font-bold text-blue-900 bg-yellow-400 hover:bg-yellow-500 transition shadow-sm cursor-pointer select-none disabled:opacity-60">
                                     {{ form.processing ? 'Menyimpan...' : (isEditing ? '✓ Perbarui' : '✓ Tambah Ruangan') }}
                                 </button>
                             </div>
@@ -371,34 +372,34 @@ const filteredRooms = computed(() => {
         <!-- ══════════════════════════════════════════════════════════ -->
         <Teleport to="body">
             <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showDeleteModal"
-                     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                     class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                      @click.self="closeDeleteModal">
-                    <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full max-w-sm overflow-hidden ring-1 ring-slate-900/5">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden border border-blue-900">
                         <div class="p-6">
-                            <div class="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-4 border-4 border-rose-50">
-                                <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                            <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 border border-red-200">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
                             </div>
-                            <h3 class="text-lg font-black text-slate-800 text-center mb-1.5">Hapus Ruangan?</h3>
-                            <p class="text-sm text-slate-500 text-center leading-relaxed">
-                                Ruangan <strong class="text-slate-700">{{ deletingRoom?.nama_ruang }}</strong> akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
+                            <h3 class="text-lg font-bold text-gray-900 text-center mb-1.5">Hapus Ruangan?</h3>
+                            <p class="text-sm text-gray-600 text-center leading-relaxed">
+                                Ruangan <strong class="text-gray-800">{{ deletingRoom?.nama_ruang }}</strong> akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
                             </p>
                         </div>
                         <div class="px-6 pb-6 flex gap-3">
                             <button @click="closeDeleteModal"
-                                class="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-95">
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">
                                 Batal
                             </button>
                             <button @click="submitDelete" :disabled="deleteForm.processing"
-                                class="flex-1 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 disabled:opacity-60 text-white rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 disabled:active:scale-100">
-                                {{ deleteForm.processing ? 'Menghapus...' : '🗑 Hapus' }}
+                                class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none">
+                                {{ deleteForm.processing ? 'Menghapus...' : 'Ya, Hapus' }}
                             </button>
                         </div>
                     </div>

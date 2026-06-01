@@ -944,31 +944,34 @@ const layoutLabels = {
         <!-- ── Modal: Konfirmasi Approve ──────────────────────────── -->
         <Teleport to="body">
             <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
-                <div v-if="showApproveModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-600 to-emerald-600">
-                            <h2 class="text-base font-bold text-white">Konfirmasi Persetujuan</h2>
-                            <p class="text-xs text-green-100 mt-1">Ruangan akan dikunci setelah booking disetujui.</p>
+                <div v-if="showApproveModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-blue-900">
+                        <div class="px-6 py-4 border-b-4 border-yellow-400 bg-blue-800">
+                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                                <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                                Konfirmasi Persetujuan
+                            </h2>
+                            <p class="text-[11px] text-blue-200 mt-1">Ruangan akan dikunci setelah booking disetujui.</p>
                         </div>
                         <div class="px-6 py-4 space-y-3 bg-gray-50">
-                            <div><span class="text-xs text-gray-500 block">Nama Training</span><span class="text-sm font-semibold text-gray-800">{{ selectedBooking?.nama_training }}</span></div>
+                            <div><span class="text-xs text-gray-500 block">Nama Training</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.nama_training }}</span></div>
                             <div class="grid grid-cols-2 gap-4">
-                                <div><span class="text-xs text-gray-500 block">Pemohon</span><span class="text-sm text-gray-800">{{ selectedBooking?.pemohon }} ({{ selectedBooking?.divisi }})</span></div>
-                                <div><span class="text-xs text-gray-500 block">Ruangan</span><span class="text-sm text-gray-800">{{ selectedBooking?.ruangan }}</span></div>
+                                <div><span class="text-xs text-gray-500 block">Pemohon</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.pemohon }} ({{ selectedBooking?.divisi }})</span></div>
+                                <div><span class="text-xs text-gray-500 block">Ruangan</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.ruangan }}</span></div>
                             </div>
-                            <div><span class="text-xs text-gray-500 block">Jadwal</span><span class="text-sm text-gray-800">{{ selectedBooking?.tgl_mulai }} – {{ selectedBooking?.tgl_selesai }}</span></div>
+                            <div><span class="text-xs text-gray-500 block">Jadwal</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.tgl_mulai }} – {{ selectedBooking?.tgl_selesai }}</span></div>
                         </div>
                         <div class="mt-6 flex justify-end gap-3 px-6 pb-6">
-                            <button @click="showApproveModal = false" :disabled="approveForm.processing" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50">Batal</button>
-                            <button @click="submitApprove" :disabled="approveForm.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition shadow-sm disabled:opacity-50">
-                                <span v-if="approveForm.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                            <button @click="showApproveModal = false" :disabled="approveForm.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none disabled:opacity-50">Batal</button>
+                            <button @click="submitApprove" :disabled="approveForm.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-blue-900 bg-yellow-400 hover:bg-yellow-500 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                <span v-if="approveForm.processing" class="w-4 h-4 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin"></span>
                                 Setujui Booking
                             </button>
                         </div>
@@ -980,30 +983,30 @@ const layoutLabels = {
         <!-- ── Modal: Konfirmasi ACC-2 (Final Confirm) ──────────────────────────── -->
         <Teleport to="body">
             <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0 scale-95"
-                enter-to-class="opacity-100 scale-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100 scale-100"
-                leave-to-class="opacity-0 scale-95"
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
-                <div v-if="showAcc2Modal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative overflow-hidden" @click.stop>
-                        <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
+                <div v-if="showAcc2Modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative overflow-hidden border border-blue-900" @click.stop>
+                        <div class="absolute top-0 left-0 w-full h-1.5 bg-yellow-400"></div>
                         <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600">
+                            <div class="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center flex-shrink-0 text-yellow-400 border border-blue-900 shadow-sm">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
                             <div>
                                 <h3 class="text-lg font-bold text-gray-900">Final Confirmation (ACC-2)</h3>
                                 <p class="text-sm text-gray-500 mt-1">Anda akan memberikan Final Confirmation untuk acara <strong class="text-gray-800">"{{ selectedBooking?.nama_training }}"</strong>.</p>
-                                <p class="text-xs text-gray-500 mt-2 bg-emerald-50 p-2 rounded border border-emerald-100">Pastikan persiapan ruangan dan logistik sudah siap sesuai kebutuhan.</p>
+                                <p class="text-xs text-blue-900 mt-2 bg-blue-50 p-2 rounded border border-blue-100 font-medium">Pastikan persiapan ruangan dan logistik sudah siap sesuai kebutuhan.</p>
                             </div>
                         </div>
 
                         <div class="mt-6 flex justify-end gap-3">
-                            <button @click="showAcc2Modal = false" :disabled="acc2Form.processing" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50">Batal</button>
-                            <button @click="submitAcc2" :disabled="acc2Form.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-sm disabled:opacity-50">
+                            <button @click="showAcc2Modal = false" :disabled="acc2Form.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none disabled:opacity-50">Batal</button>
+                            <button @click="submitAcc2" :disabled="acc2Form.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-blue-800 hover:bg-blue-900 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
                                 <span v-if="acc2Form.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                                 Final Confirm
                             </button>
@@ -1016,34 +1019,37 @@ const layoutLabels = {
         <!-- ── Modal: Konfirmasi Tolak ──────────────────────────── -->
         <Teleport to="body">
             <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
-                <div v-if="showRejectModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-red-600 to-rose-600">
-                            <h2 class="text-base font-bold text-white">Penolakan Booking</h2>
-                            <p class="text-xs text-red-100 mt-1">Booking <strong>{{ selectedBooking?.nama_training }}</strong> akan dibatalkan.</p>
+                <div v-if="showRejectModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-blue-900">
+                        <div class="px-6 py-4 border-b-4 border-red-500 bg-blue-800">
+                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                                <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                                Penolakan Booking
+                            </h2>
+                            <p class="text-[11px] text-blue-200 mt-1">Booking <strong>{{ selectedBooking?.nama_training }}</strong> akan dibatalkan.</p>
                         </div>
                         <form @submit.prevent="submitReject" class="px-6 py-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
                             <textarea
                                 v-model="rejectForm.catatan_admin"
                                 required
                                 rows="3"
                                 placeholder="Contoh: Jadwal bentrok, ruangan sedang direnovasi..."
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                             ></textarea>
                             <p v-if="rejectForm.errors.catatan_admin" class="text-xs text-red-500 mt-1">{{ rejectForm.errors.catatan_admin }}</p>
 
                             <div class="mt-5 flex gap-3">
-                                <button type="button" @click="showRejectModal = false" class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
+                                <button type="button" @click="showRejectModal = false" class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer select-none transition">Batal</button>
                                 <button type="submit" :disabled="rejectForm.processing || !rejectForm.catatan_admin"
-                                    class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg text-sm font-semibold">
+                                    class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-md text-sm font-bold cursor-pointer select-none transition shadow-sm">
                                     {{ rejectForm.processing ? 'Menyimpan...' : '✕ Tolak Booking' }}
                                 </button>
                             </div>
@@ -1055,126 +1061,185 @@ const layoutLabels = {
 
         <!-- ── Modal: ACC Final ───────────────────────────────── -->
         <Teleport to="body">
-            <div v-if="showFinalModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                    <h2 class="text-base font-bold text-gray-900 mb-3">🏁 Konfirmasi ACC Final</h2>
-                    <div class="text-sm text-gray-700 space-y-1 mb-4">
-                        <div><strong>Training:</strong> {{ selectedBooking?.nama_training }}</div>
-                        <div><strong>Jadwal:</strong> {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}</div>
-                        <div><strong>Peserta:</strong> {{ selectedBooking?.jumlah_peserta }} orang, {{ selectedBooking?.jumlah_panitia }} panitia</div>
-                    </div>
-                    <p class="text-xs text-orange-600 mb-4">
-                        ⚠️ Setelah ACC Final, user tidak dapat mengubah booking ini. Pastikan semua data sudah benar.
-                    </p>
-                    <div class="flex gap-3">
-                        <button @click="showFinalModal = false"
-                                class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
-                        <button @click="submitFinal" :disabled="finalForm.processing"
-                                class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm disabled:opacity-50">
-                            {{ finalForm.processing ? 'Memproses...' : '🏁 ACC & Final' }}
-                        </button>
+            <Transition
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+            >
+                <div v-if="showFinalModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 border-t-4 border-yellow-400">
+                        <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-800 rounded-full mb-4 shadow-sm">
+                            <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-bold text-center text-gray-900 mb-3">Konfirmasi ACC Final</h2>
+                        <div class="text-sm text-gray-700 space-y-1.5 mb-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div><span class="text-xs text-gray-400 block">Training</span> <strong class="text-gray-800">{{ selectedBooking?.nama_training }}</strong></div>
+                            <div><span class="text-xs text-gray-400 block">Jadwal</span> <strong>{{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}</strong></div>
+                            <div><span class="text-xs text-gray-400 block">Kapasitas</span> <strong>{{ selectedBooking?.jumlah_peserta }}</strong> peserta, <strong>{{ selectedBooking?.jumlah_panitia }}</strong> panitia</div>
+                        </div>
+                        <p class="text-[11px] text-center text-blue-800 font-semibold mb-4 bg-blue-50 p-2 rounded border border-blue-100">
+                            Setelah ACC Final, user tidak dapat mengubah booking ini. WhatsApp Notifikasi akan dikirim ke Frontdesk.
+                        </p>
+                        <div class="flex gap-3">
+                            <button @click="showFinalModal = false"
+                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">Batal</button>
+                            <button @click="submitFinal" :disabled="finalForm.processing"
+                                    class="flex-1 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                {{ finalForm.processing ? 'Memproses...' : 'ACC & Finalize' }}
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Transition>
         </Teleport>
 
         <!-- ── Modal: ACC Terlambat ───────────────────────────── -->
         <Teleport to="body">
-            <div v-if="showFinalLateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                    <h2 class="text-base font-bold text-gray-900 mb-1">⚠️ ACC Terlambat</h2>
-                    <p class="text-xs text-red-600 mb-4">Tanggal training sudah lewat. Mohon isi alasan ACC terlambat.</p>
-                    <form @submit.prevent="submitFinalLate">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Alasan ACC Terlambat <span class="text-red-500">*</span></label>
-                        <textarea v-model="finalLateForm.catatan_acc_terlambat" required rows="3"
-                                  placeholder="Contoh: Training tetap berjalan, laporan menyusul..."
-                                  class="w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
-                        <p v-if="finalLateForm.errors.catatan_acc_terlambat" class="text-xs text-red-500 mt-1">
-                            {{ finalLateForm.errors.catatan_acc_terlambat }}
-                        </p>
-                        <div class="flex gap-3 mt-4">
-                            <button type="button" @click="showFinalLateModal = false"
-                                    class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
-                            <button type="submit" :disabled="finalLateForm.processing || !finalLateForm.catatan_acc_terlambat"
-                                    class="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded text-sm disabled:opacity-50">
-                                {{ finalLateForm.processing ? 'Menyimpan...' : '⚠️ Konfirmasi ACC Terlambat' }}
-                            </button>
+            <Transition
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+            >
+                <div v-if="showFinalLateModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-blue-900">
+                        <div class="px-6 py-4 border-b-4 border-yellow-400 bg-blue-800">
+                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                                <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                                ACC Terlambat (Backdate)
+                            </h2>
+                            <p class="text-[11px] text-blue-200 mt-1">Tanggal training sudah lewat. Mohon isi alasan.</p>
                         </div>
-                    </form>
+                        <form @submit.prevent="submitFinalLate" class="px-6 py-5">
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Alasan ACC Terlambat <span class="text-red-500">*</span></label>
+                            <textarea v-model="finalLateForm.catatan_acc_terlambat" required rows="3"
+                                      placeholder="Contoh: Training tetap berjalan, laporan menyusul..."
+                                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
+                            <p v-if="finalLateForm.errors.catatan_acc_terlambat" class="text-xs text-red-500 mt-1">
+                                {{ finalLateForm.errors.catatan_acc_terlambat }}
+                            </p>
+                            <div class="flex gap-3 mt-5">
+                                <button type="button" @click="showFinalLateModal = false"
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition select-none">Batal</button>
+                                <button type="submit" :disabled="finalLateForm.processing || !finalLateForm.catatan_acc_terlambat"
+                                        class="flex-1 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                    {{ finalLateForm.processing ? 'Menyimpan...' : 'Konfirmasi ACC' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            </Transition>
         </Teleport>
 
         <!-- ── Modal: Setujui Ubah Tanggal ────────────────────── -->
         <Teleport to="body">
-            <div v-if="showApproveDateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                    <h2 class="text-base font-bold text-gray-900 mb-3">Setujui Perubahan Tanggal</h2>
-                    <div class="text-sm text-gray-700 space-y-1 mb-4">
-                        <div><strong>Training:</strong> {{ selectedBooking?.nama_training }}</div>
-                        <div class="text-gray-400 line-through text-xs">
-                            Lama: {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}
+            <Transition
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+            >
+                <div v-if="showApproveDateModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 border-t-4 border-yellow-400">
+                        <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-800 rounded-full mb-4 shadow-sm">
+                            <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
                         </div>
-                        <div class="text-green-700 font-medium">
-                            Baru: {{ formatDate(selectedBooking?.proposed_tgl_mulai) }} – {{ formatDate(selectedBooking?.proposed_tgl_selesai) }}
+                        <h2 class="text-lg font-bold text-center text-gray-900 mb-4">Setujui Perubahan Tanggal</h2>
+                        <div class="text-sm text-gray-700 space-y-1 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div><span class="text-xs text-gray-400 block">Training</span> <strong class="text-gray-800">{{ selectedBooking?.nama_training }}</strong></div>
+                            <div class="mt-2 border-t border-gray-200 pt-2">
+                                <span class="text-[10px] text-gray-400 uppercase tracking-widest block mb-0.5">Tanggal Lama</span>
+                                <div class="text-gray-400 line-through text-xs font-semibold">
+                                    {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}
+                                </div>
+                            </div>
+                            <div class="mt-2 border-t border-gray-200 pt-2">
+                                <span class="text-[10px] text-gray-400 uppercase tracking-widest block mb-0.5">Tanggal Baru</span>
+                                <div class="text-blue-700 font-bold text-sm">
+                                    {{ formatDate(selectedBooking?.proposed_tgl_mulai) }} – {{ formatDate(selectedBooking?.proposed_tgl_selesai) }}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex gap-3">
-                        <button @click="showApproveDateModal = false"
-                                class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
-                        <button @click="submitApproveDate" :disabled="approveDateForm.processing"
-                                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm disabled:opacity-50">
-                            {{ approveDateForm.processing ? 'Memproses...' : '✓ Setujui' }}
-                        </button>
+                        <div class="flex gap-3">
+                            <button @click="showApproveDateModal = false"
+                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">Batal</button>
+                            <button @click="submitApproveDate" :disabled="approveDateForm.processing"
+                                    class="flex-1 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                {{ approveDateForm.processing ? 'Memproses...' : 'Setujui Perubahan' }}
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Transition>
         </Teleport>
 
         <!-- ── Modal: Tolak Ubah Tanggal ──────────────────────── -->
         <Teleport to="body">
-            <div v-if="showRejectDateModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                    <h2 class="text-base font-bold text-gray-900 mb-1">Tolak Perubahan Tanggal</h2>
-                    <p class="text-xs text-gray-500 mb-4">
-                        Tanggal lama akan tetap berlaku. Booking tetap berstatus Confirmed.
-                    </p>
-                    <form @submit.prevent="submitRejectDate">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Alasan <span class="text-red-500">*</span></label>
-                        <textarea v-model="rejectDateForm.catatan_admin" required rows="3"
-                                  placeholder="Contoh: Tanggal baru bentrok dengan event lain..."
-                                  class="w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
-                        <div class="flex gap-3 mt-4">
-                            <button type="button" @click="showRejectDateModal = false"
-                                    class="flex-1 px-4 py-2 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
-                            <button type="submit" :disabled="rejectDateForm.processing || !rejectDateForm.catatan_admin"
-                                    class="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded text-sm disabled:opacity-50">
-                                {{ rejectDateForm.processing ? 'Menyimpan...' : '✕ Tolak' }}
-                            </button>
+            <Transition
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+            >
+                <div v-if="showRejectDateModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-blue-900">
+                        <div class="px-6 py-4 border-b-4 border-red-500 bg-blue-800">
+                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                                <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                Tolak Perubahan Tanggal
+                            </h2>
+                            <p class="text-[11px] text-blue-200 mt-1">Tanggal lama akan dipertahankan. Status tetap Confirmed.</p>
                         </div>
-                    </form>
+                        <form @submit.prevent="submitRejectDate" class="px-6 py-5">
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
+                            <textarea v-model="rejectDateForm.catatan_admin" required rows="3"
+                                      placeholder="Contoh: Tanggal baru bentrok dengan jadwal VIP..."
+                                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
+                            <div class="flex gap-3 mt-5">
+                                <button type="button" @click="showRejectDateModal = false"
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition select-none">Batal</button>
+                                <button type="submit" :disabled="rejectDateForm.processing || !rejectDateForm.catatan_admin"
+                                        class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none">
+                                    {{ rejectDateForm.processing ? 'Memproses...' : 'Tolak Perubahan' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            </Transition>
         </Teleport>
-
         <!-- ── Modal: Edit Peserta/Panitia oleh Admin ──────────────────────────── -->
         <Teleport to="body">
             <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0 scale-95"
-                enter-to-class="opacity-100 scale-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100 scale-100"
-                leave-to-class="opacity-0 scale-95"
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-y-0"
+                leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
-                <div v-if="showEditParticipantModal" class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative overflow-hidden" @click.stop>
-                        <div class="absolute top-0 left-0 w-full h-1.5 bg-blue-500"></div>
+                <div v-if="showEditParticipantModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative overflow-hidden border border-blue-900" @click.stop>
+                        <div class="absolute top-0 left-0 w-full h-1.5 bg-yellow-400"></div>
                         <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-2">
                             <h3 class="text-base font-bold text-gray-900">
                                 ✏️ Edit Data {{ editParticipantForm.tipe === 'panitia' ? 'Panitia' : 'Peserta' }}
                             </h3>
-                            <button @click="showEditParticipantModal = false" class="text-gray-400 hover:text-gray-600">
+                            <button @click="showEditParticipantModal = false" class="text-gray-400 hover:text-gray-600 transition">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
@@ -1194,7 +1259,7 @@ const layoutLabels = {
                                     type="text"
                                     required
                                     placeholder="Masukkan nama lengkap"
-                                    class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                                 />
                                 <p v-if="editParticipantErrors.nama" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.nama[0] }}</p>
                             </div>
@@ -1207,7 +1272,7 @@ const layoutLabels = {
                                     type="text"
                                     required
                                     placeholder="NRP (contoh: 10425, atau ketik 'N/A' jika eksternal)"
-                                    class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                                 />
                                 <p v-if="editParticipantErrors.nrp" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.nrp[0] }}</p>
                             </div>
@@ -1220,7 +1285,7 @@ const layoutLabels = {
                                         v-model="editParticipantForm.jabatan"
                                         type="text"
                                         placeholder="Staff, Manager, dll."
-                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                                     />
                                     <p v-if="editParticipantErrors.jabatan" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.jabatan[0] }}</p>
                                 </div>
@@ -1232,7 +1297,7 @@ const layoutLabels = {
                                         v-model="editParticipantForm.site"
                                         type="text"
                                         placeholder="Site kerja"
-                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                                     />
                                     <p v-if="editParticipantErrors.site" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.site[0] }}</p>
                                 </div>
@@ -1246,7 +1311,7 @@ const layoutLabels = {
                                         v-model="editParticipantForm.no_hp"
                                         type="text"
                                         placeholder="081234567..."
-                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                                     />
                                     <p v-if="editParticipantErrors.no_hp" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.no_hp[0] }}</p>
                                 </div>
@@ -1257,7 +1322,7 @@ const layoutLabels = {
                                     <select
                                         v-model="editParticipantForm.gender"
                                         required
-                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white font-sans"
+                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white font-sans transition"
                                     >
                                         <option value="L">Laki-laki (L)</option>
                                         <option value="P">Perempuan (P)</option>
@@ -1267,11 +1332,11 @@ const layoutLabels = {
                             </div>
 
                             <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
-                                <button type="button" @click="showEditParticipantModal = false" :disabled="editParticipantProcessing" class="px-4 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50">
+                                <button type="button" @click="showEditParticipantModal = false" :disabled="editParticipantProcessing" class="px-4 py-2 text-xs font-bold text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-md transition cursor-pointer select-none disabled:opacity-50">
                                     Batal
                                 </button>
-                                <button type="submit" :disabled="editParticipantProcessing" class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm disabled:opacity-50">
-                                    <span v-if="editParticipantProcessing" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                <button type="submit" :disabled="editParticipantProcessing" class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-blue-900 bg-yellow-400 hover:bg-yellow-500 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                    <span v-if="editParticipantProcessing" class="w-3.5 h-3.5 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin"></span>
                                     Simpan Perubahan
                                 </button>
                             </div>
