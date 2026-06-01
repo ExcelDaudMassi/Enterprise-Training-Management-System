@@ -543,23 +543,23 @@ const layoutLabels = {
                         appear
                     >
                         <div v-if="showDetailModal"
-                             class="relative bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 w-full max-w-2xl h-full max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden ring-1 ring-slate-900/5">
+                             class="relative bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 w-full max-w-4xl h-full max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden ring-1 ring-slate-900/5">
 
                             <!-- ── Panel Header ── -->
-                            <div class="flex-shrink-0 px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
-                                <!-- Decorative blob -->
-                                <div class="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl"></div>
+                            <div class="flex-shrink-0 px-6 py-5 border-b border-gray-200 bg-white relative overflow-hidden">
+                                <!-- Decorative subtle circle or gradient -->
+                                <div class="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl"></div>
                                 <div class="relative flex items-center justify-between">
                                     <div class="flex-1 min-w-0 pr-4">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-xs font-bold text-blue-300 uppercase tracking-wider">Detail Booking</span>
+                                            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">Detail Booking</span>
                                             <span v-if="detailData"
-                                                  class="px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm"
+                                                  class="px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-sm"
                                                   :class="STATUS_META[detailData.booking.status]?.class ?? 'bg-slate-100 text-slate-600'">
                                                 {{ STATUS_META[detailData.booking.status]?.label ?? detailData.booking.status }}
                                             </span>
                                         </div>
-                                        <h2 class="text-lg font-black text-white mt-1.5 truncate drop-shadow-sm">
+                                        <h2 class="text-lg font-black text-gray-800 mt-1 truncate">
                                             {{ detailData?.booking?.nama_training ?? '—' }}
                                         </h2>
                                     </div>
@@ -568,13 +568,13 @@ const layoutLabels = {
                                         <a v-if="detailData"
                                            :href="`/admin/bookings/${detailData.booking.id}/export-detail`"
                                            target="_blank"
-                                           class="inline-flex items-center gap-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/30 text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm backdrop-blur-sm"
+                                           class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white hover:text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm"
                                            title="Download Excel daftar peserta & panitia"
                                         >
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             Export
                                         </a>
-                                        <button @click="closeDetail" class="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 p-1.5 rounded-full transition-all backdrop-blur-sm">
+                                        <button @click="closeDetail" class="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-all cursor-pointer">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                         </button>
                                     </div>
@@ -626,19 +626,25 @@ const layoutLabels = {
                                 <!-- Sub-tabs -->
                                 <div class="flex-shrink-0 flex border-b border-slate-200 px-6 pt-4 gap-2 bg-white">
                                     <button v-for="tab in [
-                                        { key: 'info',    label: '📋 Informasi', count: null },
-                                        { key: 'peserta', label: '👥 Peserta',   count: detailData.total_peserta },
-                                        { key: 'panitia', label: '🎯 Panitia',   count: detailData.total_panitia },
-                                        { key: 'log',     label: '🕒 Log',       count: detailData.logs.length },
+                                        { key: 'info',    label: 'Informasi', count: null },
+                                        { key: 'peserta', label: 'Peserta',   count: detailData.total_peserta },
+                                        { key: 'panitia', label: 'Panitia',   count: detailData.total_panitia },
+                                        { key: 'log',     label: 'Log',       count: detailData.logs.length },
                                     ]" :key="tab.key"
                                         @click="detailTab = tab.key"
-                                        class="px-4 py-2.5 text-xs font-bold border-b-2 transition-all mr-1 rounded-t-lg"
+                                        class="px-4 py-2.5 text-xs font-bold border-b-2 transition-all mr-1 rounded-t-lg flex items-center gap-1.5 cursor-pointer select-none"
                                         :class="detailTab === tab.key
                                             ? 'border-blue-600 text-blue-700 bg-blue-50/50'
                                             : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'"
                                     >
+                                        <!-- Real SVG Icons instead of Emojis -->
+                                        <svg v-if="tab.key === 'info'" class="w-[15px] h-[15px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9Z" /></svg>
+                                        <svg v-else-if="tab.key === 'peserta'" class="w-[15px] h-[15px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A11.978 11.978 0 0112 20.25a11.98 11.98 0 01-3-1.013v-.109m6 0c0-.529-.029-1.049-.086-1.56M9 19.128v-.003c0-1.113.285-2.16.786-3.07M9 19.128v.109A12.042 12.042 0 015 18.25c-1.391-.772-2.5-1.954-3.125-3.376a4.125 4.125 0 017.533-2.493m0 0A3.125 3.125 0 1112 9.75a3.125 3.125 0 01-2.593 3.031m4.5 4.52c0-.529-.029-1.049-.086-1.56m-4.5 1.56a12.188 12.188 0 01-3.97-1.56" /></svg>
+                                        <svg v-else-if="tab.key === 'panitia'" class="w-[15px] h-[15px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0Zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0Zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0Z" /></svg>
+                                        <svg v-else-if="tab.key === 'log'" class="w-[15px] h-[15px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0Z" /></svg>
+
                                         {{ tab.label }}
-                                        <span v-if="tab.count !== null" class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold transition-colors"
+                                        <span v-if="tab.count !== null" class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full font-bold transition-colors"
                                               :class="detailTab === tab.key ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'">
                                             {{ tab.count }}
                                         </span>
@@ -653,7 +659,10 @@ const layoutLabels = {
 
                                         <!-- Pemohon & PIC -->
                                         <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">👤 Pemohon & Penanggung Jawab</h3>
+                                            <h3 class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
+                                                Pemohon &amp; Penanggung Jawab
+                                            </h3>
                                             <div class="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <p class="text-[11px] text-gray-400 mb-0.5">Nama Pemohon</p>
@@ -680,7 +689,10 @@ const layoutLabels = {
 
                                         <!-- Ruangan & Jadwal -->
                                         <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-                                            <h3 class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-3">🏢 Ruangan & Jadwal</h3>
+                                            <h3 class="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" /></svg>
+                                                Ruangan &amp; Jadwal
+                                            </h3>
                                             <div class="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <p class="text-[11px] text-gray-400 mb-0.5">Nama Ruangan</p>
@@ -716,7 +728,10 @@ const layoutLabels = {
 
                                         <!-- Fasilitas & Layout -->
                                         <div class="bg-purple-50 rounded-xl p-4 border border-purple-100">
-                                            <h3 class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-3">⚙️ Konfigurasi & Fasilitas</h3>
+                                            <h3 class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>
+                                                Konfigurasi &amp; Fasilitas
+                                            </h3>
                                             <div class="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <p class="text-[11px] text-gray-400 mb-0.5">Preferensi Layout</p>
@@ -724,7 +739,7 @@ const layoutLabels = {
                                                 </div>
                                                 <div>
                                                     <p class="text-[11px] text-gray-400 mb-0.5">Fase Pemesanan</p>
-                                                    <p class="text-sm font-medium text-gray-700 capitalize">{{ detailData.booking.fase === 'reguler' ? '📋 Reguler' : '📊 Plotting' }}</p>
+                                                    <p class="text-sm font-bold text-gray-800 capitalize">{{ detailData.booking.fase === 'reguler' ? 'Reguler' : 'Plotting' }}</p>
                                                 </div>
                                                 <div class="flex items-center gap-3 col-span-2">
                                                     <div class="flex items-center gap-2">
@@ -776,16 +791,16 @@ const layoutLabels = {
                                         <div v-if="detailData.peserta.length === 0" class="py-8 text-center text-gray-400 text-sm">Tidak ada data peserta.</div>
                                         <div v-else class="bg-white rounded-xl border border-gray-100 overflow-hidden">
                                             <table class="min-w-full divide-y divide-gray-100">
-                                                <thead class="bg-gray-50">
+                                                <thead class="bg-blue-50/60 border-b border-blue-100/80">
                                                     <tr>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase w-8">No</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama Lengkap</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">NRP</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Jabatan</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">JK</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase w-12">Aksi</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase w-8">No</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Nama Lengkap</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase">NRP</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Jabatan</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Site</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">No HP</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase">JK</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase w-12">Aksi</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-50">
@@ -831,16 +846,16 @@ const layoutLabels = {
                                         <div v-if="detailData.panitia.length === 0" class="py-8 text-center text-gray-400 text-sm">Tidak ada data panitia.</div>
                                         <div v-else class="bg-white rounded-xl border border-gray-100 overflow-hidden">
                                             <table class="min-w-full divide-y divide-gray-100">
-                                                <thead class="bg-gray-50">
+                                                <thead class="bg-blue-50/60 border-b border-blue-100/80">
                                                     <tr>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase w-8">No</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama Lengkap</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">NRP</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Jabatan</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">JK</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase w-12">Aksi</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase w-8">No</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Nama Lengkap</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase">NRP</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Jabatan</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Site</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">No HP</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase">JK</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase w-12">Aksi</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-50">
@@ -952,13 +967,13 @@ const layoutLabels = {
                 leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showApproveModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-blue-900">
-                        <div class="px-6 py-4 border-b-4 border-yellow-400 bg-blue-800">
-                            <h2 class="text-base font-bold text-white flex items-center gap-2">
-                                <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-white">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                                 Konfirmasi Persetujuan
                             </h2>
-                            <p class="text-[11px] text-blue-200 mt-1">Ruangan akan dikunci setelah booking disetujui.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">Ruangan akan dikunci setelah booking disetujui.</p>
                         </div>
                         <div class="px-6 py-4 space-y-3 bg-gray-50">
                             <div><span class="text-xs text-gray-500 block">Nama Training</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.nama_training }}</span></div>
@@ -970,8 +985,8 @@ const layoutLabels = {
                         </div>
                         <div class="mt-6 flex justify-end gap-3 px-6 pb-6">
                             <button @click="showApproveModal = false" :disabled="approveForm.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none disabled:opacity-50">Batal</button>
-                            <button @click="submitApprove" :disabled="approveForm.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-blue-900 bg-yellow-400 hover:bg-yellow-500 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
-                                <span v-if="approveForm.processing" class="w-4 h-4 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin"></span>
+                            <button @click="submitApprove" :disabled="approveForm.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                <span v-if="approveForm.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                                 Setujui Booking
                             </button>
                         </div>
@@ -991,22 +1006,26 @@ const layoutLabels = {
                 leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showAcc2Modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative overflow-hidden border border-blue-900" @click.stop>
-                        <div class="absolute top-0 left-0 w-full h-1.5 bg-yellow-400"></div>
-                        <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center flex-shrink-0 text-yellow-400 border border-blue-900 shadow-sm">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-900">Final Confirmation (ACC-2)</h3>
-                                <p class="text-sm text-gray-500 mt-1">Anda akan memberikan Final Confirmation untuk acara <strong class="text-gray-800">"{{ selectedBooking?.nama_training }}"</strong>.</p>
-                                <p class="text-xs text-blue-900 mt-2 bg-blue-50 p-2 rounded border border-blue-100 font-medium">Pastikan persiapan ruangan dan logistik sudah siap sesuai kebutuhan.</p>
-                            </div>
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200" @click.stop>
+                        <div class="px-6 py-4 border-b border-gray-200 bg-white">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Final Confirmation (ACC-2)
+                            </h2>
+                            <p class="text-[11px] text-gray-500 mt-1">Konfirmasi akhir sebelum persiapan ruangan dimulai.</p>
                         </div>
-
-                        <div class="mt-6 flex justify-end gap-3">
+                        <div class="px-6 py-5 bg-gray-50 space-y-3">
+                            <p class="text-xs text-gray-600 leading-relaxed">
+                                Anda akan memberikan Final Confirmation untuk acara:
+                                <strong class="text-gray-800 block mt-1 text-sm font-bold">"{{ selectedBooking?.nama_training }}"</strong>
+                            </p>
+                            <p class="text-xs text-blue-900 bg-blue-50 p-2.5 rounded border border-blue-100 font-medium">
+                                Pastikan persiapan ruangan dan logistik sudah siap sesuai kebutuhan.
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 pt-4 flex justify-end gap-3 bg-white">
                             <button @click="showAcc2Modal = false" :disabled="acc2Form.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none disabled:opacity-50">Batal</button>
-                            <button @click="submitAcc2" :disabled="acc2Form.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-blue-800 hover:bg-blue-900 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                            <button @click="submitAcc2" :disabled="acc2Form.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
                                 <span v-if="acc2Form.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                                 Final Confirm
                             </button>
@@ -1027,13 +1046,13 @@ const layoutLabels = {
                 leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showRejectModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-blue-900">
-                        <div class="px-6 py-4 border-b-4 border-red-500 bg-blue-800">
-                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-white">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                                 Penolakan Booking
                             </h2>
-                            <p class="text-[11px] text-blue-200 mt-1">Booking <strong>{{ selectedBooking?.nama_training }}</strong> akan dibatalkan.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">Booking <strong>{{ selectedBooking?.nama_training }}</strong> akan dibatalkan.</p>
                         </div>
                         <form @submit.prevent="submitReject" class="px-6 py-5">
                             <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
@@ -1070,27 +1089,29 @@ const layoutLabels = {
                 leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showFinalModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 border-t-4 border-yellow-400">
-                        <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-800 rounded-full mb-4 shadow-sm">
-                            <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
-                            </svg>
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-white">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" /></svg>
+                                Konfirmasi ACC Final
+                            </h2>
+                            <p class="text-[11px] text-gray-500 mt-1">User tidak dapat mengubah booking setelah tahap ini.</p>
                         </div>
-                        <h2 class="text-lg font-bold text-center text-gray-900 mb-3">Konfirmasi ACC Final</h2>
-                        <div class="text-sm text-gray-700 space-y-1.5 mb-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                            <div><span class="text-xs text-gray-400 block">Training</span> <strong class="text-gray-800">{{ selectedBooking?.nama_training }}</strong></div>
-                            <div><span class="text-xs text-gray-400 block">Jadwal</span> <strong>{{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}</strong></div>
-                            <div><span class="text-xs text-gray-400 block">Kapasitas</span> <strong>{{ selectedBooking?.jumlah_peserta }}</strong> peserta, <strong>{{ selectedBooking?.jumlah_panitia }}</strong> panitia</div>
+                        <div class="px-6 py-5 bg-gray-50 space-y-3">
+                            <div class="text-sm text-gray-700 space-y-2 bg-white p-4 rounded-lg border border-gray-200">
+                                <div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Training</span> <strong class="text-gray-800 text-sm">{{ selectedBooking?.nama_training }}</strong></div>
+                                <div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Jadwal</span> <strong class="text-gray-800">{{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}</strong></div>
+                                <div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Kapasitas</span> <strong class="text-gray-800">{{ selectedBooking?.jumlah_peserta }}</strong> peserta, <strong class="text-gray-800">{{ selectedBooking?.jumlah_panitia }}</strong> panitia</div>
+                            </div>
+                            <p class="text-[11px] text-blue-900 font-semibold bg-blue-50 p-2.5 rounded border border-blue-100 leading-relaxed">
+                                Setelah ACC Final, WhatsApp Notifikasi otomatis akan dikirim ke Frontdesk untuk persiapan fisik ruangan.
+                            </p>
                         </div>
-                        <p class="text-[11px] text-center text-blue-800 font-semibold mb-4 bg-blue-50 p-2 rounded border border-blue-100">
-                            Setelah ACC Final, user tidak dapat mengubah booking ini. WhatsApp Notifikasi akan dikirim ke Frontdesk.
-                        </p>
-                        <div class="flex gap-3">
-                            <button @click="showFinalModal = false"
-                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">Batal</button>
-                            <button @click="submitFinal" :disabled="finalForm.processing"
-                                    class="flex-1 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
-                                {{ finalForm.processing ? 'Memproses...' : 'ACC & Finalize' }}
+                        <div class="px-6 pb-6 pt-4 flex gap-3 bg-white justify-end">
+                            <button @click="showFinalModal = false" :disabled="finalForm.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">Batal</button>
+                            <button @click="submitFinal" :disabled="finalForm.processing" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                <span v-if="finalForm.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                ACC &amp; Finalize
                             </button>
                         </div>
                     </div>
@@ -1109,13 +1130,13 @@ const layoutLabels = {
                 leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showFinalLateModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-blue-900">
-                        <div class="px-6 py-4 border-b-4 border-yellow-400 bg-blue-800">
-                            <h2 class="text-base font-bold text-white flex items-center gap-2">
-                                <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-white">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                                 ACC Terlambat (Backdate)
                             </h2>
-                            <p class="text-[11px] text-blue-200 mt-1">Tanggal training sudah lewat. Mohon isi alasan.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">Tanggal training sudah lewat. Mohon isi alasan.</p>
                         </div>
                         <form @submit.prevent="submitFinalLate" class="px-6 py-5">
                             <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Alasan ACC Terlambat <span class="text-red-500">*</span></label>
@@ -1129,7 +1150,8 @@ const layoutLabels = {
                                 <button type="button" @click="showFinalLateModal = false"
                                         class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition select-none">Batal</button>
                                 <button type="submit" :disabled="finalLateForm.processing || !finalLateForm.catatan_acc_terlambat"
-                                        class="flex-1 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                        class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                    <span v-if="finalLateForm.processing" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block mr-1"></span>
                                     {{ finalLateForm.processing ? 'Menyimpan...' : 'Konfirmasi ACC' }}
                                 </button>
                             </div>
@@ -1150,34 +1172,36 @@ const layoutLabels = {
                 leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showApproveDateModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 border-t-4 border-yellow-400">
-                        <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-800 rounded-full mb-4 shadow-sm">
-                            <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                            </svg>
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-white">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                Setujui Perubahan Tanggal
+                            </h2>
+                            <p class="text-[11px] text-gray-500 mt-1">Persetujuan untuk proposal tanggal baru dari user.</p>
                         </div>
-                        <h2 class="text-lg font-bold text-center text-gray-900 mb-4">Setujui Perubahan Tanggal</h2>
-                        <div class="text-sm text-gray-700 space-y-1 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                            <div><span class="text-xs text-gray-400 block">Training</span> <strong class="text-gray-800">{{ selectedBooking?.nama_training }}</strong></div>
-                            <div class="mt-2 border-t border-gray-200 pt-2">
-                                <span class="text-[10px] text-gray-400 uppercase tracking-widest block mb-0.5">Tanggal Lama</span>
-                                <div class="text-gray-400 line-through text-xs font-semibold">
-                                    {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}
+                        <div class="px-6 py-5 bg-gray-50 space-y-3">
+                            <div class="text-sm text-gray-700 space-y-3 bg-white p-4 rounded-lg border border-gray-200">
+                                <div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-0.5">Training</span> <strong class="text-gray-800 text-sm">{{ selectedBooking?.nama_training }}</strong></div>
+                                <div class="mt-2 border-t border-gray-150 pt-2">
+                                    <span class="text-[10px] text-gray-400 uppercase tracking-widest block mb-0.5">Tanggal Lama</span>
+                                    <div class="text-gray-400 line-through text-xs font-semibold">
+                                        {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}
+                                    </div>
+                                </div>
+                                <div class="mt-2 border-t border-gray-150 pt-2">
+                                    <span class="text-[10px] text-gray-400 uppercase tracking-widest block mb-0.5">Tanggal Baru</span>
+                                    <div class="text-blue-700 font-bold text-sm">
+                                        {{ formatDate(selectedBooking?.proposed_tgl_mulai) }} – {{ formatDate(selectedBooking?.proposed_tgl_selesai) }}
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mt-2 border-t border-gray-200 pt-2">
-                                <span class="text-[10px] text-gray-400 uppercase tracking-widest block mb-0.5">Tanggal Baru</span>
-                                <div class="text-blue-700 font-bold text-sm">
-                                    {{ formatDate(selectedBooking?.proposed_tgl_mulai) }} – {{ formatDate(selectedBooking?.proposed_tgl_selesai) }}
-                                </div>
-                            </div>
                         </div>
-                        <div class="flex gap-3">
-                            <button @click="showApproveDateModal = false"
-                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">Batal</button>
-                            <button @click="submitApproveDate" :disabled="approveDateForm.processing"
-                                    class="flex-1 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
-                                {{ approveDateForm.processing ? 'Memproses...' : 'Setujui Perubahan' }}
+                        <div class="px-6 pb-6 pt-4 flex gap-3 bg-white justify-end">
+                            <button @click="showApproveDateModal = false" :disabled="approveDateForm.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">Batal</button>
+                            <button @click="submitApproveDate" :disabled="approveDateForm.processing" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                <span v-if="approveDateForm.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                Setujui Perubahan
                             </button>
                         </div>
                     </div>
@@ -1196,13 +1220,13 @@ const layoutLabels = {
                 leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showRejectDateModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-blue-900">
-                        <div class="px-6 py-4 border-b-4 border-red-500 bg-blue-800">
-                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-white">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                 Tolak Perubahan Tanggal
                             </h2>
-                            <p class="text-[11px] text-blue-200 mt-1">Tanggal lama akan dipertahankan. Status tetap Confirmed.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">Tanggal lama akan dipertahankan. Status tetap Confirmed.</p>
                         </div>
                         <form @submit.prevent="submitRejectDate" class="px-6 py-5">
                             <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
@@ -1211,7 +1235,7 @@ const layoutLabels = {
                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
                             <div class="flex gap-3 mt-5">
                                 <button type="button" @click="showRejectDateModal = false"
-                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition select-none">Batal</button>
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition select-none">Batal</button>
                                 <button type="submit" :disabled="rejectDateForm.processing || !rejectDateForm.catatan_admin"
                                         class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none">
                                     {{ rejectDateForm.processing ? 'Memproses...' : 'Tolak Perubahan' }}
@@ -1233,16 +1257,20 @@ const layoutLabels = {
                 leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showEditParticipantModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative overflow-hidden border border-blue-900" @click.stop>
-                        <div class="absolute top-0 left-0 w-full h-1.5 bg-yellow-400"></div>
-                        <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-2">
-                            <h3 class="text-base font-bold text-gray-900">
-                                ✏️ Edit Data {{ editParticipantForm.tipe === 'panitia' ? 'Panitia' : 'Peserta' }}
-                            </h3>
-                            <button @click="showEditParticipantModal = false" class="text-gray-400 hover:text-gray-600 transition">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200" @click.stop>
+                        <div class="px-6 py-4 border-b border-gray-200 bg-white flex justify-between items-center">
+                            <div>
+                                <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                                    Edit Data {{ editParticipantForm.tipe === 'panitia' ? 'Panitia' : 'Peserta' }}
+                                </h2>
+                                <p class="text-[11px] text-gray-500 mt-1">Ubah manifest data personil secara langsung.</p>
+                            </div>
+                            <button @click="showEditParticipantModal = false" class="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-all cursor-pointer">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
+                        <div class="px-6 py-5 bg-gray-50">
 
                         <!-- Error Banner (General) -->
                         <div v-if="editParticipantErrors.general" class="mb-4 bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg p-2.5 flex items-start gap-2">
@@ -1335,14 +1363,15 @@ const layoutLabels = {
                                 <button type="button" @click="showEditParticipantModal = false" :disabled="editParticipantProcessing" class="px-4 py-2 text-xs font-bold text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-md transition cursor-pointer select-none disabled:opacity-50">
                                     Batal
                                 </button>
-                                <button type="submit" :disabled="editParticipantProcessing" class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-blue-900 bg-yellow-400 hover:bg-yellow-500 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
-                                    <span v-if="editParticipantProcessing" class="w-3.5 h-3.5 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin"></span>
+                                <button type="submit" :disabled="editParticipantProcessing" class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
+                                    <span v-if="editParticipantProcessing" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                                     Simpan Perubahan
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
+            </div>
             </Transition>
         </Teleport>
 </template>

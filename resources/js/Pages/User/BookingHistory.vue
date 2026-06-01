@@ -205,104 +205,107 @@ function downloadExcel(booking) {
             </a>
         </div>
 
-        <!-- Booking Table -->
-        <div v-else class="bg-white rounded-2xl border border-gray-200 shadow-xs w-full">
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[1000px] text-left border-collapse">
-                    <thead>
-                        <tr class="border-b border-gray-200 bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                            <th class="py-4 px-6 w-[120px] whitespace-nowrap">No. Booking</th>
-                            <th class="py-4 px-6 min-w-[260px]">Kegiatan &amp; PIC</th>
-                            <th class="py-4 px-6">Ruangan</th>
-                            <th class="py-4 px-6">Status</th>
-                            <th class="py-4 px-6">Tanggal Mulai</th>
-                            <th class="py-4 px-6">Tanggal Selesai</th>
-                            <th class="py-4 px-6">Kapasitas</th>
-                            <th class="py-4 px-6 text-right w-[180px]">Aksi</th>
+        <!-- Booking Table - Admin Style -->
+        <div v-else class="bg-white rounded-2xl border border-slate-200 shadow-sm w-full overflow-hidden">
+            <div class="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <table class="min-w-full table-fixed divide-y divide-slate-100">
+                    <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
+                        <tr>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[22%]">Acara / PIC</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[13%]">Ruangan</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[15%]">Jadwal</th>
+                            <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Peserta</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[11%]">Fasilitas</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[17%]">Status</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 text-xs">
-                        <tr v-for="b in filteredBookings" :key="b.id" class="hover:bg-gray-50/40 transition-colors align-middle">
+                    <tbody class="bg-white divide-y divide-slate-100">
+                        <tr v-for="b in filteredBookings" :key="b.id" class="hover:bg-slate-50/50 transition-all duration-200 align-top group">
 
-                            <!-- No. Booking -->
-                            <td class="py-4 px-6 whitespace-nowrap">
-                                <span class="font-bold text-blue-600 text-xs">#{{ b.id }}</span>
-                            </td>
-
-                            <!-- Kegiatan & PIC -->
-                            <td class="py-4 px-6">
-                                <div class="min-w-0">
-                                    <div class="font-bold text-gray-900 text-sm truncate leading-snug">{{ b.nama_training }}</div>
-                                    <div class="text-[10px] text-gray-500 mt-0.5">
-                                        PIC: <span class="font-semibold text-gray-700">{{ b.pic }}</span>
-                                        · Diajukan: {{ b.created_at }}
-                                    </div>
+                            <!-- Acara / PIC -->
+                            <td class="px-5 py-4">
+                                <div class="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-2">{{ b.nama_training }}</div>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    PIC: <span class="font-semibold text-slate-700">{{ b.pic }}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    {{ b.created_at }}
                                 </div>
                             </td>
 
                             <!-- Ruangan -->
-                            <td class="py-4 px-6">
-                                <div class="font-medium text-gray-800">{{ b.ruangan?.nama_ruang ?? b.nama_ruang ?? 'Ruang Gabungan' }}</div>
-                                <div v-if="b.gabung_ruang || b.ruangan?.lokasi_gedung" class="text-[10px] text-gray-400 mt-0.5">
-                                    {{ b.gabung_ruang ? 'Gabungan Ruang 2+3' : b.ruangan?.lokasi_gedung }}
+                            <td class="px-5 py-4">
+                                <div class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-lg border border-slate-200">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    {{ b.ruangan?.nama_ruang ?? b.nama_ruang ?? 'Ruang Gabungan' }}
                                 </div>
-                                <div v-if="b.layout_preferensi" class="text-[10px] text-gray-400 capitalize mt-0.5">{{ b.layout_preferensi }}</div>
+                                <div v-if="b.gabung_ruang" class="text-[10px] text-emerald-600 font-medium mt-1.5">Gabungan Ruang 2+3</div>
+                                <div v-else-if="b.ruangan?.lokasi_gedung" class="text-[10px] text-slate-400 mt-1.5">{{ b.ruangan.lokasi_gedung }}</div>
+                                <div v-if="b.layout_preferensi" class="text-[11px] text-slate-400 capitalize mt-1.5 flex items-center gap-1">
+                                    Layout: <span class="font-medium text-slate-600">{{ b.layout_preferensi }}</span>
+                                </div>
                             </td>
 
-                             <!-- Status -->
-                             <td class="py-4 px-6">
-                                 <div class="flex flex-col gap-1.5">
-                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 inline-flex items-center gap-1 w-fit"
-                                           :class="getStatusMeta(b).class">
-                                         <!-- Pending / waiting_confirmation -->
-                                         <svg v-if="b.status === 'waiting_confirmation' || b.status === 'plotting'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
-                                         </svg>
-                                         <!-- H-14 or Confirmed -->
-                                         <template v-else-if="b.status === 'confirmed'">
-                                             <!-- H-14 -->
-                                             <svg v-if="getStatusMeta(b).label.startsWith('H - 14')" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                             </svg>
-                                             <!-- Disetujui -->
-                                             <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
-                                             </svg>
-                                         </template>
-                                         <!-- final -->
-                                         <svg v-else-if="b.status === 'final'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766l.002-.001a1.56 1.56 0 0 1 1.883 1.883l-.001.002c-.14.468-.382.89-.766 1.208l-3.03 2.496ZM11.42 15.17l-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243 3 3 0 0 0 4.243 4.243Zm0 0L7.88 9.75a3 3 0 0 0-3 3v.375c0 .621.504 1.125 1.125 1.125h.375M16.5 7.5a1.5 1.5 0 1 1-3 0a1.5 1.5 0 0 1 3 0Z" />
-                                         </svg>
-                                         <!-- cancelled -->
-                                         <svg v-else-if="b.status === 'cancelled'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                             <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
-                                         </svg>
-                                         <!-- done -->
-                                         <svg v-else-if="b.status === 'done'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                         </svg>
-                                         {{ getStatusMeta(b).label }}
-                                     </span>
+                            <!-- Jadwal -->
+                            <td class="px-5 py-4 text-xs text-slate-700">
+                                <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block mb-1">{{ formatDate(b.tgl_mulai) }}</div>
+                                <div class="text-slate-400 text-[10px] ml-2 mb-1">s/d</div>
+                                <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block">{{ formatDate(b.tgl_selesai) }}</div>
+                            </td>
+
+                            <!-- Peserta -->
+                            <td class="px-5 py-4 text-center">
+                                <div class="inline-flex flex-col items-center bg-blue-50/50 border border-blue-100 px-3 py-1.5 rounded-xl">
+                                    <div class="text-lg font-black text-blue-700 leading-none">{{ b.jumlah_peserta }}</div>
+                                    <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Peserta</div>
+                                </div>
+                                <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Panitia</div>
+                            </td>
+
+                            <!-- Fasilitas -->
+                            <td class="px-5 py-4 text-xs text-slate-600 space-y-1.5">
+                                <div v-if="b.is_hybrid" class="flex items-center gap-2 bg-purple-50 text-purple-700 font-semibold px-2 py-1 rounded-md border border-purple-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0 animate-pulse"></span>Hybrid
+                                </div>
+                                <div v-if="b.is_flipchart" class="flex items-center gap-2 bg-orange-50 text-orange-700 font-semibold px-2 py-1 rounded-md border border-orange-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
+                                </div>
+                                <div v-if="!b.is_hybrid && !b.is_flipchart" class="text-slate-300 font-medium">—</div>
+                            </td>
+
+                            <!-- Status -->
+                            <td class="px-5 py-4">
+                                <div class="flex flex-col gap-1.5">
+                                    <!-- Badge Status Utama -->
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold shadow-sm inline-flex items-center gap-1 w-fit"
+                                          :class="getStatusMeta(b).class">
+                                        <svg v-if="b.status === 'waiting_confirmation' || b.status === 'plotting'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z"/></svg>
+                                        <template v-else-if="b.status === 'confirmed'">
+                                            <svg v-if="getStatusMeta(b).label.startsWith('H - 14')" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z"/></svg>
+                                        </template>
+                                        <svg v-else-if="b.status === 'final'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                        <svg v-else-if="b.status === 'cancelled'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z"/></svg>
+                                        <svg v-else-if="b.status === 'done'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                        {{ getStatusMeta(b).label }}
+                                    </span>
 
                                     <!-- Catatan admin jika dibatalkan -->
                                     <div v-if="b.status === 'cancelled' && b.catatan_admin"
-                                         class="p-1.5 bg-red-50 border border-red-100 rounded text-[10px] text-red-600 italic max-w-[200px]">
-                                        "{{ b.catatan_admin }}"
+                                         class="p-1.5 bg-rose-50 border border-rose-100 rounded-lg text-[10px] text-rose-600 italic max-w-[180px] line-clamp-2 flex items-start gap-1">
+                                        <svg class="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                        <span>"{{ b.catatan_admin }}"</span>
                                     </div>
 
                                     <!-- Usulan Perubahan Tanggal -->
                                     <div v-if="b.status_perubahan && b.status_perubahan !== 'none'"
                                          class="px-2 py-1 rounded-md text-[10px] font-medium inline-flex items-center gap-1 w-fit"
                                          :class="CHANGE_META[b.status_perubahan]?.class">
-                                        <svg v-if="b.status_perubahan === 'pending'" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                        </svg>
-                                        <svg v-else-if="b.status_perubahan === 'approved'" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                        </svg>
-                                        <svg v-else-if="b.status_perubahan === 'rejected'" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                        </svg>
+                                        <svg v-if="b.status_perubahan === 'pending'" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                                        <svg v-else-if="b.status_perubahan === 'approved'" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                        <svg v-else-if="b.status_perubahan === 'rejected'" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
                                         <span>
                                             {{ CHANGE_META[b.status_perubahan]?.label }}
                                             <span v-if="b.status_perubahan === 'pending'" class="font-normal text-gray-500">
@@ -313,39 +316,20 @@ function downloadExcel(booking) {
                                 </div>
                             </td>
 
-                            <!-- Tanggal Mulai -->
-                            <td class="py-4 px-6 font-medium text-gray-800">
-                                {{ formatDate(b.tgl_mulai) }}
-                            </td>
-
-                            <!-- Tanggal Selesai -->
-                            <td class="py-4 px-6 font-medium text-gray-800">
-                                {{ formatDate(b.tgl_selesai) }}
-                            </td>
-
-                            <!-- Kapasitas -->
-                            <td class="py-4 px-6">
-                                <div class="font-bold text-gray-800">{{ b.jumlah_peserta }} <span class="text-[10px] font-normal text-gray-500">Peserta</span></div>
-                                <div class="text-[10px] text-gray-400 font-medium mt-0.5">{{ b.jumlah_panitia }} <span class="font-normal">Panitia</span></div>
-                            </td>
-
                             <!-- Aksi -->
-                            <td class="py-4 px-6 text-right">
-                                <div class="flex items-center justify-end gap-2">
+                            <td class="px-5 py-4">
+                                <div class="flex flex-col gap-2">
                                     <button @click="openDetail(b)"
                                             title="Lihat Detail Rekapan"
-                                       class="inline-flex items-center justify-center bg-blue-50 text-blue-700 hover:bg-blue-100 p-1.5 border border-blue-200 rounded-md transition shadow-xs active:scale-[0.98] cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                        </svg>
+                                            class="group/btn flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 text-[11px] font-bold py-2 px-3 rounded-xl transition-all border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow cursor-pointer">
+                                        <svg class="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-blue-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        Lihat Detail
                                     </button>
                                     <button @click="downloadExcel(b)"
-                                            title="Download Excel / CSV"
-                                       class="inline-flex items-center justify-center bg-emerald-50 text-emerald-700 hover:bg-emerald-100 p-1.5 border border-emerald-200 rounded-md transition shadow-xs active:scale-[0.98] cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                        </svg>
+                                            title="Download Excel"
+                                            class="group/btn flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-bold py-2 px-3 rounded-xl transition-all border border-emerald-200 hover:border-emerald-300 shadow-sm hover:shadow cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                                        Download
                                     </button>
                                 </div>
                             </td>
@@ -358,124 +342,160 @@ function downloadExcel(booking) {
 
     </div>
 
-    <!-- ── MODAL: Detail Rekapan ── -->
+    <!-- ── DRAWER: Detail Rekapan (Slide dari Kanan) ── -->
     <Teleport to="body">
-        <Transition 
-            enter-active-class="transition-all ease-out duration-300" 
-            enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0" 
-            enter-to-class="opacity-100 scale-100 translate-y-0" 
-            leave-active-class="transition-all ease-in duration-200" 
-            leave-from-class="opacity-100 scale-100 translate-y-0" 
-            leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
-            <div v-if="showRecapModal && selectedBooking" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    
-                    <!-- Modal Header -->
-                    <div class="px-6 py-4 flex justify-between items-center bg-blue-800 text-white border-b-4 border-yellow-400">
-                        <div>
-                            <h2 class="text-lg font-bold leading-tight flex items-center gap-2">
-                                <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+        <!-- Backdrop -->
+        <Transition
+            enter-active-class="transition-opacity duration-300 ease-out"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200 ease-in"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div 
+                v-if="showRecapModal && selectedBooking"
+                class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+                @click="showRecapModal = false"
+            />
+        </Transition>
+
+        <!-- Drawer Panel -->
+        <Transition
+            enter-active-class="transition-transform duration-300 ease-out"
+            enter-from-class="translate-x-full"
+            enter-to-class="translate-x-0"
+            leave-active-class="transition-transform duration-200 ease-in"
+            leave-from-class="translate-x-0"
+            leave-to-class="translate-x-full"
+        >
+            <div 
+                v-if="showRecapModal && selectedBooking"
+                class="fixed right-0 top-0 h-full w-full max-w-3xl bg-white shadow-2xl z-50 flex flex-col"
+            >
+                <!-- Drawer Header -->
+                <div class="px-6 py-5 flex justify-between items-center bg-white border-b border-gray-200 shrink-0 relative overflow-hidden">
+                    <!-- Decorative subtle circle or gradient -->
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl"></div>
+                    <div class="relative flex items-center justify-between w-full">
+                        <div class="flex-1 min-w-0 pr-4">
+                            <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                </svg>
                                 Detail Rekapan Booking
                             </h2>
-                            <p class="text-[11px] text-blue-200 mt-0.5">ID: #{{ String(selectedBooking.id).padStart(5, '0') }}</p>
+                            <p class="text-[11px] text-gray-400 mt-0.5">ID: #{{ String(selectedBooking.id).padStart(5, '0') }}</p>
                         </div>
-                        <button @click="showRecapModal = false" class="text-blue-200 hover:text-white transition bg-blue-700/50 hover:bg-blue-600 rounded-full p-1.5 cursor-pointer">
+                        <button 
+                            @click="showRecapModal = false" 
+                            class="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-all cursor-pointer"
+                        >
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
-                    
-                    <!-- Modal Body -->
-                <div class="p-6 overflow-y-auto">
-                    <div class="space-y-6">
-                        
-                        <!-- Kegiatan Info -->
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Nama Kegiatan</div>
-                            <h3 class="text-base font-bold text-gray-900">{{ selectedBooking.nama_training }}</h3>
-                            <div class="mt-1 flex items-center gap-2">
-                                <span class="text-xs font-semibold px-2 py-0.5 rounded-md" :class="getStatusMeta(selectedBooking).class">
+                </div>
+
+                <!-- Drawer Body -->
+                <div class="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <div class="p-6 space-y-6">
+
+                        <!-- Nama Kegiatan & Status -->
+                        <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                            <div class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Nama Kegiatan</div>
+                            <h3 class="text-lg font-bold text-gray-900 leading-snug">{{ selectedBooking.nama_training }}</h3>
+                            <div class="mt-2">
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="getStatusMeta(selectedBooking).class">
                                     {{ getStatusMeta(selectedBooking).label }}
                                 </span>
                             </div>
                         </div>
 
-                        <!-- Info Grid -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                        <!-- Info Grid 2x2 -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" /></svg>
                                     Ruangan
                                 </div>
-                                <p class="text-sm font-bold text-gray-800">{{ selectedBooking.ruangan?.nama_ruang ?? selectedBooking.nama_ruang ?? 'Ruang Gabungan' }}</p>
-                                <p class="text-[10px] text-gray-400 mt-0.5">{{ selectedBooking.gabung_ruang ? 'Gabungan Ruang 2 & 3' : (selectedBooking.ruangan?.lokasi_gedung ?? '-') }}</p>
+                                <p class="text-sm font-bold text-gray-900">{{ selectedBooking.ruangan?.nama_ruang ?? selectedBooking.nama_ruang ?? 'Ruang Gabungan' }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ selectedBooking.gabung_ruang ? 'Gabungan Ruang 2 & 3' : (selectedBooking.ruangan?.lokasi_gedung ?? '-') }}</p>
                             </div>
-                            <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
                                     Waktu Pelaksanaan
                                 </div>
-                                <p class="text-sm font-bold text-gray-800">{{ formatDate(selectedBooking.tgl_mulai) }}</p>
-                                <p class="text-[10px] text-gray-400 mt-0.5">s/d {{ formatDate(selectedBooking.tgl_selesai) }}</p>
+                                <p class="text-sm font-bold text-gray-900">{{ formatDate(selectedBooking.tgl_mulai) }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">s/d {{ formatDate(selectedBooking.tgl_selesai) }}</p>
                             </div>
-                            <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
                                     PIC (Penanggung Jawab)
                                 </div>
-                                <p class="text-sm font-bold text-gray-800">{{ selectedBooking.pic }}</p>
+                                <p class="text-sm font-bold text-gray-900">{{ selectedBooking.pic }}</p>
                             </div>
-                            <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
                                     Kapasitas
                                 </div>
-                                <p class="text-sm font-bold text-gray-800">{{ selectedBooking.jumlah_peserta }} <span class="text-xs font-normal">Peserta</span> &bull; {{ selectedBooking.jumlah_panitia }} <span class="text-xs font-normal">Panitia</span></p>
+                                <p class="text-sm font-bold text-gray-900">{{ selectedBooking.jumlah_peserta }} <span class="font-normal text-xs text-gray-500">Peserta</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ selectedBooking.jumlah_panitia }} Panitia</p>
                             </div>
                         </div>
 
                         <!-- Fasilitas & Catatan -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 border-b border-gray-100 pb-1">Fasilitas Preferensi</h4>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Fasilitas Preferensi</h4>
                                 <div class="flex flex-wrap gap-2">
-                                    <span v-if="selectedBooking.layout_preferensi" class="px-2 py-1 bg-gray-100 rounded text-[10px] font-bold text-gray-600 uppercase">Layout: {{ selectedBooking.layout_preferensi }}</span>
-                                    <span v-if="selectedBooking.is_hybrid" class="px-2 py-1 bg-violet-100 rounded text-[10px] font-bold text-violet-700 uppercase">Hybrid Mode</span>
-                                    <span v-if="selectedBooking.is_flipchart" class="px-2 py-1 bg-orange-100 rounded text-[10px] font-bold text-orange-700 uppercase">Flipchart</span>
+                                    <span v-if="selectedBooking.layout_preferensi" class="px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-gray-600 uppercase shadow-xs">Layout: {{ selectedBooking.layout_preferensi }}</span>
+                                    <span v-if="selectedBooking.is_hybrid" class="px-2.5 py-1 bg-violet-100 border border-violet-200 rounded-lg text-[10px] font-bold text-violet-700 uppercase">Hybrid Mode</span>
+                                    <span v-if="selectedBooking.is_flipchart" class="px-2.5 py-1 bg-orange-100 border border-orange-200 rounded-lg text-[10px] font-bold text-orange-700 uppercase">Flipchart</span>
                                     <span v-if="!selectedBooking.layout_preferensi && !selectedBooking.is_hybrid && !selectedBooking.is_flipchart" class="text-xs text-gray-400 italic">Tidak ada</span>
                                 </div>
                             </div>
-                            <div>
-                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 border-b border-gray-100 pb-1">Catatan Tambahan</h4>
-                                <p v-if="selectedBooking.catatan_user" class="text-xs text-gray-700 italic">"{{ selectedBooking.catatan_user }}"</p>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Catatan Tambahan</h4>
+                                <p v-if="selectedBooking.catatan_user" class="text-xs text-gray-700 italic leading-relaxed">"{{ selectedBooking.catatan_user }}"</p>
                                 <p v-else class="text-xs text-gray-400 italic">Tidak ada catatan dari pengaju.</p>
                                 
                                 <template v-if="selectedBooking.catatan_admin">
-                                    <h4 class="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1 mt-3 border-b border-red-100 pb-1">Catatan Admin</h4>
-                                    <p class="text-xs text-red-700 font-semibold italic">"{{ selectedBooking.catatan_admin }}"</p>
+                                    <h4 class="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2 mt-4">Catatan Admin</h4>
+                                    <p class="text-xs text-red-700 font-semibold italic leading-relaxed">"{{ selectedBooking.catatan_admin }}"</p>
                                 </template>
                             </div>
                         </div>
 
-                        <!-- Daftar Peserta -->
-                        <div v-if="selectedBooking.participants && selectedBooking.participants.length > 0" class="border-t border-gray-100 pt-4">
-                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Daftar Peserta &amp; Panitia</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Daftar Peserta & Panitia -->
+                        <div v-if="selectedBooking.participants && selectedBooking.participants.length > 0">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <span class="w-4 h-px bg-gray-200 inline-block"></span>
+                                Daftar Peserta &amp; Panitia
+                                <span class="w-4 h-px bg-gray-200 inline-block"></span>
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                 <div v-for="p in selectedBooking.participants" :key="p.id" 
-                                     class="flex items-start gap-3 p-2.5 border border-gray-100 bg-gray-50/50 rounded-lg">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5" 
+                                     class="flex items-center gap-3 p-3 border border-gray-100 bg-white rounded-xl shadow-xs hover:border-blue-100 hover:bg-blue-50/30 transition-colors">
+                                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" 
                                          :class="p.tipe === 'panitia' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700'">
                                         {{ getInitials(p.nama) }}
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <p class="text-xs font-bold text-gray-800 leading-snug truncate">{{ p.nama }}</p>
-                                        <div class="flex flex-wrap gap-x-2 gap-y-0.5 mt-1 text-[9px] text-gray-500 font-medium">
-                                            <span v-if="p.nrp">NRP: <strong class="text-gray-700">{{ p.nrp }}</strong></span>
-                                            <span v-if="p.jabatan" class="truncate max-w-[80px]" :title="p.jabatan">{{ p.jabatan }}</span>
-                                            <span class="uppercase font-bold" :class="p.tipe === 'panitia' ? 'text-violet-600' : 'text-blue-600'">{{ p.tipe }}</span>
+                                        <div class="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5 text-[9px] text-gray-400 font-medium">
+                                            <span v-if="p.nrp">NRP: <strong class="text-gray-600">{{ p.nrp }}</strong></span>
+                                            <span v-if="p.jabatan" class="truncate max-w-[90px]" :title="p.jabatan">{{ p.jabatan }}</span>
                                         </div>
                                     </div>
+                                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded shrink-0"
+                                          :class="p.tipe === 'panitia' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700'">
+                                        {{ p.tipe }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -483,19 +503,18 @@ function downloadExcel(booking) {
                     </div>
                 </div>
 
-                <!-- Modal Footer -->
-                <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
-                    <button @click="downloadExcel(selectedBooking)" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 text-xs font-bold rounded-lg transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer">
+                <!-- Drawer Footer -->
+                <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
+                    <button @click="downloadExcel(selectedBooking)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                         </svg>
                         Download Excel
                     </button>
-                    <button @click="showRecapModal = false" class="px-5 py-2 bg-white border border-gray-300 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-50 transition shadow-sm cursor-pointer">
+                    <button @click="showRecapModal = false" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-50 transition shadow-xs cursor-pointer">
                         Tutup
                     </button>
                 </div>
-            </div>
             </div>
         </Transition>
     </Teleport>

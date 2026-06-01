@@ -226,13 +226,13 @@ provide('collapseDetailMenu', () => {
             <!-- Logo / Brand -->
             <div class="px-4 py-4 border-b border-gray-100 flex items-center gap-2">
                 <svg class="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                <span class="font-bold text-gray-800 text-sm">BBSO Booking</span>
+                <span class="font-bold text-gray-800 text-sm">BBSO Booking <span class="text-[10px] text-gray-400 font-normal ml-1">User</span></span>
             </div>
 
             <!-- User Info -->
             <div class="px-4 py-3 border-b border-gray-100">
                 <p class="text-xs font-semibold text-gray-800 truncate">{{ auth?.user?.name }}</p>
-                <p class="text-[10px] text-gray-500 truncate">{{ auth?.user?.divisi ?? '-' }}</p>
+                <p class="text-[10px] text-gray-500 truncate">{{ auth?.user?.email }}</p>
                 <span class="inline-block mt-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full">USER</span>
             </div>
 
@@ -243,46 +243,51 @@ provide('collapseDetailMenu', () => {
                 <Link
                     href="/user/dashboard"
                     @click="handleNav('/user/dashboard', $event)"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/user/dashboard') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Dashboard
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    Dashboard
                 </Link>
 
-                <div class="px-3 py-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-2">Manajemen</div>
+                <!-- ── MANAJEMEN ─────────────────────────────────────── -->
+                <div class="px-3 pt-3 pb-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider">Manajemen</div>
 
                 <!-- Buat Booking -->
                 <div v-if="!isWindowActive"
-                     class="flex items-center justify-between px-3 py-2 text-sm text-gray-400 bg-gray-50 rounded cursor-not-allowed border border-gray-100"
+                     class="flex items-center justify-between px-3 py-2.5 text-sm text-gray-400 bg-gray-50 rounded-lg cursor-not-allowed border border-gray-100"
                      title="Window Booking sedang ditutup oleh Admin.">
-                    <div class="flex items-center gap-2.5">
-                        <svg class="w-4 h-4 shrink-0 opacity-50" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Buat Booking
+                    <div class="flex items-center gap-3">
+                        <svg class="w-[18px] h-[18px] shrink-0 opacity-50" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Buat Booking
                     </div>
                     <span class="text-[10px] font-bold text-red-500">TUTUP</span>
                 </div>
                 <Link v-else
                     href="/user/booking/create"
                     @click="handleNav('/user/booking/create', $event)"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/user/booking/create') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Buat Booking Baru
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Buat Booking Baru
                 </Link>
 
                 <!-- Booking Aktif -->
                 <Link
                     href="/user/booking/active"
                     @click="handleNav('/user/booking/active', $event)"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/user/booking/active') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Booking Aktif
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Booking Aktif
                 </Link>
 
-                <!-- Detail Booking (Sub-menu reaktif dengan animasi slide down dari Booking Aktif) -->
+                <!-- Detail Booking sub-menu (animasi slide down) -->
                 <Transition name="menu-slide" appear>
                     <div v-if="isDetailActive" class="pl-6 pr-1 shrink-0 overflow-hidden">
-                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs bg-blue-50/75 text-blue-700 font-bold border-l-2 border-blue-500 shadow-2xs select-none">
+                        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs bg-blue-50/75 text-blue-700 font-bold border-l-2 border-blue-500 shadow-2xs select-none">
                             <svg class="w-3.5 h-3.5 shrink-0 text-blue-500/70" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
@@ -295,22 +300,25 @@ provide('collapseDetailMenu', () => {
                 <Link
                     href="/user/booking/history"
                     @click="handleNav('/user/booking/history', $event)"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/user/booking/history') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z"/></svg> Riwayat Booking
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z"/></svg>
+                    Riwayat Booking
                 </Link>
 
-                <div class="px-3 py-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-2">Sistem</div>
+                <!-- ── SISTEM ────────────────────────────────────────── -->
+                <div class="px-3 pt-3 pb-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider">Sistem</div>
 
-                <!-- Pengaturan Password -->
+                <!-- Pengaturan -->
                 <Link
                     href="/user/settings/password"
                     @click="handleNav('/user/settings/password', $event)"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/user/settings/password') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Pengaturan Password
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Pengaturan
                 </Link>
 
             </nav>
@@ -378,11 +386,11 @@ provide('collapseDetailMenu', () => {
                             <!-- Badge -->
                             <span 
                                 v-if="userNotifications.length > 0" 
-                                class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
-                            ></span>
+                                class="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none"
+                            >{{ userNotifications.length > 9 ? '9+' : userNotifications.length }}</span>
                         </button>
 
-                        <!-- Simple Dropdown Menu -->
+                        <!-- Notification Dropdown -->
                         <div 
                             v-if="isNotificationDropdownOpen" 
                             class="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden"
@@ -428,6 +436,7 @@ provide('collapseDetailMenu', () => {
             </main>
         </div>
     </div>
+
 </template>
 
 <style scoped>

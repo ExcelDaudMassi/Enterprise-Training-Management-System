@@ -193,56 +193,56 @@ watch(() => page.props.flash, (newVal) => {
             <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <Link
                     href="/admin/dashboard"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/dashboard') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Dashboard
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Dashboard
                 </Link>
 
-                <div class="px-3 py-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-2">Manajemen</div>
+                <div class="px-3 pt-3 pb-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider">Manajemen</div>
 
                 <Link
                     href="/admin/bookings"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/bookings') && !isActive('/admin/booking-recap') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Manajemen Booking
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Manajemen Booking
                 </Link>
 
                 <Link
                     href="/admin/booking-recap"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/booking-recap') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg> Rekap Booking
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg> Rekap Booking
                 </Link>
 
                 <Link
                     href="/admin/booking-windows"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/booking-windows') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z"/></svg> Riwayat Window
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z"/></svg> Riwayat Window
                 </Link>
 
-                <div class="px-3 py-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-2">Master Data</div>
+                <div class="px-3 pt-3 pb-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider">Master Data</div>
 
                 <Link
                     href="/admin/rooms"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/rooms') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Master Ruangan
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Master Ruangan
                 </Link>
 
-                <div class="px-3 py-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-2">Sistem</div>
+                <div class="px-3 pt-3 pb-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider">Sistem</div>
 
                 <Link
                     href="/admin/settings"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/settings') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Pengaturan
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Pengaturan
                 </Link>
             </nav>
 
@@ -336,71 +336,10 @@ watch(() => page.props.flash, (newVal) => {
                             </svg>
                             <!-- Badge -->
                             <span v-if="notifCount > 0"
-                                  class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                                  class="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
                                 {{ notifCount > 9 ? '9+' : notifCount }}
                             </span>
                         </button>
-
-                        <!-- Notification Dropdown -->
-                        <Transition
-                            enter-active-class="transition-all duration-200 ease-out"
-                            enter-from-class="opacity-0 scale-95 translate-y-1"
-                            enter-to-class="opacity-100 scale-100 translate-y-0"
-                            leave-active-class="transition-all duration-150 ease-in"
-                            leave-from-class="opacity-100 scale-100 translate-y-0"
-                            leave-to-class="opacity-0 scale-95 translate-y-1"
-                        >
-                            <div v-if="showNotif"
-                                 class="absolute right-0 top-11 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden"
-                                  @click.stop
-                            >
-                                <!-- Header -->
-                                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                                    <span class="text-sm font-semibold text-gray-800">Notifikasi</span>
-                                    <span v-if="notifCount > 0"
-                                          class="text-xs bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full">
-                                        {{ notifCount }} baru
-                                    </span>
-                                </div>
-
-                                <!-- Notification List -->
-                                <div class="max-h-72 overflow-y-auto divide-y divide-gray-50">
-                                    <p v-if="notifCount === 0"
-                                       class="px-4 py-6 text-center text-sm text-gray-400">
-                                        Tidak ada notifikasi.
-                                    </p>
-
-                                    <button
-                                        v-for="n in notifications"
-                                        :key="n.booking_id + n.type"
-                                        @click="goToBooking(n.filter)"
-                                        class="w-full text-left px-4 py-3 transition-colors flex items-start gap-3"
-                                        :class="notifTypeStyle[n.type]?.bg ?? 'hover:bg-gray-50'"
-                                    >
-                                        <!-- Type dot -->
-                                        <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0"
-                                              :class="notifTypeStyle[n.type]?.dot ?? 'bg-gray-400'"></span>
-                                        <div class="min-w-0">
-                                            <p class="text-xs font-semibold text-gray-800 truncate">{{ n.label }}</p>
-                                            <p class="text-[11px] text-gray-500 truncate">{{ n.sub }}</p>
-                                            <p class="text-[10px] text-gray-400 mt-0.5">{{ n.created_at }}</p>
-                                        </div>
-                                        <svg class="w-3.5 h-3.5 text-gray-300 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                <!-- Footer -->
-                                <div class="px-4 py-2 border-t border-gray-100 bg-gray-50">
-                                    <Link href="/admin/bookings"
-                                          class="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                                          @click="closeNotif">
-                                        Lihat semua booking →
-                                    </Link>
-                                </div>
-                            </div>
-                        </Transition>
                     </div>
 
                     <!-- Admin name -->

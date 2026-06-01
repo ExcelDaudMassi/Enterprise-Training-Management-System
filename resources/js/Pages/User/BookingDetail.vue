@@ -523,7 +523,7 @@ function getAvatarBg(id) {
             leave-from-class="opacity-100 scale-100 translate-y-0" 
             leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
             <div v-if="showCancelModal" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-md border border-blue-900 shadow-xl w-full max-w-md p-6">
+                <div class="bg-white rounded-xl border border-gray-250 shadow-xl w-full max-w-md p-6">
                     <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-50 border border-red-200 rounded-full mb-4">
                         <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -566,9 +566,9 @@ function getAvatarBg(id) {
             leave-from-class="opacity-100 scale-100 translate-y-0" 
             leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
             <div v-if="showParticipantModal" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-md border-t-4 border-yellow-400 shadow-xl w-full max-w-md p-6">
-                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-800 border border-blue-900 rounded-full mb-4">
-                        <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="bg-white rounded-xl border border-gray-250 shadow-xl w-full max-w-md p-6">
+                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-50 border border-blue-100 rounded-full mb-4">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                         </svg>
                     </div>
@@ -598,7 +598,7 @@ function getAvatarBg(id) {
                     </div>
                     
                     <button @click="showParticipantModal = false" :disabled="participantLoading"
-                            class="w-full py-2 bg-blue-800 text-white rounded-md text-xs font-bold hover:bg-blue-900 transition select-none cursor-pointer">
+                            class="w-full py-2 bg-white border border-gray-300 text-gray-700 rounded-md text-xs font-bold hover:bg-gray-50 transition select-none cursor-pointer">
                         Batal
                     </button>
                 </div>
@@ -616,9 +616,9 @@ function getAvatarBg(id) {
             leave-from-class="opacity-100 scale-100 translate-y-0" 
             leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
             <div v-if="showDateModal" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-md shadow-xl w-full max-w-md p-6 border-t-4 border-yellow-400">
-                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-800 rounded-full mb-4 shadow-sm">
-                        <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 border border-gray-250">
+                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-50 border border-blue-100 rounded-full mb-4 shadow-xs">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                         </svg>
                     </div>
@@ -653,7 +653,7 @@ function getAvatarBg(id) {
                             Batal
                         </button>
                         <button @click="submitDateChange" :disabled="dateLoading"
-                                class="flex-1 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 rounded-md text-xs font-bold disabled:opacity-50 transition shadow-sm cursor-pointer select-none">
+                                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold disabled:opacity-50 transition shadow-sm cursor-pointer select-none">
                             {{ dateLoading ? 'Mengirim...' : 'Ajukan Perubahan' }}
                         </button>
                     </div>

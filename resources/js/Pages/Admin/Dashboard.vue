@@ -1248,19 +1248,20 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 class="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
                 @click.self="closeDetailModal"
             >
-                <div class="bg-white rounded-xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-blue-900 h-[85vh] min-h-[550px]">
+                <div class="bg-white rounded-xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-200 h-[85vh] min-h-[550px]">
 
                     <!-- ── Header PAMA Theme ── -->
-                    <div class="px-6 py-4 border-b-4 border-yellow-400 bg-blue-800 flex items-center justify-between shrink-0">
-                        <div class="flex items-center gap-3">
-                            <span class="w-9 h-9 rounded-lg bg-blue-700 text-yellow-400 flex items-center justify-center shrink-0 border border-blue-600 shadow-sm">
+                    <div class="px-6 py-5 border-b border-gray-200 bg-white flex items-center justify-between shrink-0 relative overflow-hidden">
+                        <div class="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl"></div>
+                        <div class="relative flex items-center gap-3">
+                            <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 shadow-xs">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
                             </span>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <h4 class="font-extrabold text-white text-sm sm:text-base leading-none">
+                                    <h4 class="font-extrabold text-gray-800 text-sm sm:text-base leading-none">
                                         {{ selectedDetailBooking?.nama_training || 'Detail Pemesanan' }}
                                     </h4>
                                     <span
@@ -1269,15 +1270,18 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                     >
                                         {{ statusLabel(getVisualStatus(selectedDetailBooking)) }}
                                     </span>
-                                    <span v-if="selectedDetailBooking?.gabung_ruang" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-900/40 text-teal-300 border border-teal-600">🔗 Gabung Ruang</span>
+                                    <span v-if="selectedDetailBooking?.gabung_ruang" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-100 flex items-center gap-1 select-none">
+                                        <svg class="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                                        Gabung Ruang
+                                    </span>
                                 </div>
-                                <p class="text-[10px] text-blue-200 font-semibold mt-1.5 uppercase tracking-wider">
+                                <p class="text-[10px] text-gray-400 font-semibold mt-1.5 uppercase tracking-wider">
                                     {{ formatDateRange(selectedDetailBooking?.tgl_mulai, selectedDetailBooking?.tgl_selesai) }}
                                     &nbsp;·&nbsp; {{ selectedDetailBooking?.gabung_ruang ? 'Ruang Gabungan (2+3)' : (selectedDetailBooking?.nama_ruang || '-') }}
                                 </p>
                             </div>
                         </div>
-                        <button @click="closeDetailModal" class="text-blue-200 hover:text-white hover:bg-blue-700 p-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none shrink-0">
+                        <button @click="closeDetailModal" class="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-all cursor-pointer focus:outline-none shrink-0 relative z-10">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -1324,7 +1328,10 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                         <!-- Judul tabel + link denah -->
                         <div class="flex items-center justify-between mb-3 shrink-0">
-                            <div class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest">👥 Roster Acara</div>
+                            <div class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
+                                Roster Acara
+                            </div>
                             <a v-if="selectedDetailBooking?.layout_url"
                                :href="selectedDetailBooking.layout_url" target="_blank"
                                class="inline-flex items-center gap-1 text-[11px] text-purple-700 hover:text-purple-900 font-semibold hover:underline">
@@ -1375,10 +1382,16 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                             </td>
                                             <td class="px-4 py-2.5">
                                                 <div class="font-semibold text-gray-600 text-[11px]">{{ p.jabatan || '-' }}</div>
-                                                <div class="text-[9px] text-gray-400 mt-0.5 flex flex-wrap items-center gap-1">
-                                                    <span>📍 {{ p.site || '-' }}</span>
+                                                <div class="text-[9.5px] text-gray-400 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                    <span class="flex items-center gap-1">
+                                                        <svg class="w-3 h-3 text-gray-450 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                                                        {{ p.site || '-' }}
+                                                    </span>
                                                     <span v-if="p.no_hp" class="text-gray-300 font-light">|</span>
-                                                    <span v-if="p.no_hp" class="font-mono text-[8.5px] text-gray-500">📞 {{ p.no_hp }}</span>
+                                                    <span v-if="p.no_hp" class="font-mono text-[8.5px] text-gray-500 flex items-center gap-1">
+                                                        <svg class="w-3 h-3 text-gray-450 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.433-5.112-3.72-6.544-6.544l1.293-.97c.362-.272.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
+                                                        {{ p.no_hp }}
+                                                    </span>
                                                 </div>
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
@@ -1394,7 +1407,10 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                         <!-- Catatan Admin (jika ada) -->
                         <div v-if="selectedDetailBooking?.catatan_admin" class="mt-3 bg-red-50 rounded-xl p-3.5 border border-red-100 shrink-0">
-                            <h6 class="text-[9.5px] font-black text-red-600 uppercase tracking-widest mb-1.5">📝 Catatan Admin</h6>
+                                                            <h6 class="text-[9.5px] font-black text-red-600 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                                                Catatan Admin
+                                                            </h6>
                             <p class="text-xs text-gray-700 leading-relaxed">{{ selectedDetailBooking.catatan_admin }}</p>
                         </div>
 
@@ -1402,14 +1418,15 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                     <!-- ── Footer ── -->
                     <div class="shrink-0 px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                        <p class="text-[10px] text-gray-500 font-semibold">
-                            📅 Diajukan: {{ formatIndoDateTime(selectedDetailBooking?.created_at) }}
+                        <p class="text-[10px] text-gray-500 font-semibold flex items-center gap-1 select-none">
+                            <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                            Diajukan: {{ formatIndoDateTime(selectedDetailBooking?.created_at) }}
                         </p>
                         <div class="flex items-center gap-2">
                             <a v-if="selectedDetailBooking"
                                :href="`/admin/bookings/${selectedDetailBooking.id}/export-detail`"
                                target="_blank"
-                               class="inline-flex items-center gap-1.5 bg-yellow-400 hover:bg-yellow-500 text-blue-900 text-[11px] font-bold px-3 py-2 rounded-md transition shadow-sm cursor-pointer select-none"
+                               class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-2 rounded-md transition shadow-sm cursor-pointer select-none"
                                title="Unduh Excel daftar peserta & panitia"
                             >
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>

@@ -109,105 +109,112 @@ async function submitCancel() {
                 </a>
             </div>
 
-            <!-- Booking Lists Table -->
-            <div v-else class="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden w-full">
-                <div class="overflow-x-auto">
-                    <table class="w-full min-w-[950px] text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-gray-200 bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                <th class="py-4 px-6 w-[120px] whitespace-nowrap">No. Booking</th>
-                                <th class="py-4 px-6 min-w-[260px]">Kegiatan & PIC</th>
-                                <th class="py-4 px-6">Ruangan</th>
-                                <th class="py-4 px-6">Status</th>
-                                <th class="py-4 px-6">Tanggal Mulai</th>
-                                <th class="py-4 px-6">Tanggal Selesai</th>
-                                <th class="py-4 px-6">Kapasitas</th>
-                                <th class="py-4 px-6 text-right w-[140px]">Aksi</th>
+            <!-- Booking Lists Table - Admin Style -->
+            <div v-else class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
+                <div class="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <table class="min-w-full table-fixed divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
+                            <tr>
+                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[24%]">Acara / PIC</th>
+                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Ruangan</th>
+                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Jadwal</th>
+                                <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Peserta</th>
+                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Fasilitas</th>
+                                <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Status</th>
+                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[14%]">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 text-xs">
-                            <tr v-for="b in bookings" :key="b.id" class="hover:bg-gray-50/40 transition-colors align-middle">
-                                <!-- ID Column -->
-                                <td class="py-4 px-6 whitespace-nowrap">
-                                    <span class="font-bold text-blue-600 text-xs">#{{ b.id }}</span>
-                                </td>
-                                
-                                <!-- Customer/Training Column -->
-                                <td class="py-4 px-6">
-                                    <div class="min-w-0">
-                                        <div class="font-bold text-gray-900 text-sm truncate leading-snug">{{ b.nama_training }}</div>
-                                        <div class="text-[10px] text-gray-500 mt-0.5">PIC: <span class="font-semibold text-gray-700">{{ b.pic }}</span> · Diajukan: {{ b.created_at }}</div>
-                                    </div>
-                                </td>
-                                
-                                <!-- Ruangan Column -->
-                                <td class="py-4 px-6">
-                                    <div class="font-medium text-gray-800">{{ b.nama_ruang }}</div>
-                                </td>
-                                
-                                <!-- Status Column -->
-                                <td class="py-4 px-6">
-                                    <div class="flex items-center gap-2">
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 flex items-center gap-1"
-                                              :class="STATUS_META[b.status]?.class">
-                                            <svg v-if="b.status === 'waiting_confirmation'" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
-                                            </svg>
-                                            <svg v-else-if="b.status === 'confirmed'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" />
-                                            </svg>
-                                            <svg v-else-if="b.status === 'final'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766l.002-.001a1.56 1.56 0 0 1 1.883 1.883l-.001.002c-.14.468-.382.89-.766 1.208l-3.03 2.496ZM11.42 15.17l-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243 3 3 0 0 0 4.243 4.243Zm0 0L7.88 9.75a3 3 0 0 0-3 3v.375c0 .621.504 1.125 1.125 1.125h.375M16.5 7.5a1.5 1.5 0 1 1-3 0a1.5 1.5 0 0 1 3 0Z" />
-                                            </svg>
-                                            {{ STATUS_META[b.status]?.label }}
-                                        </span>
+                        <tbody class="bg-white divide-y divide-slate-100">
+                            <tr v-for="b in bookings" :key="b.id" class="hover:bg-slate-50/50 transition-all duration-200 align-top group">
 
-                                        <!-- Countdown H-X -->
-                                        <span v-if="b.tgl_mulai && diffDays(b.tgl_mulai) > 0"
-                                              class="inline-flex items-center gap-1 text-[9px] bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded font-semibold shrink-0">
-                                            H-{{ diffDays(b.tgl_mulai) }}
-                                        </span>
-                                        <span v-else-if="b.tgl_mulai && diffDays(b.tgl_mulai) === 0"
-                                              class="inline-flex items-center gap-1 text-[9px] bg-orange-50 text-orange-700 border border-orange-100 px-1.5 py-0.5 rounded font-semibold shrink-0 animate-pulse">
-                                            Hari ini!
-                                        </span>
+                                <!-- Acara / PIC -->
+                                <td class="px-5 py-4">
+                                    <div class="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-2">{{ b.nama_training }}</div>
+                                    <div class="text-xs text-slate-500 mt-1">
+                                        PIC: <span class="font-semibold text-slate-700">{{ b.pic }}</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        {{ b.created_at }}
                                     </div>
                                 </td>
-                                
-                                <!-- Start Date Column -->
-                                <td class="py-4 px-6 font-medium text-gray-800">
-                                    {{ formatDate(b.tgl_mulai) }}
+
+                                <!-- Ruangan -->
+                                <td class="px-5 py-4">
+                                    <div class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-lg border border-slate-200">
+                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                        {{ b.nama_ruang ?? 'Ruang Gabungan' }}
+                                    </div>
+                                    <div v-if="b.layout_preferensi" class="text-[11px] text-slate-400 capitalize mt-2 flex items-center gap-1">
+                                        Layout: <span class="font-medium text-slate-600">{{ b.layout_preferensi }}</span>
+                                    </div>
                                 </td>
-                                
-                                <!-- End Date Column -->
-                                <td class="py-4 px-6 font-medium text-gray-800">
-                                    {{ formatDate(b.tgl_selesai) }}
+
+                                <!-- Jadwal -->
+                                <td class="px-5 py-4 text-xs text-slate-700">
+                                    <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block mb-1">{{ formatDate(b.tgl_mulai) }}</div>
+                                    <div class="text-slate-400 text-[10px] ml-2 mb-1">s/d</div>
+                                    <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block">{{ formatDate(b.tgl_selesai) }}</div>
+                                    <!-- Countdown H-X -->
+                                    <div v-if="b.tgl_mulai && diffDays(b.tgl_mulai) > 0"
+                                         class="mt-2 font-bold text-[11px] w-fit shadow-sm px-2 py-0.5 rounded-md"
+                                         :class="diffDays(b.tgl_mulai) <= 14
+                                             ? 'text-red-700 bg-red-50 border border-red-200'
+                                             : 'text-slate-600 bg-slate-100 border border-slate-200'">
+                                        H-{{ diffDays(b.tgl_mulai) }}
+                                    </div>
+                                    <div v-else-if="b.tgl_mulai && diffDays(b.tgl_mulai) === 0"
+                                         class="mt-2 inline-flex items-center gap-1 text-[11px] bg-orange-50 text-orange-700 border border-orange-100 px-2 py-0.5 rounded-md font-bold animate-pulse">
+                                        Hari ini!
+                                    </div>
                                 </td>
-                                
-                                <!-- Capacity Column -->
-                                <td class="py-4 px-6">
-                                    <div class="font-bold text-gray-800">{{ b.jumlah_peserta }} <span class="text-[10px] font-normal text-gray-500">Peserta</span></div>
-                                    <div class="text-[10px] text-gray-400 font-medium mt-0.5">{{ b.jumlah_panitia }} <span class="font-normal">Panitia</span></div>
+
+                                <!-- Peserta -->
+                                <td class="px-5 py-4 text-center">
+                                    <div class="inline-flex flex-col items-center bg-blue-50/50 border border-blue-100 px-3 py-1.5 rounded-xl">
+                                        <div class="text-lg font-black text-blue-700 leading-none">{{ b.jumlah_peserta }}</div>
+                                        <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Peserta</div>
+                                    </div>
+                                    <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Panitia</div>
                                 </td>
-                                
-                                <!-- Actions Column -->
-                                <td class="py-4 px-6 text-right">
-                                    <a :href="`/user/booking/${b.id}/detail`"
-                                       class="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-1.5 px-3 rounded-md text-xs font-bold transition shadow-xs active:scale-[0.98]">
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                        </svg>
-                                        Lihat Detail
-                                    </a>
+
+                                <!-- Fasilitas -->
+                                <td class="px-5 py-4 text-xs text-slate-600 space-y-1.5">
+                                    <div v-if="b.is_hybrid" class="flex items-center gap-2 bg-purple-50 text-purple-700 font-semibold px-2 py-1 rounded-md border border-purple-100 w-fit">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0 animate-pulse"></span>Hybrid
+                                    </div>
+                                    <div v-if="b.is_flipchart" class="flex items-center gap-2 bg-orange-50 text-orange-700 font-semibold px-2 py-1 rounded-md border border-orange-100 w-fit">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
+                                    </div>
+                                    <div v-if="!b.is_hybrid && !b.is_flipchart" class="text-slate-300 font-medium">—</div>
                                 </td>
+
+                                <!-- Status -->
+                                <td class="px-5 py-4 text-center">
+                                    <span class="px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm"
+                                          :class="STATUS_META[b.status]?.class ?? 'bg-slate-100 text-slate-600 border border-slate-200'">
+                                        {{ STATUS_META[b.status]?.label ?? b.status }}
+                                    </span>
+                                </td>
+
+                                <!-- Aksi -->
+                                <td class="px-5 py-4">
+                                    <div class="flex flex-col gap-2">
+                                        <a :href="`/user/booking/${b.id}/detail`"
+                                           class="group/btn flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 text-[11px] font-bold py-2 px-3 rounded-xl transition-all border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow">
+                                            <svg class="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-blue-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            Lihat Detail
+                                        </a>
+                                    </div>
+                                </td>
+
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-        </div>
+    </div>
 
         <!-- Modal: Konfirmasi Batalkan -->
     <Teleport to="body">
