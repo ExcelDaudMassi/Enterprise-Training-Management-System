@@ -38,7 +38,7 @@ class DashboardController extends Controller
             return [
                 'id'            => $booking->id,
                 'ruangan_id'    => $booking->ruangan_id,
-                'nama_ruang'    => $booking->ruangan?->nama_ruang,
+                'nama_ruang'    => $booking->displayRoomName(),
                 // Sembunyikan detail sensitif booking milik departemen lain
                 'nama_training' => $isOwner ? $booking->nama_training : '[Sudah Dipesan]',
                 'divisi'        => $isOwner ? ($booking->user?->divisi) : null,
@@ -62,7 +62,7 @@ class DashboardController extends Controller
                 return [
                     'id'            => $booking->id,
                     'nama_training' => $booking->nama_training,
-                    'nama_ruang'    => $booking->ruangan?->nama_ruang,
+                    'nama_ruang'    => $booking->displayRoomName(),
                     'tgl_mulai'     => $booking->tgl_mulai->toDateString(),
                     'tgl_selesai'   => $booking->tgl_selesai->toDateString(),
                     'status'        => $booking->status,

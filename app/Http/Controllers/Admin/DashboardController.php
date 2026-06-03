@@ -188,7 +188,7 @@ class DashboardController extends Controller
             return [
                 'id'            => $booking->id,
                 'ruangan_id'    => $booking->ruangan_id,
-                'nama_ruang'    => $booking->ruangan?->nama_ruang,
+                'nama_ruang'    => $booking->displayRoomName(),
                 'nama_training' => $booking->nama_training,
                 'divisi'        => $booking->user?->divisi,
                 'pemohon'       => $booking->user?->name,

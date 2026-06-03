@@ -123,7 +123,7 @@ class BookingApprovalController extends Controller
                 'nama_training'   => $b->nama_training,
                 'tgl_mulai'       => $b->tgl_mulai?->toDateString(),
                 'tgl_selesai'     => $b->tgl_selesai?->toDateString(),
-                'ruangan'         => $b->ruangan?->nama_ruang ?? 'Ruang Gabungan',
+                'ruangan'         => $b->displayRoomName(),
                 'layout'          => $b->layout_preferensi,
                 'fase'            => $b->fase,
                 'status'          => $b->status,
@@ -228,7 +228,7 @@ class BookingApprovalController extends Controller
                 'created_at'        => $booking->created_at->format('d M Y, H:i'),
                 // Ruangan
                 'ruangan'           => $booking->ruangan ? [
-                    'nama_ruang'    => $booking->ruangan->nama_ruang,
+                    'nama_ruang'    => $booking->displayRoomName(),
                     'lokasi_gedung' => $booking->ruangan->lokasi_gedung,
                     'kapasitas_max' => $booking->ruangan->kapasitas_max,
                 ] : null,
@@ -370,7 +370,7 @@ class BookingApprovalController extends Controller
             $sheet->setCellValue('C' . $row, $b->user?->name ?? '-');
             $sheet->setCellValue('D' . $row, $b->user?->divisi ?? '-');
             $sheet->setCellValue('E' . $row, $b->pic ?? '-');
-            $sheet->setCellValue('F' . $row, $b->ruangan?->nama_ruang ?? 'Ruang Gabungan');
+            $sheet->setCellValue('F' . $row, $b->displayRoomName());
             $sheet->setCellValue('G' . $row, $b->tgl_mulai?->format('d/m/Y') ?? '-');
             $sheet->setCellValue('H' . $row, $b->tgl_selesai?->format('d/m/Y') ?? '-');
             $sheet->setCellValue('I' . $row, $statusLabels[$b->status] ?? $b->status);
@@ -832,7 +832,7 @@ class BookingApprovalController extends Controller
             'proposed_tgl_mulai'      => $b->proposed_tgl_mulai?->toDateString(),
             'proposed_tgl_selesai'    => $b->proposed_tgl_selesai?->toDateString(),
             'status_perubahan'        => $b->status_perubahan,
-            'ruangan'                 => $b->ruangan?->nama_ruang ?? 'Ruang Gabungan',
+            'ruangan'                 => $b->displayRoomName(),
             'gabung_ruang'            => $b->gabung_ruang,
             'layout'                  => $b->layout_preferensi,
             'is_hybrid'               => $b->is_hybrid,
@@ -868,7 +868,7 @@ class BookingApprovalController extends Controller
         if (empty($frontdeskPhone)) return;
 
         $booking->loadMissing(['ruangan', 'participants']);
-        $ruangName = $booking->ruangan->nama_ruang ?? 'Ruangan';
+        $ruangName = $booking->displayRoomName();
         $tglMulai = \Carbon\Carbon::parse($booking->tgl_mulai)->translatedFormat('d M Y');
         $tglSelesai = \Carbon\Carbon::parse($booking->tgl_selesai)->translatedFormat('d M Y');
         $tglStr = $tglMulai === $tglSelesai ? $tglMulai : "{$tglMulai} s/d {$tglSelesai}";

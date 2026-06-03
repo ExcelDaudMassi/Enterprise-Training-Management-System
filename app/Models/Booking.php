@@ -254,4 +254,22 @@ class Booking extends Model
     {
         return $this->isConfirmed();
     }
+
+    // =========================================================
+    // Display Helpers
+    // =========================================================
+
+    /**
+     * Nama ruangan yang ditampilkan ke UI.
+     * Jika booking menggunakan gabungan ruang, tampilkan "Ruang Gabungan 2 + 3"
+     * agar tidak membingungkan user/admin.
+     */
+    public function displayRoomName(): string
+    {
+        if ($this->gabung_ruang) {
+            return 'Ruang Gabungan 2 + 3';
+        }
+
+        return $this->ruangan?->nama_ruang ?? 'Ruangan';
+    }
 }
