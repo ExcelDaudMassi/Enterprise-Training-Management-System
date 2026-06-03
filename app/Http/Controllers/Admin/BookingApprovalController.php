@@ -455,8 +455,9 @@ class BookingApprovalController extends Controller
                 // Pessimistic locking pada baris ruangan di database
                 \App\Models\Ruangan::whereIn('id', $roomIds)->lockForUpdate()->get();
 
-                // Cek konflik: apakah ada booking CONFIRMED lain yang bertabrakan tanggal dan ruangan
-                $overlappingConfirmed = Booking::where('status', 'confirmed')
+                // Cek konflik: apakah ada booking aktif lain yang bertabrakan tanggal dan ruangan
+                // Status aktif = semua kecuali cancelled (waiting_confirmation, confirmed, final)
+                $overlappingActive = Booking::whereNotIn('status', [Booking::STATUS_CANCELLED])
                     ->where('id', '!=', $booking->id)
                     ->where('tgl_mulai', '<=', $booking->tgl_selesai->toDateString())
                     ->where('tgl_selesai', '>=', $booking->tgl_mulai->toDateString())
@@ -464,7 +465,7 @@ class BookingApprovalController extends Controller
                     ->get();
 
                 $hasConflict = false;
-                foreach ($overlappingConfirmed as $cb) {
+                foreach ($overlappingActive as $cb) {
                     $cbRoomIds = [$cb->ruangan_id];
                     if ($cb->gabung_ruang && $cb->ruangan && $cb->ruangan->pasangan_ruang_id) {
                         $cbRoomIds[] = $cb->ruangan->pasangan_ruang_id;
@@ -709,6 +710,37 @@ class BookingApprovalController extends Controller
             return back()->with('error', 'Tidak ada usulan perubahan tanggal yang aktif untuk booking ini.');
         }
 
+        // Cek konflik ruangan pada tanggal baru sebelum menyetujui
+        $booking->loadMissing('ruangan');
+        $roomIds = [$booking->ruangan_id];
+        if ($booking->gabung_ruang && $booking->ruangan && $booking->ruangan->pasangan_ruang_id) {
+            $roomIds[] = $booking->ruangan->pasangan_ruang_id;
+        }
+
+        $newStart = $booking->proposed_tgl_mulai->toDateString();
+        $newEnd   = $booking->proposed_tgl_selesai->toDateString();
+
+        $hasConflict = Booking::whereNotIn('status', [Booking::STATUS_CANCELLED])
+            ->where('id', '!=', $booking->id)
+            ->where('tgl_mulai', '<=', $newEnd)
+            ->where('tgl_selesai', '>=', $newStart)
+            ->where(function ($q) use ($roomIds) {
+                // Cek langsung pada ruangan booking ini
+                $q->whereIn('ruangan_id', $roomIds)
+                  // ATAU booking gabungan yang pasangannya overlap
+                  ->orWhere(function ($q2) use ($roomIds) {
+                      $q2->where('gabung_ruang', true)
+                         ->whereHas('ruangan', function ($rq) use ($roomIds) {
+                             $rq->whereIn('pasangan_ruang_id', $roomIds);
+                         });
+                  });
+            })
+            ->exists();
+
+        if ($hasConflict) {
+            return back()->with('error', 'Gagal menyetujui perubahan tanggal: ruangan bentrok dengan booking lain pada tanggal baru.');
+        }
+
         $booking->update([
             'tgl_mulai'            => $booking->proposed_tgl_mulai,
             'tgl_selesai'          => $booking->proposed_tgl_selesai,
@@ -716,8 +748,6 @@ class BookingApprovalController extends Controller
             'proposed_tgl_selesai' => null,
             'status_perubahan'     => Booking::CHANGE_APPROVED,
         ]);
-
-
 
         return back()->with('success', "Perubahan tanggal untuk Booking #{$booking->id} telah disetujui.");
     }

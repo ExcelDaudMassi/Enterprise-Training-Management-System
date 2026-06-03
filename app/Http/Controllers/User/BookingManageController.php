@@ -284,13 +284,40 @@ class BookingManageController extends Controller
     // PRIVATE HELPERS
     // ============================================================
 
+    /**
+     * Cek konflik jadwal ruangan, termasuk booking gabungan di ruangan pasangan.
+     */
     private function hasConflict(int $roomId, string $startDate, string $endDate, ?int $excludeBookingId = null): bool
     {
-        return Booking::where('ruangan_id', $roomId)
+        // 1. Cek konflik langsung
+        $directConflict = Booking::where('ruangan_id', $roomId)
             ->whereNotIn('status', [Booking::STATUS_CANCELLED])
             ->where('tgl_mulai', '<=', $endDate)
             ->where('tgl_selesai', '>=', $startDate)
             ->when($excludeBookingId, fn($q) => $q->where('id', '!=', $excludeBookingId))
             ->exists();
+
+        if ($directConflict) {
+            return true;
+        }
+
+        // 2. Cek konflik dari booking gabungan di ruangan pasangan
+        $room = Ruangan::find($roomId);
+        if ($room && $room->pasangan_ruang_id) {
+            $partnerConflict = Booking::where('ruangan_id', $room->pasangan_ruang_id)
+                ->where('gabung_ruang', true)
+                ->whereNotIn('status', [Booking::STATUS_CANCELLED])
+                ->where('tgl_mulai', '<=', $endDate)
+                ->where('tgl_selesai', '>=', $startDate)
+                ->when($excludeBookingId, fn($q) => $q->where('id', '!=', $excludeBookingId))
+                ->exists();
+
+            if ($partnerConflict) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
+

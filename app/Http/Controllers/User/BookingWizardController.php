@@ -243,15 +243,39 @@ class BookingWizardController extends Controller
         $yearStart = Carbon::create($year, 1, 1)->startOfDay();
         $yearEnd   = Carbon::create($year, 12, 31)->endOfDay();
 
+        // Ambil booking langsung pada ruangan yang eligible
         $bookings = Booking::whereNotIn('status', ['cancelled'])
             ->whereIn('ruangan_id', $eligibleRoomIds)
             ->where('tgl_mulai', '<=', $yearEnd)
             ->where('tgl_selesai', '>=', $yearStart)
             ->with(['ruangan:id,nama_ruang'])
-            ->get(['id', 'ruangan_id', 'nama_training', 'tgl_mulai', 'tgl_selesai']);
+            ->get(['id', 'ruangan_id', 'nama_training', 'tgl_mulai', 'tgl_selesai', 'gabung_ruang']);
+
+        // Juga ambil booking gabungan dari ruangan pasangan yang menempati eligible rooms
+        // Contoh: Jika eligible rooms = [1,2,3,4,5,6,7], dan ada booking gabungan di Ruang 2,
+        //         maka Ruang 3 juga harus ditandai sebagai terisi.
+        $partnerRoomIds = Ruangan::whereIn('id', $eligibleRoomIds)
+            ->whereNotNull('pasangan_ruang_id')
+            ->pluck('pasangan_ruang_id')
+            ->unique()
+            ->diff($eligibleRoomIds) // Hindari duplikasi jika pasangan sudah ada di eligible
+            ->values()
+            ->toArray();
+
+        $combinedBookingsFromPartners = collect();
+        if (!empty($partnerRoomIds)) {
+            $combinedBookingsFromPartners = Booking::whereNotIn('status', ['cancelled'])
+                ->whereIn('ruangan_id', $partnerRoomIds)
+                ->where('gabung_ruang', true)
+                ->where('tgl_mulai', '<=', $yearEnd)
+                ->where('tgl_selesai', '>=', $yearStart)
+                ->with(['ruangan:id,nama_ruang,pasangan_ruang_id'])
+                ->get(['id', 'ruangan_id', 'nama_training', 'tgl_mulai', 'tgl_selesai', 'gabung_ruang']);
+        }
 
         $dateBookedRooms = [];
 
+        // Proses booking langsung
         foreach ($bookings as $booking) {
             $start = max($booking->tgl_mulai, $yearStart);
             $end   = min($booking->tgl_selesai, $yearEnd);
@@ -264,7 +288,47 @@ class BookingWizardController extends Controller
                 }
                 $dateBookedRooms[$dateStr][$booking->ruangan_id] = [
                     'ruangan_id'    => $booking->ruangan_id,
-                    'nama_ruang'    => $booking->ruangan?->nama_ruang ?? 'Ruangan',
+                    'nama_ruang'    => $booking->displayRoomName(),
+                    'nama_training' => $booking->nama_training,
+                ];
+
+                // Jika booking ini gabungan, tandai ruangan pasangan juga sebagai terpakai
+                if ($booking->gabung_ruang && $booking->ruangan && $booking->ruangan->pasangan_ruang_id) {
+                    $partnerId = $booking->ruangan->pasangan_ruang_id;
+                    if (in_array($partnerId, $eligibleRoomIds)) {
+                        $dateBookedRooms[$dateStr][$partnerId] = [
+                            'ruangan_id'    => $partnerId,
+                            'nama_ruang'    => $booking->displayRoomName(),
+                            'nama_training' => $booking->nama_training,
+                        ];
+                    }
+                }
+
+                $current->addDay();
+            }
+        }
+
+        // Proses booking gabungan dari ruangan pasangan
+        foreach ($combinedBookingsFromPartners as $booking) {
+            $start = max($booking->tgl_mulai, $yearStart);
+            $end   = min($booking->tgl_selesai, $yearEnd);
+
+            // Cari eligible room yang merupakan pasangan dari ruangan booking ini
+            $partnerInEligible = Ruangan::where('pasangan_ruang_id', $booking->ruangan_id)
+                ->whereIn('id', $eligibleRoomIds)
+                ->first();
+
+            if (!$partnerInEligible) continue;
+
+            $current = $start->copy();
+            while ($current->lte($end)) {
+                $dateStr = $current->toDateString();
+                if (!isset($dateBookedRooms[$dateStr])) {
+                    $dateBookedRooms[$dateStr] = [];
+                }
+                $dateBookedRooms[$dateStr][$partnerInEligible->id] = [
+                    'ruangan_id'    => $partnerInEligible->id,
+                    'nama_ruang'    => $booking->displayRoomName(),
                     'nama_training' => $booking->nama_training,
                 ];
                 $current->addDay();
@@ -525,14 +589,47 @@ class BookingWizardController extends Controller
     // ============================================================
     // PRIVATE HELPERS
     // ============================================================
+
+    /**
+     * Cek apakah sebuah ruangan memiliki konflik jadwal pada rentang tanggal tertentu.
+     *
+     * Logika ini juga mendeteksi booking gabungan (Ruang 2 + 3):
+     *  - Jika mengecek Ruang 3, akan ditemukan booking gabungan yang tercatat
+     *    di Ruang 2 (karena gabung_ruang = true dan Ruang 2 adalah pasangan Ruang 3).
+     *  - Demikian sebaliknya.
+     */
     private function hasConflict(int $roomId, string $startDate, string $endDate): bool
     {
-        // Hanya 'cancelled' yang tidak mengunci ruangan.
-        // 'waiting_confirmation', 'confirmed', dan 'final' semuanya mengunci ruangan.
-        return Booking::where('ruangan_id', $roomId)
+        // 1. Cek konflik langsung: booking yang ruangan_id-nya sama persis
+        $directConflict = Booking::where('ruangan_id', $roomId)
             ->whereNotIn('status', [Booking::STATUS_CANCELLED])
             ->where('tgl_mulai', '<=', $endDate)
             ->where('tgl_selesai', '>=', $startDate)
             ->exists();
+
+        if ($directConflict) {
+            return true;
+        }
+
+        // 2. Cek konflik tidak langsung: booking gabungan yang menggunakan
+        //    ruangan pasangan dari ruangan yang sedang dicek.
+        //    Contoh: Ruang 3 (id=3) punya pasangan Ruang 2 (id=2).
+        //            Jika ada booking gabungan di Ruang 2, maka Ruang 3 juga terpakai.
+        $room = Ruangan::find($roomId);
+        if ($room && $room->pasangan_ruang_id) {
+            $partnerConflict = Booking::where('ruangan_id', $room->pasangan_ruang_id)
+                ->where('gabung_ruang', true)
+                ->whereNotIn('status', [Booking::STATUS_CANCELLED])
+                ->where('tgl_mulai', '<=', $endDate)
+                ->where('tgl_selesai', '>=', $startDate)
+                ->exists();
+
+            if ($partnerConflict) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
+
