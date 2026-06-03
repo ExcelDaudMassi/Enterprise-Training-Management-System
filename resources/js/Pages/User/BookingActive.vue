@@ -11,17 +11,17 @@ const props = defineProps({
 })
 
 const STATUS_META = {
-    waiting_confirmation: {
-        label: 'Menunggu Persetujuan',
-        class: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+    pending: {
+        label: 'Pending',
+        class: 'bg-yellow-50 text-yellow-850 border border-yellow-200',
     },
     confirmed: {
-        label: 'Disetujui',
-        class: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
+        label: 'Confirmed',
+        class: 'bg-indigo-50 text-indigo-850 border border-indigo-200',
     },
-    final: {
-        label: 'ACC Final',
-        class: 'bg-green-100 text-green-800 border border-green-200',
+    finalized: {
+        label: 'Finalized',
+        class: 'bg-green-50 text-green-850 border border-green-200',
     },
 }
 

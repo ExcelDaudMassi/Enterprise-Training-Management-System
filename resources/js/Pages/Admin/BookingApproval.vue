@@ -15,13 +15,14 @@ const props = defineProps({
 
 // ─── Tabs ─────────────────────────────────────────────────────
 const tabs = [
-    { key: 'waiting_confirmation', label: 'Menunggu ACC' },
+    { key: 'pending',              label: 'Pending' },
     { key: 'h14',                  label: '🚨 H-14 (ACC Final)' },
     { key: 'overdue',              label: '⛔ Lewat Tenggat' },
     { key: 'date_changes',         label: '📅 Ubah Tanggal' },
     { key: 'confirmed',            label: 'Confirmed' },
-    { key: 'final',                label: '✅ Final' },
-    { key: 'cancelled',            label: 'Dibatalkan' },
+    { key: 'finalized',            label: '✅ Finalized' },
+    { key: 'rejected',             label: '❌ Rejected' },
+    { key: 'cancelled',            label: 'Cancelled' },
     { key: 'all',                  label: 'Semua' },
 ]
 
@@ -43,11 +44,17 @@ function goToPage(url) {
 }
 
 const STATUS_META = {
-    waiting_confirmation: { label: 'Menunggu',  class: 'bg-yellow-100 text-yellow-800 border border-yellow-200' },
-    confirmed:            { label: 'Disetujui', class: 'bg-blue-100 text-blue-800 border border-blue-200' },
-    final:                { label: 'ACC Final', class: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
-    cancelled:            { label: 'Ditolak',   class: 'bg-red-100 text-red-800 border border-red-200' },
-    plotting:             { label: 'Pending',  class: 'bg-amber-100 text-amber-800 border border-amber-200' },
+    pending:              { label: 'Pending',   class: 'bg-yellow-50 text-yellow-850 border border-yellow-200' },
+    confirmed:            { label: 'Confirmed', class: 'bg-indigo-50 text-indigo-850 border border-indigo-200' },
+    finalized:            { label: 'Finalized', class: 'bg-green-50 text-green-850 border border-green-200' },
+    rejected:             { label: 'Rejected',  class: 'bg-rose-50 text-rose-850 border border-rose-200' },
+    cancelled:            { label: 'Cancelled', class: 'bg-slate-50 text-slate-800 border border-slate-200' },
+    completed:            { label: 'Completed', class: 'bg-emerald-50 text-emerald-850 border border-emerald-250' },
+    
+    // Legacy support
+    waiting_confirmation: { label: 'Pending',   class: 'bg-yellow-50 text-yellow-850 border border-yellow-200' },
+    final:                { label: 'Finalized', class: 'bg-green-50 text-green-850 border border-green-200' },
+    plotting:             { label: 'Plotting',  class: 'bg-amber-50 text-amber-850 border border-amber-200' },
 }
 
 function isPastH14(tglMulai) {
@@ -428,7 +435,7 @@ const layoutLabels = {
                                         Lihat Detail
                                     </button>
                                     <!-- Approve/Reject (only for waiting) -->
-                                    <div v-if="b.status === 'waiting_confirmation'" class="grid grid-cols-2 gap-2">
+                                    <div v-if="b.status === 'pending' || b.status === 'waiting_confirmation'" class="grid grid-cols-2 gap-2">
                                         <button @click="confirmApprove(b)"
                                             class="flex items-center justify-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-[11px] font-bold py-2 px-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-95">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -772,7 +779,7 @@ const layoutLabels = {
                                                 <p class="text-xs text-gray-500 mt-0.5">Panitia</p>
                                             </div>
                                             <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                                                <p class="text-2xl font-black text-gray-700">{{ detailData.booking.status === 'confirmed' ? '1/2' : (detailData.booking.status === 'final' ? '2/2' : '0/2') }}</p>
+                                                <p class="text-2xl font-black text-gray-700">{{ detailData.booking.status === 'confirmed' ? '1/2' : (['finalized', 'final', 'completed'].includes(detailData.booking.status) ? '2/2' : '0/2') }}</p>
                                                 <p class="text-xs text-gray-500 mt-0.5">Tahap ACC</p>
                                             </div>
                                         </div>
@@ -921,7 +928,7 @@ const layoutLabels = {
                                 </div><!-- /Tab Content -->
 
                                 <!-- Panel Footer: Approve / Reject / ACC-2 Actions -->
-                                <div v-if="detailData.booking.status === 'waiting_confirmation'"
+                                <div v-if="detailData.booking.status === 'pending' || detailData.booking.status === 'waiting_confirmation'"
                                      class="flex-shrink-0 border-t border-gray-100 px-6 py-4 bg-gray-50 flex gap-3">
                                     <button @click="closeDetail(); confirmReject({ id: detailData.booking.id, nama_training: detailData.booking.nama_training })"
                                         class="flex-1 px-4 py-2.5 bg-red-100 hover:bg-red-200 border border-red-200 text-red-700 rounded-lg text-sm font-semibold transition">

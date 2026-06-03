@@ -40,7 +40,7 @@ class ScanH14Bookings extends Command
         foreach ($bookings as $booking) {
             if ($mode === 'auto_acc') {
                 $booking->update([
-                    'status' => \App\Models\Booking::STATUS_FINAL,
+                    'status' => \App\Models\Booking::STATUS_FINALIZED,
                     'acc2_at' => now(),
                     // Sistem yang melakukan ACC otomatis (bukan admin spesifik)
                 ]);

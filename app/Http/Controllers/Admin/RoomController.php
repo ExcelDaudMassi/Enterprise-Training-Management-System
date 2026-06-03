@@ -25,7 +25,7 @@ class RoomController extends Controller
                 'bisa_digabung'   => $r->bisa_digabung,
                 'pasangan_ruang_id' => $r->pasangan_ruang_id,
                 'pasangan_nama'   => $r->pasanganRuang?->nama_ruang,
-                'total_bookings'  => $r->bookings()->whereNotIn('status', ['cancelled'])->count(),
+                'total_bookings'  => $r->bookings()->whereNotIn('status', ['cancelled', 'rejected'])->count(),
             ];
         });
 
@@ -105,7 +105,7 @@ class RoomController extends Controller
     {
         // Cek booking aktif (confirmed yang tanggalnya belum lewat)
         $hasActiveBooking = $room->bookings()
-            ->whereIn('status', ['confirmed', 'waiting_confirmation'])
+            ->whereIn('status', ['confirmed', 'pending', 'finalized'])
             ->where('tgl_selesai', '>=', now()->toDateString())
             ->exists();
 

@@ -42,7 +42,7 @@ test('admin can successfully approve a booking, creating logs and notifications'
         'tgl_mulai' => '2026-06-01',
         'tgl_selesai' => '2026-06-03',
         'fase' => 'reguler',
-        'status' => 'waiting_confirmation',
+        'status' => 'pending',
         'pic' => 'John Doe',
         'gabung_ruang' => false
     ]);
@@ -116,7 +116,7 @@ test('admin cannot approve overlapping booking, transaction rolls back successfu
         'tgl_mulai' => '2026-06-02',
         'tgl_selesai' => '2026-06-04',
         'fase' => 'reguler',
-        'status' => 'waiting_confirmation',
+        'status' => 'pending',
         'pic' => 'Jane',
         'gabung_ruang' => false
     ]);
@@ -130,7 +130,7 @@ test('admin cannot approve overlapping booking, transaction rolls back successfu
 
     // 4. Assert that the pending booking status is NOT confirmed
     $pendingBooking->refresh();
-    expect($pendingBooking->status)->toBe('waiting_confirmation');
+    expect($pendingBooking->status)->toBe('pending');
 
     // Assert no log was created for the failed booking
     $logCount = BookingLog::where('booking_id', $pendingBooking->id)->count();

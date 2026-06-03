@@ -15,39 +15,42 @@ const isWindowActive = computed(() => page.props.bookingWindow?.is_active ?? tru
 
 const STATUS_META = {
     plotting: {
-        label: 'Pending',
-        class: 'bg-amber-100 text-amber-800 border border-amber-200',
+        label: 'Plotting',
+        class: 'bg-amber-50 text-amber-850 border border-amber-200',
     },
-    waiting_confirmation: {
-        label: 'Menunggu Persetujuan',
-        class: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+    pending: {
+        label: 'Pending',
+        class: 'bg-yellow-50 text-yellow-850 border border-yellow-200',
     },
     confirmed: {
-        label: 'Disetujui',
-        class: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
+        label: 'Confirmed',
+        class: 'bg-indigo-50 text-indigo-850 border border-indigo-200',
     },
-    final: {
-        label: 'ACC Final',
-        class: 'bg-green-100 text-green-800 border border-green-200',
+    finalized: {
+        label: 'Finalized',
+        class: 'bg-green-50 text-green-850 border border-green-200',
+    },
+    rejected: {
+        label: 'Rejected',
+        class: 'bg-rose-50 text-rose-850 border border-rose-200',
     },
     cancelled: {
-        label: 'Dibatalkan',
-        class: 'bg-gray-100 text-gray-600 border border-gray-200',
+        label: 'Cancelled',
+        class: 'bg-slate-50 text-slate-800 border border-slate-200',
     },
-    done: {
-        label: 'Selesai',
-        class: 'bg-gray-100 text-gray-600 border border-gray-200',
+    completed: {
+        label: 'Completed',
+        class: 'bg-emerald-50 text-emerald-850 border border-emerald-250',
     },
 }
 
 function getStatusMeta(b) {
-    if (!b) return STATUS_META.waiting_confirmation
+    if (!b) return STATUS_META.pending
     if (b.status === 'cancelled') return STATUS_META.cancelled
-    if (b.status === 'waiting_confirmation' || b.status === 'plotting') {
-        return {
-            label: 'Pending',
-            class: 'bg-amber-100 text-amber-800 border border-amber-200',
-        }
+    if (b.status === 'rejected') return STATUS_META.rejected
+    if (b.status === 'completed' || b.status === 'done') return STATUS_META.completed
+    if (b.status === 'waiting_confirmation' || b.status === 'pending' || b.status === 'plotting') {
+        return STATUS_META.pending
     }
     if (b.status === 'confirmed') {
         const today = new Date()
@@ -60,18 +63,21 @@ function getStatusMeta(b) {
         if (start >= today && start <= h14Cutoff) {
             return {
                 label: 'H - 14 (Perlu ACC Final)',
-                class: 'bg-red-100 text-red-800 border border-red-200',
+                class: 'bg-red-50 text-red-850 border border-red-200',
             }
         }
         return STATUS_META.confirmed
     }
-    return STATUS_META[b.status] ?? STATUS_META.waiting_confirmation
+    if (b.status === 'final' || b.status === 'finalized') {
+        return STATUS_META.finalized
+    }
+    return STATUS_META[b.status] ?? STATUS_META.pending
 }
 
 const CHANGE_META = {
-    pending:  { label: 'Menunggu Persetujuan Ubah Tanggal', class: 'text-orange-700 bg-orange-50 border border-orange-100' },
-    approved: { label: 'Perubahan Tanggal Disetujui',       class: 'text-green-700 bg-green-50 border border-green-100' },
-    rejected: { label: 'Perubahan Tanggal Ditolak',         class: 'text-red-700 bg-red-50 border border-red-100' },
+    pending:  { label: 'Menunggu Persetujuan Ubah Tanggal', class: 'text-orange-750 bg-orange-50/70 border border-orange-200' },
+    approved: { label: 'Perubahan Tanggal Disetujui',       class: 'text-green-750 bg-green-50/70 border border-green-200' },
+    rejected: { label: 'Perubahan Tanggal Ditolak',         class: 'text-red-750 bg-red-50/70 border border-red-200' },
 }
 
 function formatDate(d) {
@@ -90,17 +96,17 @@ const filteredBookings = computed(() => {
     return props.bookings.filter(b => {
         if (currentTab.value === 'all') return true
         
-        const isAcc = b.status === 'confirmed' || b.status === 'final'
+        const isAcc = b.status === 'confirmed' || b.status === 'final' || b.status === 'finalized'
         const isPast = b.tgl_selesai ? new Date(b.tgl_selesai) < today : false
 
         if (currentTab.value === 'siap') {
             return isAcc && !isPast
         }
         if (currentTab.value === 'selesai') {
-            return b.status === 'done' || (isAcc && isPast)
+            return b.status === 'completed' || b.status === 'done' || (isAcc && isPast)
         }
         if (currentTab.value === 'batal') {
-            return b.status === 'cancelled'
+            return b.status === 'cancelled' || b.status === 'rejected'
         }
         return true
     })

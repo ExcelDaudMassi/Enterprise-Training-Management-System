@@ -65,9 +65,9 @@ class BookingHistoryController extends Controller
         $bookings = Booking::with(['ruangan', 'participants'])
             ->where('user_id', Auth::id())
             ->whereIn('status', [
-                Booking::STATUS_WAITING_CONFIRMATION,
+                Booking::STATUS_PENDING,
                 Booking::STATUS_CONFIRMED,
-                Booking::STATUS_FINAL,
+                Booking::STATUS_FINALIZED,
             ])
             ->orderBy('tgl_mulai', 'asc')
             ->get()

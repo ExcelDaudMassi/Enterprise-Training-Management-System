@@ -49,23 +49,49 @@ const STATUS_COLORS = {
         text: '#b91c1c',    // Red 700
         border: '#fca5a5',  // Red 300
     },
-    waiting_confirmation: {
+    pending: {
         bg: '#f59e0b',      // Amber 500 (Pending)
         light: '#fffbeb',   // Amber 50
         text: '#b45309',    // Amber 700
         border: '#fcd34d',  // Amber 300
     },
     confirmed: {
-        bg: '#10b981',      // Emerald 500 (Disetujui)
+        bg: '#6366f1',      // Indigo 500 (Confirmed)
+        light: '#e0e7ff',   // Indigo 50
+        text: '#4338ca',    // Indigo 700
+        border: '#a5b4fc',  // Indigo 300
+    },
+    finalized: {
+        bg: '#10b981',      // Emerald 500 (Finalized)
         light: '#ecfdf5',   // Emerald 50
         text: '#047857',    // Emerald 700
         border: '#6ee7b7',  // Emerald 300
+    },
+    completed: {
+        bg: '#059669',      // Emerald 600 (Completed)
+        light: '#f0fdf4',   // Green 50
+        text: '#15803d',    // Green 700
+        border: '#bbf7d0',  // Green 300
     },
     cancelled: {
         bg: '#9ca3af',      // Gray 500 (Dibatalkan)
         light: '#f3f4f6',   // Gray 50
         text: '#4b5563',    // Gray 700
         border: '#e5e7eb',  // Gray 300
+    },
+    rejected: {
+        bg: '#f43f5e',      // Rose 500 (Rejected)
+        light: '#fff1f2',   // Rose 50
+        text: '#be123c',    // Rose 700
+        border: '#fecdd3',  // Rose 300
+    },
+    
+    // Legacy support
+    waiting_confirmation: {
+        bg: '#f59e0b',
+        light: '#fffbeb',
+        text: '#b45309',
+        border: '#fcd34d',
     }
 }
 
@@ -496,27 +522,44 @@ function getGanttBarStyle(b, room) {
 // ============================================================
 const STATUS_STYLE = {
     plotting:             'bg-red-50 text-red-800 border border-red-200',
-    waiting_confirmation: 'bg-amber-50 text-amber-800 border border-amber-200',
-    confirmed:            'bg-green-100 text-green-700 border border-green-200',
-    cancelled:            'bg-gray-100 text-gray-700 border border-gray-200',
+    pending:              'bg-yellow-50 text-yellow-850 border border-yellow-200',
+    confirmed:            'bg-indigo-50 text-indigo-850 border border-indigo-200',
+    finalized:            'bg-green-50 text-green-850 border border-green-200',
+    rejected:             'bg-rose-50 text-rose-850 border border-rose-200',
+    cancelled:            'bg-slate-50 text-slate-800 border border-slate-200',
+    completed:            'bg-emerald-50 text-emerald-850 border border-emerald-250',
+    
+    // Legacy support
+    waiting_confirmation: 'bg-yellow-50 text-yellow-850 border border-yellow-200',
+    final:                'bg-green-50 text-green-850 border border-green-200',
+    done:                 'bg-emerald-50 text-emerald-850 border border-emerald-250',
 }
 
 function statusLabel(status) {
     const map = {
         plotting:             'H - 14',
+        pending:              'Pending',
+        confirmed:            'Confirmed',
+        finalized:            'Finalized',
+        rejected:             'Rejected',
+        cancelled:            'Cancelled',
+        completed:            'Completed',
         waiting_confirmation: 'Pending',
-        confirmed:            'Disetujui',
-        cancelled:            'Dibatalkan',
-        final:                'ACC Final',
-        done:                 'Selesai',
+        final:                'Finalized',
+        done:                 'Completed',
     }
     return map[status] ?? status
 }
 
 function getVisualStatus(b) {
-    if (!b) return 'waiting_confirmation'
+    if (!b) return 'pending'
     if (b.status === 'cancelled') return 'cancelled'
-    if (b.status === 'waiting_confirmation' || b.status === 'plotting') return 'waiting_confirmation'
+    if (b.status === 'rejected') return 'rejected'
+    if (b.status === 'completed' || b.status === 'done') return 'completed'
+    if (b.status === 'finalized' || b.status === 'final') return 'finalized'
+    if (b.status === 'waiting_confirmation' || b.status === 'pending' || b.status === 'plotting') {
+        return 'pending'
+    }
     
     if (b.status === 'confirmed') {
         const today = new Date()
@@ -980,8 +1023,10 @@ function getVisualStatus(b) {
                                                 <!-- Status indicator dot at the end -->
                                                 <span class="w-2 h-2 rounded-full shrink-0 ml-auto shadow-xs" :class="[
                                                     getVisualStatus(b) === 'plotting' ? 'bg-red-500 animate-pulse' : '',
-                                                    getVisualStatus(b) === 'waiting_confirmation' ? 'bg-amber-500 animate-pulse' : '',
-                                                    getVisualStatus(b) === 'confirmed' ? 'bg-emerald-500' : ''
+                                                    getVisualStatus(b) === 'pending' ? 'bg-amber-500 animate-pulse' : '',
+                                                    getVisualStatus(b) === 'confirmed' ? 'bg-indigo-500' : '',
+                                                    ['finalized', 'completed'].includes(getVisualStatus(b)) ? 'bg-emerald-500' : '',
+                                                    ['cancelled', 'rejected'].includes(getVisualStatus(b)) ? 'bg-gray-450' : '',
                                                 ]"></span>
                                             </div>
                                         </div>

@@ -14,10 +14,14 @@ const props = defineProps({
 
 // Map filter dari dashboard ke tab yang relevan
 const filterToTab = {
-    'waiting_confirmation': 'waiting_confirmation',
+    'pending':              'pending',
+    'waiting_confirmation': 'pending',
     'confirmed':            'confirmed',
-    'final':                'final',
+    'finalized':            'finalized',
+    'final':                'finalized',
     'cancelled':            'cancelled',
+    'rejected':             'rejected',
+    'completed':            'completed',
     'urgent':               'urgent',
     'overdue':              'overdue',
     'all':                  'all',
@@ -25,33 +29,50 @@ const filterToTab = {
 const activeTab = ref(filterToTab[props.activeFilter] ?? 'all')
 
 const tabs = [
-    { key: 'waiting_confirmation', label: 'Menunggu' },
-    { key: 'confirmed',            label: 'Disetujui' },
-    { key: 'final',                label: 'ACC Final' },
-    { key: 'cancelled',            label: 'Ditolak' },
+    { key: 'pending',              label: 'Pending' },
+    { key: 'confirmed',            label: 'Confirmed' },
+    { key: 'finalized',            label: 'Finalized' },
+    { key: 'rejected',             label: 'Rejected' },
+    { key: 'cancelled',            label: 'Cancelled' },
+    { key: 'completed',            label: 'Completed' },
     { key: 'urgent',               label: '🚨 H-14' },
     { key: 'overdue',              label: '⛔ Lewat Tenggat' },
     { key: 'all',                  label: 'Semua' },
 ]
 
 const statusMeta = {
-    waiting_confirmation: { label: 'Menunggu',  class: 'bg-yellow-100 text-yellow-800 border border-yellow-200' },
-    confirmed:            { label: 'Disetujui', class: 'bg-blue-100 text-blue-800 border border-blue-200' },
-    final:                { label: 'ACC Final',     class: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
-    cancelled:            { label: 'Ditolak',   class: 'bg-red-100 text-red-800 border border-red-200' },
-    plotting:             { label: 'Pending',  class: 'bg-amber-100 text-amber-800 border border-amber-200' },
+    pending:              { label: 'Pending',   class: 'bg-yellow-50 text-yellow-850 border border-yellow-200' },
+    confirmed:            { label: 'Confirmed', class: 'bg-indigo-50 text-indigo-850 border border-indigo-200' },
+    finalized:            { label: 'Finalized', class: 'bg-green-50 text-green-850 border border-green-200' },
+    rejected:             { label: 'Rejected',  class: 'bg-rose-50 text-rose-850 border border-rose-200' },
+    cancelled:            { label: 'Cancelled', class: 'bg-slate-50 text-slate-800 border border-slate-200' },
+    completed:            { label: 'Completed', class: 'bg-emerald-50 text-emerald-850 border border-emerald-250' },
+    
+    // Legacy support
+    waiting_confirmation: { label: 'Pending',   class: 'bg-yellow-50 text-yellow-850 border border-yellow-200' },
+    final:                { label: 'Finalized', class: 'bg-green-50 text-green-850 border border-green-200' },
+    plotting:             { label: 'Plotting',  class: 'bg-amber-50 text-amber-850 border border-amber-200' },
 }
 
 function tabCount(key) {
     if (key === 'all') return props.bookings.length
     if (key === activeTab.value && ['urgent', 'overdue'].includes(key)) return props.bookings.length
     if (['urgent', 'overdue'].includes(key)) return '-'
-    return props.bookings.filter(b => b.status === (key === 'urgent' ? 'waiting_confirmation' : key)).length
+    return props.bookings.filter(b => {
+        if (key === 'pending') return b.status === 'pending' || b.status === 'waiting_confirmation'
+        if (key === 'finalized') return b.status === 'finalized' || b.status === 'final'
+        return b.status === key
+    }).length
 }
 
 const filteredBookings = computed(() => {
     if (activeTab.value === 'all') return props.bookings
-    return props.bookings.filter(b => b.status === activeTab.value)
+    if (activeTab.value === 'urgent' || activeTab.value === 'overdue') return props.bookings
+    return props.bookings.filter(b => {
+        if (activeTab.value === 'pending') return b.status === 'pending' || b.status === 'waiting_confirmation'
+        if (activeTab.value === 'finalized') return b.status === 'finalized' || b.status === 'final'
+        return b.status === activeTab.value
+    })
 })
 
 function formatTanggal(tgl) {

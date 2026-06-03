@@ -64,7 +64,7 @@ class HandleInertiaRequests extends Middleware
 
                 // a) Booking baru
                 $newBookings = \App\Models\Booking::with('user')
-                    ->where('status', 'waiting_confirmation')
+                    ->where('status', \App\Models\Booking::STATUS_PENDING)
                     ->orderBy('created_at', 'desc')
                     ->take(5)
                     ->get()
@@ -74,7 +74,7 @@ class HandleInertiaRequests extends Middleware
                         'label'         => "Booking baru: {$b->nama_training}",
                         'sub'           => $b->user?->name ?? '-',
                         'created_at'    => $b->created_at->diffForHumans(),
-                        'filter'        => 'waiting_confirmation',
+                        'filter'        => 'pending',
                     ]);
 
                 // b) Urgent H-14
@@ -96,7 +96,7 @@ class HandleInertiaRequests extends Middleware
 
                 // c) Overdue
                 $overdueBookings = \App\Models\Booking::with('user')
-                    ->where('status', 'waiting_confirmation')
+                    ->where('status', \App\Models\Booking::STATUS_PENDING)
                     ->where('tgl_mulai', '<', $today)
                     ->orderBy('tgl_mulai', 'asc')
                     ->take(5)

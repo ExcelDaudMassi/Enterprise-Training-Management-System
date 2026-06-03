@@ -40,7 +40,7 @@ class DashboardController extends Controller
         // ── 4 Stats Cards (berdasarkan tahun yang dipilih) ─────────────
         $stats = [
             // Kartu 1 – Pending (menunggu ACC) untuk tahun yang dipilih
-            'pending_approval' => Booking::where('status', Booking::STATUS_WAITING_CONFIRMATION)
+            'pending_approval' => Booking::where('status', Booking::STATUS_PENDING)
                 ->where(function ($q) use ($yearStart, $yearEnd) {
                     $q->whereBetween('tgl_mulai', [$yearStart, $yearEnd])
                       ->orWhereBetween('tgl_selesai', [$yearStart, $yearEnd]);
@@ -48,29 +48,31 @@ class DashboardController extends Controller
                 ->count(),
 
             // Kartu 2 – Confirmed untuk tahun yang dipilih
-            'confirmed_this_month' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINAL])
+            'confirmed_count' => Booking::where('status', Booking::STATUS_CONFIRMED)
                 ->where(function ($q) use ($yearStart, $yearEnd) {
                     $q->whereBetween('tgl_mulai', [$yearStart, $yearEnd])
                       ->orWhereBetween('tgl_selesai', [$yearStart, $yearEnd]);
                 })
                 ->count(),
 
-            // Kartu 3 – H-14: confirmed & mulai dalam jangka H-14 kontekstual
-            'urgent_h14' => Booking::where('status', Booking::STATUS_CONFIRMED)
-                ->where('tgl_mulai', '<=', $h14YearEnd)
-                ->where('tgl_mulai', '>=', $h14YearStart)
+            // Kartu 3 – Finalized untuk tahun yang dipilih
+            'finalized_count' => Booking::where('status', Booking::STATUS_FINALIZED)
+                ->where(function ($q) use ($yearStart, $yearEnd) {
+                    $q->whereBetween('tgl_mulai', [$yearStart, $yearEnd])
+                      ->orWhereBetween('tgl_selesai', [$yearStart, $yearEnd]);
+                })
                 ->count(),
 
             // Kartu 4 – Ruangan terpakai hari ini (selalu hari ini, tidak difilter tahun)
-            'rooms_today' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINAL])
+            'rooms_today' => Booking::whereIn('status', [Booking::STATUS_CONFIRMED, Booking::STATUS_FINALIZED])
                 ->where('tgl_mulai', '<=', $today)
                 ->where('tgl_selesai', '>=', $today)
                 ->whereNotNull('ruangan_id')
                 ->distinct('ruangan_id')
                 ->count('ruangan_id'),
 
-            // Extra – Jumlah dibatalkan untuk tahun dipilih (dipakai oleh donut chart)
-            'cancelled_count' => Booking::where('status', Booking::STATUS_CANCELLED)
+            // Extra – Jumlah dibatalkan/ditolak untuk tahun dipilih (dipakai oleh donut chart)
+            'cancelled_count' => Booking::whereIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED])
                 ->where(function ($q) use ($yearStart, $yearEnd) {
                     $q->whereBetween('tgl_mulai', [$yearStart, $yearEnd])
                       ->orWhereBetween('tgl_selesai', [$yearStart, $yearEnd]);
@@ -95,7 +97,7 @@ class DashboardController extends Controller
         // ── Notifications ──────────────────────────────────────────────
         // a) Booking baru (waiting_confirmation, urut dari terbaru, max 5)
         $newBookings = Booking::with('user')
-            ->where('status', 'waiting_confirmation')
+            ->where('status', Booking::STATUS_PENDING)
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get()
@@ -105,7 +107,7 @@ class DashboardController extends Controller
                 'label'         => "Booking baru: {$b->nama_training}",
                 'sub'           => $b->user?->name ?? '-',
                 'created_at'    => $b->created_at->diffForHumans(),
-                'filter'        => 'waiting_confirmation',
+                'filter'        => 'pending',
             ]);
 
         // b) Urgent H-14: confirmed, mulai dalam 14 hari (butuh ACC Final)
@@ -178,7 +180,7 @@ class DashboardController extends Controller
                 $query->whereYear('tgl_mulai', $year)
                       ->orWhereYear('tgl_selesai', $year);
             })
-            ->whereNotIn('status', [Booking::STATUS_CANCELLED]);
+            ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED]);
 
         if ($ruanganFilter) {
             $bookingQuery->where('ruangan_id', $ruanganFilter);

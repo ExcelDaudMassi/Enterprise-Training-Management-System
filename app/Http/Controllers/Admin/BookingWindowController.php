@@ -70,7 +70,7 @@ class BookingWindowController extends Controller
     public function close()
     {
         // Validasi: Cek apakah masih ada booking yang berstatus waiting_confirmation
-        $pendingCount = \App\Models\Booking::where('status', 'waiting_confirmation')->count();
+        $pendingCount = \App\Models\Booking::where('status', \App\Models\Booking::STATUS_PENDING)->count();
 
         if ($pendingCount > 0) {
             return back()->with('error', "Tidak dapat menutup window. Terdapat {$pendingCount} pengajuan yang belum diproses (Setuju/Tolak). Harap selesaikan seluruh antrean sebelum menutup periode pemesanan.");

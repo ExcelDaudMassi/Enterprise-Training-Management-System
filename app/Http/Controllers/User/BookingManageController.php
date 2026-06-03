@@ -291,7 +291,7 @@ class BookingManageController extends Controller
     {
         // 1. Cek konflik langsung
         $directConflict = Booking::where('ruangan_id', $roomId)
-            ->whereNotIn('status', [Booking::STATUS_CANCELLED])
+            ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED])
             ->where('tgl_mulai', '<=', $endDate)
             ->where('tgl_selesai', '>=', $startDate)
             ->when($excludeBookingId, fn($q) => $q->where('id', '!=', $excludeBookingId))
@@ -306,7 +306,7 @@ class BookingManageController extends Controller
         if ($room && $room->pasangan_ruang_id) {
             $partnerConflict = Booking::where('ruangan_id', $room->pasangan_ruang_id)
                 ->where('gabung_ruang', true)
-                ->whereNotIn('status', [Booking::STATUS_CANCELLED])
+                ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED])
                 ->where('tgl_mulai', '<=', $endDate)
                 ->where('tgl_selesai', '>=', $startDate)
                 ->when($excludeBookingId, fn($q) => $q->where('id', '!=', $excludeBookingId))

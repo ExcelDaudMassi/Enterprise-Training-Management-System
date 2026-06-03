@@ -40,10 +40,12 @@ class BookingApprovalController extends Controller
         $query = Booking::with(['user', 'ruangan', 'participants']);
 
         match ($filter) {
-            'waiting_confirmation' => $query->where('status', Booking::STATUS_WAITING_CONFIRMATION),
+            'waiting_confirmation', 'pending' => $query->where('status', Booking::STATUS_PENDING),
             'confirmed'            => $query->where('status', Booking::STATUS_CONFIRMED),
             'cancelled'            => $query->where('status', Booking::STATUS_CANCELLED),
-            'final'                => $query->where('status', Booking::STATUS_FINAL),
+            'rejected'             => $query->where('status', Booking::STATUS_REJECTED),
+            'final', 'finalized'   => $query->where('status', Booking::STATUS_FINALIZED),
+            'completed'            => $query->where('status', Booking::STATUS_COMPLETED),
 
             // H-14: confirmed, mulai dalam 0-14 hari ke depan
             'h14', 'urgent' => $query->where('status', Booking::STATUS_CONFIRMED)
@@ -70,7 +72,7 @@ class BookingApprovalController extends Controller
         }
 
         // Pengurutan: antrian tunggu → diurutkan dari TERLAMA; yang lain → TERBARU
-        if (in_array($filter, ['waiting_confirmation', 'h14', 'overdue', 'date_changes'])) {
+        if (in_array($filter, ['waiting_confirmation', 'pending', 'h14', 'overdue', 'date_changes'])) {
             $query->orderBy('tgl_mulai', 'asc');
         } else {
             $query->orderBy('created_at', 'desc');
@@ -99,19 +101,21 @@ class BookingApprovalController extends Controller
         $filter = $request->query('filter', 'all');
 
         match ($filter) {
-            'waiting_confirmation' => $query->where('status', 'waiting_confirmation'),
-            'confirmed'            => $query->where('status', 'confirmed'),
-            'final'                => $query->where('status', Booking::STATUS_FINAL),
-            'cancelled'            => $query->where('status', 'cancelled'),
-            'urgent'               => $query->where('status', 'waiting_confirmation')
+            'waiting_confirmation', 'pending' => $query->where('status', Booking::STATUS_PENDING),
+            'confirmed'            => $query->where('status', Booking::STATUS_CONFIRMED),
+            'final', 'finalized'   => $query->where('status', Booking::STATUS_FINALIZED),
+            'cancelled'            => $query->where('status', Booking::STATUS_CANCELLED),
+            'rejected'             => $query->where('status', Booking::STATUS_REJECTED),
+            'completed'            => $query->where('status', Booking::STATUS_COMPLETED),
+            'urgent'               => $query->where('status', Booking::STATUS_PENDING)
                                             ->where('tgl_mulai', '<=', $today->copy()->addDays(14))
                                             ->where('tgl_mulai', '>=', $today),
-            'overdue'              => $query->where('status', 'waiting_confirmation')
+            'overdue'              => $query->where('status', Booking::STATUS_PENDING)
                                             ->where('tgl_mulai', '<', $today),
             default                => null,
         };
 
-        if (in_array($filter, ['waiting_confirmation', 'urgent', 'overdue'])) {
+        if (in_array($filter, ['waiting_confirmation', 'pending', 'urgent', 'overdue'])) {
             $query->orderBy('created_at', 'asc');
         } else {
             $query->orderBy('created_at', 'desc');
@@ -276,13 +280,16 @@ class BookingApprovalController extends Controller
         $query = Booking::with(['user', 'ruangan', 'participants']);
 
         match ($filter) {
-            'waiting_confirmation' => $query->where('status', 'waiting_confirmation'),
-            'confirmed'            => $query->where('status', 'confirmed'),
-            'cancelled'            => $query->where('status', 'cancelled'),
-            'urgent'               => $query->where('status', 'waiting_confirmation')
+            'waiting_confirmation', 'pending' => $query->where('status', Booking::STATUS_PENDING),
+            'confirmed'            => $query->where('status', Booking::STATUS_CONFIRMED),
+            'final', 'finalized'   => $query->where('status', Booking::STATUS_FINALIZED),
+            'cancelled'            => $query->where('status', Booking::STATUS_CANCELLED),
+            'rejected'             => $query->where('status', Booking::STATUS_REJECTED),
+            'completed'            => $query->where('status', Booking::STATUS_COMPLETED),
+            'urgent'               => $query->where('status', Booking::STATUS_PENDING)
                                              ->where('tgl_mulai', '<=', $today->copy()->addDays(14))
                                              ->where('tgl_mulai', '>=', $today),
-            'overdue'              => $query->where('status', 'waiting_confirmation')
+            'overdue'              => $query->where('status', Booking::STATUS_PENDING)
                                              ->where('tgl_mulai', '<', $today),
             default                => null,
         };
@@ -457,7 +464,7 @@ class BookingApprovalController extends Controller
 
                 // Cek konflik: apakah ada booking aktif lain yang bertabrakan tanggal dan ruangan
                 // Status aktif = semua kecuali cancelled (waiting_confirmation, confirmed, final)
-                $overlappingActive = Booking::whereNotIn('status', [Booking::STATUS_CANCELLED])
+                $overlappingActive = Booking::whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED])
                     ->where('id', '!=', $booking->id)
                     ->where('tgl_mulai', '<=', $booking->tgl_selesai->toDateString())
                     ->where('tgl_selesai', '>=', $booking->tgl_mulai->toDateString())
@@ -533,7 +540,7 @@ class BookingApprovalController extends Controller
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($booking, $request) {
                 $booking->update([
-                    'status'        => 'cancelled',
+                    'status'        => Booking::STATUS_REJECTED,
                     'catatan_admin' => $request->catatan_admin,
                 ]);
 
@@ -575,7 +582,7 @@ class BookingApprovalController extends Controller
             \Illuminate\Support\Facades\DB::transaction(function () use ($booking) {
                 // Ubah status menjadi final
                 $booking->update([
-                    'status'  => Booking::STATUS_FINAL,
+                    'status'  => Booking::STATUS_FINALIZED,
                     'acc2_at' => now(),
                     'acc2_by' => auth()->id(),
                 ]);
@@ -620,7 +627,7 @@ class BookingApprovalController extends Controller
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($booking) {
                 $booking->update([
-                    'status'  => Booking::STATUS_FINAL,
+                    'status'  => Booking::STATUS_FINALIZED,
                     'acc2_at' => now(),
                     'acc2_by' => Auth::id(),
                 ]);
@@ -669,7 +676,7 @@ class BookingApprovalController extends Controller
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($booking, $request) {
                 $booking->update([
-                    'status'                => Booking::STATUS_FINAL,
+                    'status'                => Booking::STATUS_FINALIZED,
                     'acc2_at'               => now(),
                     'acc2_by'               => Auth::id(),
                     'catatan_acc_terlambat' => $request->catatan_acc_terlambat,
@@ -720,7 +727,7 @@ class BookingApprovalController extends Controller
         $newStart = $booking->proposed_tgl_mulai->toDateString();
         $newEnd   = $booking->proposed_tgl_selesai->toDateString();
 
-        $hasConflict = Booking::whereNotIn('status', [Booking::STATUS_CANCELLED])
+        $hasConflict = Booking::whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED])
             ->where('id', '!=', $booking->id)
             ->where('tgl_mulai', '<=', $newEnd)
             ->where('tgl_selesai', '>=', $newStart)

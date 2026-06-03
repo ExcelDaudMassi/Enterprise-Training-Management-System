@@ -24,10 +24,16 @@ function handleBack(url, e) {
 }
 
 const STATUS_META = {
-    waiting_confirmation: { label: 'Menunggu Persetujuan', class: 'bg-yellow-50 text-yellow-800 border border-yellow-250/60' },
-    confirmed:            { label: 'Disetujui',            class: 'bg-indigo-50 text-indigo-800 border border-indigo-250/60' },
-    cancelled:            { label: 'Dibatalkan',           class: 'bg-red-50 text-red-800 border border-red-250/60' },
-    final:                { label: 'ACC Final', class: 'bg-green-50 text-green-800 border border-green-250/60' },
+    pending:   { label: 'Pending',   class: 'bg-yellow-50 text-yellow-850 border border-yellow-200' },
+    confirmed: { label: 'Confirmed', class: 'bg-indigo-50 text-indigo-850 border border-indigo-200' },
+    finalized: { label: 'Finalized', class: 'bg-green-50 text-green-850 border border-green-200' },
+    rejected:  { label: 'Rejected',  class: 'bg-rose-50 text-rose-850 border border-rose-200' },
+    cancelled: { label: 'Cancelled', class: 'bg-slate-50 text-slate-800 border border-slate-200' },
+    completed: { label: 'Completed', class: 'bg-emerald-50 text-emerald-850 border border-emerald-250' },
+    
+    // Fallbacks for older data
+    waiting_confirmation: { label: 'Pending',   class: 'bg-yellow-50 text-yellow-850 border border-yellow-200' },
+    final:                { label: 'Finalized', class: 'bg-green-50 text-green-850 border border-green-200' },
 }
 
 function formatDate(d) {
@@ -157,9 +163,9 @@ function getAvatarBg(id) {
                           :class="STATUS_META[booking.status]?.class ?? 'bg-gray-100 text-gray-600 border border-gray-200'">
                         <span class="relative flex h-2 w-2 shrink-0">
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" 
-                                  :class="booking.status === 'waiting_confirmation' ? 'bg-yellow-400' : (booking.status === 'confirmed' ? 'bg-indigo-400' : (booking.status === 'final' ? 'bg-green-400' : 'bg-red-400'))"></span>
+                                  :class="['pending', 'waiting_confirmation'].includes(booking.status) ? 'bg-yellow-400' : (booking.status === 'confirmed' ? 'bg-indigo-400' : (['finalized', 'final', 'completed'].includes(booking.status) ? 'bg-green-400' : 'bg-red-400'))"></span>
                             <span class="relative inline-flex rounded-full h-2 w-2"
-                                  :class="booking.status === 'waiting_confirmation' ? 'bg-yellow-500' : (booking.status === 'confirmed' ? 'bg-indigo-500' : (booking.status === 'final' ? 'bg-green-500' : 'bg-red-500'))"></span>
+                                  :class="['pending', 'waiting_confirmation'].includes(booking.status) ? 'bg-yellow-500' : (booking.status === 'confirmed' ? 'bg-indigo-500' : (['finalized', 'final', 'completed'].includes(booking.status) ? 'bg-green-500' : 'bg-red-500'))"></span>
                         </span>
                         {{ STATUS_META[booking.status]?.label ?? booking.status }}
                     </span>
@@ -471,35 +477,35 @@ function getAvatarBg(id) {
                                 </div>
                             </div>
 
-                            <!-- Step 2: Persetujuan Admin (confirmed / waiting_confirmation) -->
+                            <!-- Step 2: Persetujuan Admin (pending, confirmed, finalized, completed) -->
                             <div class="flex gap-3">
                                 <div class="flex flex-col items-center">
                                     <div class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0"
-                                         :class="(booking.status === 'confirmed' || booking.status === 'final') ? 'bg-green-100 border border-green-200 text-green-700' : (booking.status === 'cancelled' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-blue-50 border border-blue-200 text-blue-700 animate-pulse')">
-                                        {{ (booking.status === 'confirmed' || booking.status === 'final') ? '✓' : (booking.status === 'cancelled' ? '✕' : '2') }}
+                                         :class="(['confirmed', 'finalized', 'final', 'completed'].includes(booking.status)) ? 'bg-green-100 border border-green-200 text-green-700' : ((['cancelled', 'rejected'].includes(booking.status)) ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-blue-50 border border-blue-200 text-blue-700 animate-pulse')">
+                                        {{ (['confirmed', 'finalized', 'final', 'completed'].includes(booking.status)) ? '✓' : ((['cancelled', 'rejected'].includes(booking.status)) ? '✕' : '2') }}
                                     </div>
-                                    <div class="w-0.5 h-6 mt-1" :class="(booking.status === 'final') ? 'bg-green-250' : 'bg-gray-200'"></div>
+                                    <div class="w-0.5 h-6 mt-1" :class="(['finalized', 'final', 'completed'].includes(booking.status)) ? 'bg-green-250' : 'bg-gray-200'"></div>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-bold text-gray-800" :class="booking.status === 'waiting_confirmation' ? 'text-blue-700 font-bold' : ''">Persetujuan Admin</p>
+                                    <p class="font-bold text-gray-800" :class="['pending', 'waiting_confirmation'].includes(booking.status) ? 'text-blue-700 font-bold' : ''">Persetujuan Admin</p>
                                     <p class="text-[10px] text-gray-500 mt-0.5">
-                                        {{ (booking.status === 'confirmed' || booking.status === 'final') ? 'Disetujui Admin' : (booking.status === 'cancelled' ? 'Pemesanan Dibatalkan' : 'Menunggu persetujuan admin') }}
+                                        {{ (['confirmed', 'finalized', 'final', 'completed'].includes(booking.status)) ? 'Disetujui Admin' : ((['cancelled', 'rejected'].includes(booking.status)) ? (booking.status === 'rejected' ? 'Pemesanan Ditolak' : 'Pemesanan Dibatalkan') : 'Menunggu persetujuan admin') }}
                                     </p>
                                 </div>
                             </div>
 
-                            <!-- Step 3: ACC Final -->
+                            <!-- Step 3: ACC Final & Persiapan Ruangan -->
                             <div class="flex gap-3">
                                 <div class="flex flex-col items-center">
                                     <div class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0"
-                                         :class="booking.status === 'final' ? 'bg-green-100 border border-green-200 text-green-700' : 'bg-gray-50 border border-gray-200 text-gray-400'">
-                                        {{ booking.status === 'final' ? '✓' : '3' }}
+                                         :class="(['finalized', 'final', 'completed'].includes(booking.status)) ? 'bg-green-100 border border-green-200 text-green-700' : 'bg-gray-50 border border-gray-200 text-gray-400'">
+                                        {{ (['finalized', 'final', 'completed'].includes(booking.status)) ? '✓' : '3' }}
                                     </div>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-bold text-gray-800" :class="booking.status === 'final' ? 'text-green-700 font-bold' : 'text-gray-400'">Persiapan Ruangan</p>
+                                    <p class="font-bold text-gray-800" :class="(['finalized', 'final', 'completed'].includes(booking.status)) ? 'text-green-700 font-bold' : 'text-gray-400'">Persiapan Ruangan</p>
                                     <p class="text-[10px] text-gray-500 mt-0.5">
-                                        {{ booking.status === 'final' ? 'Tim lapangan sedang mempersiapkan fasilitas' : 'Persiapan dilakukan setelah status disetujui' }}
+                                        {{ (['finalized', 'final', 'completed'].includes(booking.status)) ? 'Tim lapangan sedang mempersiapkan fasilitas' : 'Persiapan dilakukan setelah status disetujui' }}
                                     </p>
                                 </div>
                             </div>

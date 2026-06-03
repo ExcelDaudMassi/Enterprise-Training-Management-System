@@ -16,10 +16,12 @@ class Booking extends Model
     // Status Constants — nilai resmi untuk kolom `status`
     // =========================================================
     const STATUS_PLOTTING              = 'plotting';
-    const STATUS_WAITING_CONFIRMATION  = 'waiting_confirmation';
+    const STATUS_PENDING               = 'pending';
     const STATUS_CONFIRMED             = 'confirmed';
+    const STATUS_FINALIZED             = 'finalized';
+    const STATUS_REJECTED              = 'rejected';
     const STATUS_CANCELLED             = 'cancelled';
-    const STATUS_FINAL                 = 'final';
+    const STATUS_COMPLETED             = 'completed';
 
     // Status-perubahan constants
     const CHANGE_NONE     = 'none';
@@ -119,14 +121,24 @@ class Booking extends Model
         return $query->where('status', self::STATUS_CONFIRMED);
     }
 
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
     public function scopeWaitingConfirmation($query)
     {
-        return $query->where('status', self::STATUS_WAITING_CONFIRMATION);
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    public function scopeFinalized($query)
+    {
+        return $query->where('status', self::STATUS_FINALIZED);
     }
 
     public function scopeFinal($query)
     {
-        return $query->where('status', self::STATUS_FINAL);
+        return $query->where('status', self::STATUS_FINALIZED);
     }
 
     public function scopeByUser($query, int $userId)
@@ -172,9 +184,14 @@ class Booking extends Model
         return $this->status === self::STATUS_PLOTTING;
     }
 
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
     public function isWaitingConfirmation(): bool
     {
-        return $this->status === self::STATUS_WAITING_CONFIRMATION;
+        return $this->isPending();
     }
 
     public function isConfirmed(): bool
@@ -182,14 +199,19 @@ class Booking extends Model
         return $this->status === self::STATUS_CONFIRMED;
     }
 
+    public function isFinalized(): bool
+    {
+        return $this->status === self::STATUS_FINALIZED;
+    }
+
     public function isFinalConfirmed(): bool
     {
-        return $this->status === self::STATUS_FINAL;
+        return $this->isFinalized();
     }
 
     public function canBeAcc2(): bool
     {
-        return $this->isConfirmed() && !$this->isFinal();
+        return $this->isConfirmed() && !$this->isFinalized();
     }
 
     public function isCancelled(): bool
@@ -197,9 +219,19 @@ class Booking extends Model
         return $this->status === self::STATUS_CANCELLED;
     }
 
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
     public function isFinal(): bool
     {
-        return $this->status === self::STATUS_FINAL;
+        return $this->isFinalized();
     }
 
     public function hasPendingDateChange(): bool
@@ -211,19 +243,14 @@ class Booking extends Model
     // Business Rule Checks
     // =========================================================
 
-    /**
-     * User bisa membatalkan booking jika:
-     *  - Status adalah waiting_confirmation atau confirmed
-     *  - Belum final
-     */
     public function canBeCancelled(): bool
     {
         $belumMelewatiH1 = \Illuminate\Support\Carbon::today()->lessThan($this->tgl_mulai);
         
         return in_array($this->status, [
-            self::STATUS_WAITING_CONFIRMATION,
+            self::STATUS_PENDING,
             self::STATUS_CONFIRMED,
-        ]) && !$this->isFinal() && $belumMelewatiH1;
+        ]) && !$this->isFinalized() && $belumMelewatiH1;
     }
 
     /**
@@ -235,16 +262,16 @@ class Booking extends Model
     public function canRequestDateChange(): bool
     {
         return $this->isConfirmed()
-            && !$this->isFinal()
+            && !$this->isFinalized()
             && !$this->hasPendingDateChange();
     }
 
     /**
-     * User bisa update peserta jika booking belum final dan belum cancelled.
+     * User bisa update peserta jika booking belum final, belum cancelled, dan belum rejected.
      */
     public function canUpdateParticipants(): bool
     {
-        return !$this->isFinal() && !$this->isCancelled();
+        return !$this->isFinalized() && !$this->isCancelled() && !$this->isRejected();
     }
 
     /**

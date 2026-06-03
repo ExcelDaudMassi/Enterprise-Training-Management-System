@@ -244,7 +244,7 @@ class BookingWizardController extends Controller
         $yearEnd   = Carbon::create($year, 12, 31)->endOfDay();
 
         // Ambil booking langsung pada ruangan yang eligible
-        $bookings = Booking::whereNotIn('status', ['cancelled'])
+        $bookings = Booking::whereNotIn('status', ['cancelled', 'rejected'])
             ->whereIn('ruangan_id', $eligibleRoomIds)
             ->where('tgl_mulai', '<=', $yearEnd)
             ->where('tgl_selesai', '>=', $yearStart)
@@ -264,7 +264,7 @@ class BookingWizardController extends Controller
 
         $combinedBookingsFromPartners = collect();
         if (!empty($partnerRoomIds)) {
-            $combinedBookingsFromPartners = Booking::whereNotIn('status', ['cancelled'])
+            $combinedBookingsFromPartners = Booking::whereNotIn('status', ['cancelled', 'rejected'])
                 ->whereIn('ruangan_id', $partnerRoomIds)
                 ->where('gabung_ruang', true)
                 ->where('tgl_mulai', '<=', $yearEnd)
@@ -520,7 +520,7 @@ class BookingWizardController extends Controller
                 'tgl_mulai'          => $validated['tgl_mulai'],
                 'tgl_selesai'        => $validated['tgl_selesai'],
                 'fase'               => 'reguler',
-                'status'             => 'waiting_confirmation',
+                'status'             => Booking::STATUS_PENDING,
                 'pic'                => $stage4Data['nama_pic'],
                 'no_hp_pic'          => $stage4Data['no_hp_pic'] ?? null,
                 'gabung_ruang'       => $isCombined,
@@ -602,7 +602,7 @@ class BookingWizardController extends Controller
     {
         // 1. Cek konflik langsung: booking yang ruangan_id-nya sama persis
         $directConflict = Booking::where('ruangan_id', $roomId)
-            ->whereNotIn('status', [Booking::STATUS_CANCELLED])
+            ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED])
             ->where('tgl_mulai', '<=', $endDate)
             ->where('tgl_selesai', '>=', $startDate)
             ->exists();
@@ -619,7 +619,7 @@ class BookingWizardController extends Controller
         if ($room && $room->pasangan_ruang_id) {
             $partnerConflict = Booking::where('ruangan_id', $room->pasangan_ruang_id)
                 ->where('gabung_ruang', true)
-                ->whereNotIn('status', [Booking::STATUS_CANCELLED])
+                ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_REJECTED])
                 ->where('tgl_mulai', '<=', $endDate)
                 ->where('tgl_selesai', '>=', $startDate)
                 ->exists();

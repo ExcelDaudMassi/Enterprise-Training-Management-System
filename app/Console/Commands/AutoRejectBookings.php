@@ -19,14 +19,14 @@ class AutoRejectBookings extends Command
     {
         $cutoffDate = Carbon::today()->addDays(3);
 
-        $bookingsToReject = Booking::where('status', 'waiting_confirmation')
+        $bookingsToReject = Booking::where('status', Booking::STATUS_PENDING)
             ->where('tgl_mulai', '<=', $cutoffDate)
             ->get();
 
         $count = 0;
         foreach ($bookingsToReject as $booking) {
             $booking->update([
-                'status' => 'cancelled',
+                'status' => Booking::STATUS_REJECTED,
                 'catatan_admin' => 'Dibatalkan otomatis karena melewati batas waktu konfirmasi Admin (H-3 acara).'
             ]);
             $count++;

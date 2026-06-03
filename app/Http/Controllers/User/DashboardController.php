@@ -27,7 +27,7 @@ class DashboardController extends Controller
                 $query->whereYear('tgl_mulai', $year)
                       ->orWhereYear('tgl_selesai', $year);
             })
-            ->whereNotIn('status', ['cancelled']);
+            ->whereNotIn('status', ['cancelled', 'rejected']);
 
         if ($ruanganFilter) {
             $bookingQuery->where('ruangan_id', $ruanganFilter);

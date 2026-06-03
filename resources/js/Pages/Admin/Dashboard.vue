@@ -46,23 +46,49 @@ const STATUS_COLORS = {
         text: '#b91c1c',    // Red 700
         border: '#fca5a5',  // Red 300
     },
-    waiting_confirmation: {
+    pending: {
         bg: '#f59e0b',      // Amber 500 (Pending)
         light: '#fffbeb',   // Amber 50
         text: '#b45309',    // Amber 700
         border: '#fcd34d',  // Amber 300
     },
     confirmed: {
-        bg: '#10b981',      // Emerald 500 (Disetujui)
+        bg: '#6366f1',      // Indigo 500 (Confirmed)
+        light: '#e0e7ff',   // Indigo 50
+        text: '#4338ca',    // Indigo 700
+        border: '#a5b4fc',  // Indigo 300
+    },
+    finalized: {
+        bg: '#10b981',      // Emerald 500 (Finalized)
         light: '#ecfdf5',   // Emerald 50
         text: '#047857',    // Emerald 700
         border: '#6ee7b7',  // Emerald 300
+    },
+    completed: {
+        bg: '#059669',      // Emerald 600 (Completed)
+        light: '#f0fdf4',   // Green 50
+        text: '#15803d',    // Green 700
+        border: '#bbf7d0',  // Green 300
     },
     cancelled: {
         bg: '#9ca3af',      // Gray 500 (Dibatalkan)
         light: '#f3f4f6',   // Gray 50
         text: '#4b5563',    // Gray 700
         border: '#e5e7eb',  // Gray 300
+    },
+    rejected: {
+        bg: '#f43f5e',      // Rose 500 (Rejected)
+        light: '#fff1f2',   // Rose 50
+        text: '#be123c',    // Rose 700
+        border: '#fecdd3',  // Rose 300
+    },
+    
+    // Legacy support
+    waiting_confirmation: {
+        bg: '#f59e0b',
+        light: '#fffbeb',
+        text: '#b45309',
+        border: '#fcd34d',
     }
 }
 
@@ -499,27 +525,44 @@ const sortedParticipants = computed(() => {
 // ============================================================
 const STATUS_STYLE = {
     plotting:             'bg-red-50 text-red-850 border border-red-200',
-    waiting_confirmation: 'bg-amber-50 text-amber-800 border border-amber-200',
-    confirmed:            'bg-green-105 text-green-800 border border-green-200',
-    cancelled:            'bg-gray-100 text-gray-800 border border-gray-200',
+    pending:              'bg-yellow-50 text-yellow-850 border border-yellow-200',
+    confirmed:            'bg-indigo-50 text-indigo-850 border border-indigo-200',
+    finalized:            'bg-green-50 text-green-855 border border-green-200',
+    rejected:             'bg-rose-50 text-rose-855 border border-rose-200',
+    cancelled:            'bg-slate-50 text-slate-800 border border-slate-200',
+    completed:            'bg-emerald-50 text-emerald-855 border border-emerald-250',
+    
+    // Legacy support
+    waiting_confirmation: 'bg-yellow-50 text-yellow-855 border border-yellow-200',
+    final:                'bg-green-50 text-green-855 border border-green-200',
+    done:                 'bg-emerald-50 text-emerald-855 border border-emerald-250',
 }
 
 function statusLabel(status) {
     const map = {
         plotting:             'H - 14',
+        pending:              'Pending',
+        confirmed:            'Confirmed',
+        finalized:            'Finalized',
+        rejected:             'Rejected',
+        cancelled:            'Cancelled',
+        completed:            'Completed',
         waiting_confirmation: 'Pending',
-        confirmed:            'Disetujui',
-        cancelled:            'Dibatalkan',
-        final:                'ACC Final',
-        done:                 'Selesai',
+        final:                'Finalized',
+        done:                 'Completed',
     }
     return map[status] ?? status
 }
 
 function getVisualStatus(b) {
-    if (!b) return 'waiting_confirmation'
+    if (!b) return 'pending'
     if (b.status === 'cancelled') return 'cancelled'
-    if (b.status === 'waiting_confirmation' || b.status === 'plotting') return 'waiting_confirmation'
+    if (b.status === 'rejected') return 'rejected'
+    if (b.status === 'completed' || b.status === 'done') return 'completed'
+    if (b.status === 'finalized' || b.status === 'final') return 'finalized'
+    if (b.status === 'waiting_confirmation' || b.status === 'pending' || b.status === 'plotting') {
+        return 'pending'
+    }
     
     if (b.status === 'confirmed') {
         const today = new Date()
@@ -540,10 +583,10 @@ function getVisualStatus(b) {
 const cards = [
     {
         key:     'pending_approval',
-        label:   'Pending',
+        label:   'PENDING',
         sub:     'Perlu tindakan segera',
         icon:    '⏳',
-        filter:  'waiting_confirmation',
+        filter:  'pending',
         theme: {
             bg:     'bg-amber-50',
             border: 'border-transparent',
@@ -555,27 +598,27 @@ const cards = [
         },
     },
     {
-        key:     'urgent_h14',
-        label:   'H - 14',
-        sub:     'Mulai dalam 14 hari, belum di-ACC',
-        icon:    '🚨',
-        filter:  'urgent',
+        key:     'confirmed_count',
+        label:   'CONFIRMED',
+        sub:     'Booking terkonfirmasi',
+        icon:    '✅',
+        filter:  'confirmed',
         theme: {
-            bg:     'bg-red-50',
+            bg:     'bg-indigo-50',
             border: 'border-transparent',
-            icon:   'bg-red-100 text-red-600',
-            num:    'text-red-700',
-            label:  'text-red-600',
-            badge:  'bg-red-100 text-red-700',
-            hover:  'hover:shadow-red-100',
+            icon:   'bg-indigo-100 text-indigo-600',
+            num:    'text-indigo-700',
+            label:  'text-indigo-600',
+            badge:  'bg-indigo-100 text-indigo-700',
+            hover:  'hover:shadow-indigo-100',
         },
     },
     {
-        key:     'confirmed_this_month',
-        label:   'Terkonfirmasi',
-        sub:     'Booking yang sudah disetujui',
-        icon:    '✅',
-        filter:  'confirmed',
+        key:     'finalized_count',
+        label:   'FINALIZED',
+        sub:     'Fasilitas siap dipersiapkan',
+        icon:    '✓',
+        filter:  'finalized',
         theme: {
             bg:     'bg-emerald-50',
             border: 'border-transparent',
@@ -588,7 +631,7 @@ const cards = [
     },
     {
         key:     'rooms_today',
-        label:   'Ruangan terpakai',
+        label:   'RUANGAN TERPAKAI',
         sub:     'Hari ini',
         icon:    '🏢',
         filter:  'confirmed',
@@ -617,63 +660,30 @@ function formatDate(d) {
 // Chart State
 // ============================================================
 const chartSeries = computed(() => {
-    let pending = 0, confirmed = 0, h14 = 0
-
-    // Gunakan tahun yang dipilih user
-    const selectedYear = props.selectedYear
-    const currentYear = new Date().getFullYear()
-    const currentDate = new Date()
-    currentDate.setHours(0, 0, 0, 0)
-
-    // Tentukan jangka H-14 berdasarkan konteks tahun
-    let h14Start, h14End
-    if (selectedYear === currentYear) {
-        // Tahun ini: H-14 dihitung dari hari ini sampai 14 hari ke depan
-        h14Start = new Date(currentDate)
-        h14End = new Date(currentDate)
-        h14End.setDate(h14End.getDate() + 14)
-        h14End.setHours(23, 59, 59, 999)
-    } else {
-        // Tahun lain (masa lalu / depan): seluruh confirmed dalam tahun itu dianggap H-14
-        h14Start = new Date(selectedYear, 0, 1)
-        h14End   = new Date(selectedYear, 11, 31, 23, 59, 59, 999)
-    }
+    let pending = 0, confirmed = 0, finalized = 0
 
     // Hitung dari props.bookings (sudah exclude cancelled — cancelled ada di stats sendiri)
     props.bookings.forEach(b => {
-        if (b.status === 'waiting_confirmation' || b.status === 'plotting') {
+        if (b.status === 'pending' || b.status === 'waiting_confirmation' || b.status === 'plotting') {
             pending++
         } else if (b.status === 'confirmed') {
-            const startDate = new Date(b.tgl_mulai)
-            startDate.setHours(0, 0, 0, 0)
-
-            if (selectedYear === currentYear) {
-                // Untuk tahun berjalan: H-14 = confirmed & mulai dalam 14 hari dari sekarang
-                if (startDate >= h14Start && startDate <= h14End) {
-                    h14++
-                } else {
-                    confirmed++
-                }
-            } else {
-                // Untuk tahun lain: seluruh confirmed masuk ke "H-14"
-                h14++
-            }
-        } else if (b.status === 'final' || b.status === 'final_confirmed') {
             confirmed++
+        } else if (['finalized', 'final', 'completed', 'done', 'final_confirmed'].includes(b.status)) {
+            finalized++
         }
     })
 
     // Cancelled diambil dari stats backend (terpisah dari bookings kalender)
     const cancelled = props.stats?.cancelled_count ?? 0
 
-    return [pending, confirmed, h14, cancelled]
+    return [pending, confirmed, finalized, cancelled]
 })
 
 const chartOptions = computed(() => {
     return {
         chart: { type: 'donut', fontFamily: 'inherit' },
-        labels: ['Pending', 'Disetujui', 'H - 14', 'Dibatalkan'],
-        colors: ['#f59e0b', '#10b981', '#ef4444', '#9ca3af'], // Amber, Emerald, Red, Gray
+        labels: ['Pending', 'Confirmed', 'Finalized', 'Cancelled'],
+        colors: ['#f59e0b', '#6366f1', '#10b981', '#9ca3af'], // Amber, Indigo, Emerald, Gray
         plotOptions: {
             pie: {
                 donut: {
@@ -730,8 +740,8 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                               :class="card.theme.icon">
                             <!-- SVGs based on card key -->
                             <svg v-if="card.key === 'pending_approval'" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0a9 9 0 0118 0z"/></svg>
-                            <svg v-else-if="card.key === 'confirmed_this_month'" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
-                            <svg v-else-if="card.key === 'urgent_h14'" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <svg v-else-if="card.key === 'confirmed_count'" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg v-else-if="card.key === 'finalized_count'" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
                             <svg v-else-if="card.key === 'rooms_today'" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         </span>
                         <span class="text-[9px] font-bold uppercase px-2.5 py-1 rounded-full tracking-wider border transition-colors bg-white/70"
@@ -1202,8 +1212,10 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                                 <!-- Status indicator dot at the end -->
                                                 <span class="w-2 h-2 rounded-full shrink-0 ml-auto shadow-xs" :class="[
                                                     getVisualStatus(b) === 'plotting' ? 'bg-red-500 animate-pulse' : '',
-                                                    getVisualStatus(b) === 'waiting_confirmation' ? 'bg-amber-500 animate-pulse' : '',
-                                                    getVisualStatus(b) === 'confirmed' ? 'bg-emerald-500' : ''
+                                                    getVisualStatus(b) === 'pending' ? 'bg-amber-500 animate-pulse' : '',
+                                                    getVisualStatus(b) === 'confirmed' ? 'bg-indigo-500' : '',
+                                                    ['finalized', 'completed'].includes(getVisualStatus(b)) ? 'bg-emerald-500' : '',
+                                                    ['cancelled', 'rejected'].includes(getVisualStatus(b)) ? 'bg-gray-450' : '',
                                                 ]"></span>
                                             </div>
                                         </div>
@@ -1269,7 +1281,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                 <div v-if="notifications.length > 6"
                      class="px-5 py-3 bg-gray-50/50 border-t border-gray-100 text-center shrink-0">
-                    <button @click="goToFilter('waiting_confirmation')"
+                    <button @click="goToFilter('pending')"
                             class="text-xs text-blue-600 hover:text-blue-700 active:text-blue-800 font-black transition-colors cursor-pointer inline-flex items-center gap-1 select-none">
                         Lihat {{ notifications.length - 6 }} notifikasi lainnya 
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
