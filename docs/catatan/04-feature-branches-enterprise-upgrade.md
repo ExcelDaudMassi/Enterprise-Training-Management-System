@@ -1,7 +1,7 @@
 # Catatan Implementasi: 4 Feature Branches (Enterprise Upgrade)
 
 > Tanggal implementasi: 27 Mei 2026
-> Dibuat sebagai bagian dari penyesuaian sistem untuk mendukung **496 akun departemen** (16 dept × 31 site).
+> Dibuat sebagai bagian dari penyesuaian sistem untuk mendukung **16 akun departemen** (16 dept × 1 site - JIEP).
 
 ---
 

@@ -66,45 +66,5 @@ class AuthController extends Controller
         };
     }
 
-    /**
-     * Switch ke akun Admin (menyimpan sesi departemen terakhir)
-     */
-    public function switchToAdmin(Request $request)
-    {
-        // Simpan ID departemen saat ini ke session
-        session(['last_department_id' => Auth::id()]);
-        
-        // Cari akun admin pertama
-        $admin = \App\Models\User::where('role', 'admin')->first();
-        if ($admin) {
-            Auth::login($admin);
-        }
-        
-        return redirect()->route('admin.dashboard');
-    }
-
-    /**
-     * Switch kembali ke akun Departemen terakhir yang digunakan
-     */
-    public function switchToUser(Request $request)
-    {
-        $lastUserId = session('last_department_id');
-        
-        if ($lastUserId) {
-            $user = \App\Models\User::find($lastUserId);
-        } else {
-            // Fallback jika tidak ada di session (misal admin login manual langsung)
-            $user = \App\Models\User::where('role', 'user')->first();
-        }
-
-        if ($user) {
-            Auth::login($user);
-            return redirect()->route('user.dashboard');
-        }
-
-        return redirect()->back()->withErrors(['message' => 'Tidak dapat menemukan akun user.']);
-    }
-
-
 }
 

@@ -12,10 +12,7 @@ class CompanyUsersSeeder extends Seeder
      * Daftar site perusahaan.
      */
     protected array $sites = [
-        'JIEP', 'ABKL', 'ARIA', 'ASMI', 'BAYA', 'BEKB', 'BRCB', 'BRCG',
-        'BTSJ', 'INDO', 'KIDE', 'KPCB', 'KPCS', 'KPCT', 'MTBU', 'SMMS',
-        'TCMM', 'TOPS', 'ERKA', 'CUTB', 'PIKO', 'ADRO', 'SJRP', 'KPRT',
-        'NPRL', 'BRCS', 'HMNT', 'BBSO', 'BPOP', 'CCOS', 'PPSO',
+        'JIEP',
     ];
 
     /**

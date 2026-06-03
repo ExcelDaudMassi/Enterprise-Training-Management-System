@@ -27,12 +27,5 @@ class UserSeeder extends Seeder
             'divisi'   => 'Human Resources',
         ]);
 
-        User::create([
-            'name'     => 'Siti Rahma',
-            'email'    => 'siti@bbso.com',
-            'password' => 'password',
-            'role'     => 'user',
-            'divisi'   => 'Finance',
-        ]);
     }
 }

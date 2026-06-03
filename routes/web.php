@@ -17,8 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::post('/dev/switch-to-admin', [AuthController::class, 'switchToAdmin'])->middleware('auth')->name('dev.switch-to-admin');
-Route::post('/dev/switch-to-user', [AuthController::class, 'switchToUser'])->middleware('auth')->name('dev.switch-to-user');
 
 // ============================================================
 // User routes (auth + user role required)

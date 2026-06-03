@@ -39,14 +39,9 @@ function isActive(path) {
 }
 
 const logoutForm = useForm({})
-const switchForm = useForm({})
 
 function logout() {
     logoutForm.post('/logout')
-}
-
-function switchToAdmin() {
-    switchForm.post('/dev/switch-to-admin')
 }
 
 // ── User Notifications & Flash Messages ──────────────────────────────
@@ -323,18 +318,7 @@ provide('collapseDetailMenu', () => {
 
             </nav>
 
-            <!-- Bottom Actions -->
             <div class="px-2 py-3 border-t border-gray-100 space-y-1">
-                <!-- Switch to Admin (Dev Only) -->
-                <button
-                    @click="switchToAdmin"
-                    :disabled="switchForm.processing"
-                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors font-medium cursor-pointer"
-                    title="Switch ke Admin (Dev Only)"
-                >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                    <span class="truncate">{{ switchForm.processing ? 'Switching...' : 'Switch ke Admin' }}</span>
-                </button>
 
                 <!-- Logout -->
                 <button
