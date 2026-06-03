@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $ruanganFilter = $request->get('ruangan_id');
 
         // Warna per ruangan (statis, konsisten di FE & BE)
-        $ruanganList = Ruangan::all(['id', 'nama_ruang', 'lokasi_gedung', 'kapasitas_max']);
+        $ruanganList = Ruangan::all(['id', 'nama_ruang', 'lokasi_gedung', 'kapasitas_max', 'pasangan_ruang_id']);
 
         // Query bookings untuk tahun yang dipilih
         $bookingQuery = Booking::with(['ruangan:id,nama_ruang', 'user:id,name,divisi'])

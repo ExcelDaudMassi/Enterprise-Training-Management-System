@@ -300,7 +300,9 @@ const roomGanttData = computed(() => {
     return props.ruanganList.map(room => {
         // Find bookings for this room overlapping this month
         const roomBookings = props.bookings.filter(b => {
-            if (b.ruangan_id !== room.id) return false
+            const isDirect = b.ruangan_id === room.id
+            const isPartnerCombined = room.pasangan_ruang_id && b.ruangan_id === room.pasangan_ruang_id && b.gabung_ruang
+            if (!isDirect && !isPartnerCombined) return false
             return b.tgl_mulai <= mEndStr && b.tgl_selesai >= mStartStr
         }).map(b => {
             const bStart = safeParseDate(b.tgl_mulai)
@@ -400,15 +402,72 @@ function closeModal() {
 // ============================================================
 const detailModalOpen = ref(false)
 const selectedDetailBooking = ref(null)
+const hoveredBookingId = ref(null)
 
 function openDetailModal(booking) {
     selectedDetailBooking.value = booking
     detailModalOpen.value = true
 }
 
+// hover hooks for Gantt synced highlights
+function openDetailTooltip(booking) {
+    hoveredBookingId.value = booking.id
+}
+function closeDetailTooltip() {
+    hoveredBookingId.value = null
+}
+
 function closeDetailModal() {
     detailModalOpen.value = false
     selectedDetailBooking.value = null
+}
+
+function getGanttBarStyle(b, room) {
+    const statusColor = getStatusColor(getVisualStatus(b))
+    const isHovered = hoveredBookingId.value === b.id
+    
+    let style = {
+        left: `calc(${b.startPct}% + 3px)`,
+        width: `calc(${b.widthPct}% - 6px)`,
+        backgroundColor: statusColor.light,
+        color: statusColor.text,
+        borderColor: statusColor.bg,
+        transition: 'all 0.2s ease',
+        zIndex: isHovered ? 50 : 10
+    }
+
+    if (b.gabung_ruang && room.pasangan_ruang_id) {
+        const isPrimary = b.ruangan_id === room.id
+        if (isPrimary) {
+            style.top = (12 + (b.trackIndex * 36)) + 'px'
+            style.height = '48px'
+            style.borderBottomWidth = '0px'
+            style.borderTopLeftRadius = '12px'
+            style.borderTopRightRadius = '12px'
+            style.borderBottomLeftRadius = '0px'
+            style.borderBottomRightRadius = '0px'
+        } else {
+            style.top = (b.trackIndex * 36) + 'px'
+            style.height = '48px'
+            style.borderTopWidth = '0px'
+            style.borderTopLeftRadius = '0px'
+            style.borderTopRightRadius = '0px'
+            style.borderBottomLeftRadius = '12px'
+            style.borderBottomRightRadius = '12px'
+        }
+    } else {
+        style.top = (12 + (b.trackIndex * 36)) + 'px'
+        style.height = '36px'
+        style.borderRadius = '12px'
+    }
+
+    if (isHovered) {
+        style.transform = 'scale(1.01)'
+        style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+        style.borderColor = statusColor.text
+    }
+
+    return style
 }
 
 function formatIndoDateTime(dateTimeStr) {
@@ -1130,15 +1189,10 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                             v-for="b in room.bookings"
                                             :key="b.id"
                                             @click="openDetailModal(b)"
-                                            class="absolute h-9 rounded-xl px-2.5 flex items-center border shadow-3xs hover:shadow-2xs hover:scale-[1.01] hover:-translate-y-[0.5px] transition-all cursor-pointer group select-none"
-                                            :style="{
-                                                left: `calc(${b.startPct}% + 3px)`,
-                                                width: `calc(${b.widthPct}% - 6px)`,
-                                                top: (12 + (b.trackIndex * 36)) + 'px',
-                                                backgroundColor: getStatusColor(getVisualStatus(b)).light,
-                                                color: getStatusColor(getVisualStatus(b)).text,
-                                                borderColor: getStatusColor(getVisualStatus(b)).bg
-                                            }"
+                                            @mouseenter="openDetailTooltip(b)"
+                                            @mouseleave="closeDetailTooltip"
+                                            class="absolute px-2.5 flex items-center border shadow-3xs hover:shadow-2xs transition-all cursor-pointer group select-none"
+                                            :style="getGanttBarStyle(b, room)"
                                             :title="`${b.nama_ruang} — ${b.nama_training} (${b.divisi}) — ${formatDateRange(b.tgl_mulai, b.tgl_selesai)}`"
                                         >
                                             <div class="flex items-center gap-2 min-w-0 w-full">

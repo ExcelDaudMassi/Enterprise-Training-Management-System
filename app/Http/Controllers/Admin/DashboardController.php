@@ -169,7 +169,7 @@ class DashboardController extends Controller
         // ── DATA KALENDER (Sama seperti User Dashboard) ─────────────────
         $ruanganFilter = $request->get('ruangan_id');
 
-        $ruanganList = Ruangan::all(['id', 'nama_ruang', 'lokasi_gedung', 'kapasitas_max']);
+        $ruanganList = Ruangan::all(['id', 'nama_ruang', 'lokasi_gedung', 'kapasitas_max', 'pasangan_ruang_id']);
 
         // Exclude cancelled — booking batal tidak ditampilkan di kalender & Gantt chart
         // Angka cancelled tetap tersedia via stats['cancelled_count'] untuk donut chart
