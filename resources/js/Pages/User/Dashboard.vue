@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { router, useForm, Link, usePage } from '@inertiajs/vue3'
 import UserLayout from '@/Layouts/UserLayout.vue'
 
@@ -35,7 +35,9 @@ const ROOM_COLORS = [
 ]
 
 function getRoomColor(ruanganId) {
+    if (!ruanganId || !props.ruanganList) return ROOM_COLORS[0]
     const idx = props.ruanganList.findIndex(r => r.id === ruanganId)
+    if (idx === -1) return ROOM_COLORS[0]
     return ROOM_COLORS[idx % ROOM_COLORS.length] ?? ROOM_COLORS[0]
 }
 
@@ -401,6 +403,7 @@ function formatIndoDateShort(dateStr) {
 }
 
 function formatDateRange(startStr, endStr) {
+    if (!startStr || !endStr) return ''
     const start = formatIndoDateShort(startStr)
     const end = formatIndoDateShort(endStr)
     const startYear = startStr.split('-')[0]
@@ -427,46 +430,95 @@ function closeModal() {
 }
 
 // ============================================================
-// Detail Tooltip state untuk Popup Informasi Acara/Training
+// Hover Tooltip state untuk Popup Informasi Acara/Training
 // ============================================================
-const detailModalOpen = ref(false)
+const tooltipVisible = ref(false)
 const selectedDetailBooking = ref(null)
-const tooltipStyle = ref({ top: '0px', left: '0px' })
 const hoveredBookingId = ref(null)
+const tooltipPos = ref({ x: 0, y: 0 })
+let hoverTimer = null
 
-function openDetailTooltip(booking, event) {
-    selectedDetailBooking.value = booking
-    detailModalOpen.value = true
+function openHoverTooltip(booking, event) {
+    clearTimeout(hoverTimer)
+    closeLegendTooltip()
     hoveredBookingId.value = booking.id
-    updateTooltipPosition(event)
+    selectedDetailBooking.value = booking
+    updateTooltipPos(event)
+    hoverTimer = setTimeout(() => {
+        tooltipVisible.value = true
+    }, 10)
 }
 
-function updateTooltipPosition(event) {
-    if (detailModalOpen.value) {
-        let top = event.clientY + 15
-        let left = event.clientX + 15
-        
-        const tooltipWidth = 320
-        const tooltipHeight = 300
-        
-        if (left + tooltipWidth > window.innerWidth) {
-            left = event.clientX - tooltipWidth - 15
-        }
-        if (top + tooltipHeight > window.innerHeight) {
-            top = event.clientY - tooltipHeight - 15
-        }
-        
-        tooltipStyle.value = {
-            top: top + 'px',
-            left: left + 'px'
-        }
+function updateTooltipPos(event) {
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    let x = event.clientX + 14
+    let y = event.clientY - 10
+    if (x + 350 > vw) x = event.clientX - 360
+    if (y + 360 > vh) y = vh - 370
+    if (y < 8) y = 8
+    tooltipPos.value = { x, y }
+}
+
+function closeHoverTooltip() {
+    clearTimeout(hoverTimer)
+    hoveredBookingId.value = null
+    tooltipVisible.value = false
+    selectedDetailBooking.value = null
+}
+
+function handleBarClick(b) {
+    if (b.is_owner) {
+        router.visit(`/user/booking/${b.id}/detail`)
     }
 }
 
-function closeDetailTooltip() {
-    detailModalOpen.value = false
-    selectedDetailBooking.value = null
-    hoveredBookingId.value = null
+// ============================================================
+// Legend Tooltip state
+// ============================================================
+const legendTooltipVisible = ref(false)
+const legendTooltipContent = ref(null)
+const legendTooltipPos = ref({ x: 0, y: 0 })
+let legendTimer = null
+
+const LEGEND_INFO = {
+    pending: {
+        label: 'Pending',
+        color: 'amber',
+        desc: 'Booking sedang menunggu verifikasi dan persetujuan dari Admin BBSO. Anda belum dapat melakukan perubahan pada data pemesanan sampai status diperbarui.',
+    },
+    confirmed: {
+        label: 'Confirmed',
+        color: 'indigo',
+        desc: 'Pemesanan telah diverifikasi dan masuk ke dalam jadwal resmi. Data detail booking serta daftar peserta masih dapat diubah melalui halaman detail.',
+    },
+    finalized: {
+        label: 'Finalized',
+        color: 'emerald',
+        desc: 'Pemesanan telah disetujui sepenuhnya oleh Admin BBSO. Seluruh data pemesanan telah dikunci dan tidak dapat diubah kembali.',
+    },
+}
+
+function openLegendTooltip(key, event) {
+    clearTimeout(legendTimer)
+    closeHoverTooltip()
+    legendTooltipContent.value = LEGEND_INFO[key]
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    let x = event.clientX + 10
+    let y = event.clientY + 16
+    if (x + 280 > vw) x = event.clientX - 290
+    if (y + 120 > vh) y = event.clientY - 130
+    legendTooltipPos.value = { x, y }
+    legendTimer = setTimeout(() => {
+        legendTooltipVisible.value = true
+    }, 10)
+}
+
+function closeLegendTooltip() {
+    clearTimeout(legendTimer)
+    legendTooltipVisible.value = false
+    legendTooltipContent.value = null
 }
 
 function getGanttBarStyle(b, room) {
@@ -559,19 +611,6 @@ function getVisualStatus(b) {
     if (b.status === 'finalized' || b.status === 'final') return 'finalized'
     if (b.status === 'waiting_confirmation' || b.status === 'pending' || b.status === 'plotting') {
         return 'pending'
-    }
-    
-    if (b.status === 'confirmed') {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const h14Cutoff = new Date()
-        h14Cutoff.setDate(today.getDate() + 14)
-        h14Cutoff.setHours(23, 59, 59, 999)
-        
-        const start = new Date(b.tgl_mulai)
-        if (start >= today && start <= h14Cutoff) {
-            return 'plotting'
-        }
     }
     return 'confirmed'
 }
@@ -926,24 +965,42 @@ function getVisualStatus(b) {
 
             <!-- Gantt Body -->
             <div class="flex-1 overflow-hidden bg-white flex flex-col min-h-0 border border-gray-200 rounded-xl shadow-xs">
-                <!-- Diagram Legend (Modern Compact Ribbon) -->
-                <div class="flex flex-wrap gap-4 items-center bg-gray-50 border-b border-gray-200 p-2.5 select-none shrink-0 px-5">
-                    <div class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest">Status Booking:</div>
-                    <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-amber-50/80 text-amber-800 px-3 py-1 rounded-full border border-amber-200/70">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        <span>Pending</span>
-                    </div>
-                    <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-red-50/80 text-red-800 px-3 py-1 rounded-full border border-red-200/70">
-                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                        <span>H - 14</span>
-                    </div>
-                    <div class="flex items-center gap-1.5 text-[10.5px] font-bold bg-emerald-50/80 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200/70">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        <span>Disetujui</span>
-                    </div>
-                    <div class="ml-auto text-[10px] text-gray-400 font-bold hidden md:block flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5 text-amber-500 shrink-0 inline-block mr-0.5 align-text-bottom" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                        <span>Arahkan kursor pada bar diagram untuk detail</span>
+                <!-- Diagram Legend (Compact Pills with Hover Popup) -->
+                <div class="shrink-0 border-b border-gray-200 bg-gray-50/80 select-none">
+                    <div class="px-5 py-2.5 flex flex-wrap items-center gap-2.5">
+                        <span class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest mr-0.5">Status:</span>
+
+                        <div
+                            @mouseenter="openLegendTooltip('pending', $event)"
+                            @mouseleave="closeLegendTooltip"
+                            class="flex items-center gap-1.5 text-[10.5px] font-bold bg-amber-50 text-amber-800 px-2.5 py-1 rounded-full border border-amber-200/70 cursor-help transition-colors hover:bg-amber-100/80 hover:border-amber-300/70"
+                        >
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                            <span>Pending</span>
+                        </div>
+
+                        <div
+                            @mouseenter="openLegendTooltip('confirmed', $event)"
+                            @mouseleave="closeLegendTooltip"
+                            class="flex items-center gap-1.5 text-[10.5px] font-bold bg-indigo-50 text-indigo-800 px-2.5 py-1 rounded-full border border-indigo-200/70 cursor-help transition-colors hover:bg-indigo-100/80 hover:border-indigo-300/70"
+                        >
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></span>
+                            <span>Confirmed</span>
+                        </div>
+
+                        <div
+                            @mouseenter="openLegendTooltip('finalized', $event)"
+                            @mouseleave="closeLegendTooltip"
+                            class="flex items-center gap-1.5 text-[10.5px] font-bold bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-full border border-emerald-200/70 cursor-help transition-colors hover:bg-emerald-100/80 hover:border-emerald-300/70"
+                        >
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span>Finalized</span>
+                        </div>
+
+                        <div class="ml-auto text-[10px] text-gray-400 font-medium hidden md:flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" /></svg>
+                            <span>Arahkan kursor pada bar untuk detail</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -1010,10 +1067,12 @@ function getVisualStatus(b) {
                                         <div
                                             v-for="b in room.bookings"
                                             :key="b.id"
-                                            @mouseenter="openDetailTooltip(b, $event)"
-                                            @mousemove="updateTooltipPosition($event)"
-                                            @mouseleave="closeDetailTooltip"
-                                            class="absolute px-2.5 flex items-center border shadow-3xs hover:shadow-2xs transition-all cursor-default group select-none"
+                                            @mouseenter="openHoverTooltip(b, $event)"
+                                            @mousemove="updateTooltipPos($event)"
+                                            @mouseleave="closeHoverTooltip"
+                                            @click="handleBarClick(b)"
+                                            class="absolute px-2.5 flex items-center border shadow-3xs hover:shadow-2xs transition-all group select-none"
+                                            :class="b.is_owner ? 'cursor-pointer' : 'cursor-default'"
                                             :style="getGanttBarStyle(b, room)"
                                         >
                                             <div class="flex items-center gap-2 min-w-0 w-full">
@@ -1087,72 +1146,132 @@ function getVisualStatus(b) {
             </table>
         </div>
 
-        <!-- Popover: Detail Booking Training (Hover Tooltip) -->
+        <!-- Hover Tooltip: Detail Booking Training -->
         <Teleport to="body">
-            <div
-                v-if="detailModalOpen"
-                class="fixed z-[120] flex flex-col pointer-events-none animate-fade-in drop-shadow-xl"
-                :style="tooltipStyle"
+            <Transition
+                enter-active-class="transition-all duration-150 ease-out"
+                enter-from-class="opacity-0 scale-95 translate-y-1"
+                enter-to-class="opacity-100 scale-100 translate-y-0"
+                leave-active-class="transition-all duration-100 ease-in"
+                leave-from-class="opacity-100 scale-100"
+                leave-to-class="opacity-0 scale-95"
             >
-                <div class="bg-white rounded-xl shadow-2xl w-[320px] overflow-hidden flex flex-col border border-gray-200">
+            <div
+                v-if="tooltipVisible && selectedDetailBooking"
+                class="fixed z-[200] pointer-events-none"
+                :style="{ left: tooltipPos.x + 'px', top: tooltipPos.y + 'px' }"
+            >
+                <div class="gantt-tooltip bg-white rounded-xl w-[330px] overflow-hidden flex flex-col border border-gray-200/80 ring-1 ring-black/5">
                     
-                    <!-- Header -->
-                    <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <h4 class="font-extrabold text-gray-800 text-xs leading-none">Detail Pemesanan</h4>
+                    <!-- Tooltip Header -->
+                    <div class="px-4 py-3 flex items-start gap-2.5 border-b border-gray-100"
+                        :style="{
+                            background: `linear-gradient(135deg, ${getStatusColor(getVisualStatus(selectedDetailBooking)).light}, white)`
+                        }"
+                    >
+                        <span class="w-3 h-3 rounded-full shrink-0 mt-0.5 shadow-sm" :style="{ backgroundColor: getStatusColor(getVisualStatus(selectedDetailBooking)).bg }"></span>
+                        <div class="flex-1 min-w-0">
+                            <span class="font-extrabold text-gray-900 text-[13px] leading-snug block truncate">{{ selectedDetailBooking.nama_training }}</span>
+                            <span class="text-[9px] text-gray-500 mt-0.5 block">Informasi Pemesanan Ruangan</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider shrink-0 mt-0.5"
+                            :class="STATUS_STYLE[getVisualStatus(selectedDetailBooking)] || 'bg-gray-100 text-gray-600'"
+                        >
+                            {{ statusLabel(getVisualStatus(selectedDetailBooking)) }}
+                        </span>
+                    </div>
+
+                    <!-- Tooltip Body -->
+                    <div class="px-4 py-3 space-y-2.5 text-[11px]">
+                        <!-- Ruangan -->
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5 h-5 rounded-md bg-gray-100 flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Ruangan</span>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking.ruangan_id).bg }"></span>
+                                    <span class="font-bold text-gray-800 truncate">{{ selectedDetailBooking.nama_ruang }}</span>
+                                    <span v-if="selectedDetailBooking.gabung_ruang" class="text-[7px] font-bold bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded border border-teal-200/80 shrink-0">GABUNG</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tanggal -->
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5 h-5 rounded-md bg-gray-100 flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Tanggal Pelaksanaan</span>
+                                <span class="font-bold text-gray-800 block mt-0.5">{{ formatDateRange(selectedDetailBooking.tgl_mulai, selectedDetailBooking.tgl_selesai) }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Pemohon -->
+                        <div v-if="selectedDetailBooking.pemohon" class="flex items-center gap-2.5 border-t border-gray-100 pt-2.5">
+                            <div class="w-5 h-5 rounded-md bg-gray-100 flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Pemohon</span>
+                                <span class="font-bold text-gray-800 block mt-0.5 truncate">{{ selectedDetailBooking.pemohon }}</span>
+                                <span v-if="selectedDetailBooking.divisi" class="text-[9px] text-gray-400 block">Divisi {{ selectedDetailBooking.divisi }}</span>
+                            </div>
+                            <div v-if="selectedDetailBooking.pic" class="shrink-0 text-right">
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">PIC Acara</span>
+                                <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking.pic }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Non-owner notice -->
+                        <div v-if="!selectedDetailBooking.is_owner" class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                            <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+                            <span class="text-[9px] text-gray-500 font-medium">Detail pemesanan hanya terlihat oleh pemilik booking</span>
                         </div>
                     </div>
 
-                    <!-- Body -->
-                    <div class="p-4 space-y-3 text-[10px] text-gray-700">
-                        <div>
-                            <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Nama Acara / Training</span>
-                            <span class="font-bold text-gray-800 text-xs leading-snug block mt-0.5">{{ selectedDetailBooking?.nama_training }}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 border-t border-gray-100 pt-2.5">
-                            <div>
-                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Ruangan</span>
-                                <div class="flex items-center gap-1.5 mt-0.5">
-                                    <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking?.ruangan_id).bg }"></span>
-                                    <span class="font-bold text-gray-800">{{ selectedDetailBooking?.nama_ruang }}</span>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Gabung Ruangan</span>
-                                <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.gabung_ruang ? 'Ya (2 Ruangan)' : 'Tidak' }}</span>
-                            </div>
-                        </div>
-                        <div class="border-t border-gray-100 pt-2.5">
-                            <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Tanggal Pelaksanaan</span>
-                            <span class="font-bold text-gray-800 block mt-0.5">{{ formatDateRange(selectedDetailBooking?.tgl_mulai, selectedDetailBooking?.tgl_selesai) }}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 border-t border-gray-100 pt-2.5">
-                            <div>
-                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Pemohon</span>
-                                <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pemohon }}</span>
-                                <span class="text-[8px] text-gray-400 block mt-0.5">Divisi: {{ selectedDetailBooking?.divisi }}</span>
-                            </div>
-                            <div>
-                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">PIC Acara</span>
-                                <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking?.pic || '-' }}</span>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 border-t border-gray-100 pt-2.5">
-                            <div>
-                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Jenis Pemesanan</span>
-                                <span class="font-bold text-gray-800 block mt-0.5 capitalize">{{ selectedDetailBooking?.fase }}</span>
-                            </div>
-                            <div>
-                                <span class="text-[9px] text-gray-400 block font-semibold uppercase tracking-wider">Status Booking</span>
-                                <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase mt-1 tracking-wider" :class="STATUS_STYLE[getVisualStatus(selectedDetailBooking)] || 'bg-gray-150 text-gray-700'">
-                                    {{ statusLabel(getVisualStatus(selectedDetailBooking)) }}
-                                </span>
-                            </div>
-                        </div>
+                    <!-- Owner hint -->
+                    <div v-if="selectedDetailBooking.is_owner" class="px-4 py-2 border-t border-gray-100 bg-blue-50/60 flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                        <span class="text-[9.5px] font-semibold text-blue-600">Booking Anda — Klik bar untuk masuk ke Detail Roster</span>
                     </div>
                 </div>
             </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Legend Hover Tooltip -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition-all duration-120 ease-out"
+                enter-from-class="opacity-0 translate-y-1"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition-all duration-75 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+            <div
+                v-if="legendTooltipVisible && legendTooltipContent"
+                class="fixed z-[200] pointer-events-none"
+                :style="{ left: legendTooltipPos.x + 'px', top: legendTooltipPos.y + 'px' }"
+            >
+                <div class="gantt-tooltip bg-white rounded-lg w-[260px] overflow-hidden border border-gray-200/80 ring-1 ring-black/5">
+                    <div class="px-3.5 py-2.5">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="w-2 h-2 rounded-full shrink-0" :class="{
+                                'bg-amber-500': legendTooltipContent.color === 'amber',
+                                'bg-indigo-500': legendTooltipContent.color === 'indigo',
+                                'bg-emerald-500': legendTooltipContent.color === 'emerald',
+                            }"></span>
+                            <span class="font-extrabold text-gray-800 text-[11px] leading-none">{{ legendTooltipContent.label }}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-500 leading-relaxed">{{ legendTooltipContent.desc }}</p>
+                    </div>
+                </div>
+            </div>
+            </Transition>
         </Teleport>
 
 </template>
@@ -1172,5 +1291,8 @@ function getVisualStatus(b) {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+.gantt-tooltip {
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.12)) drop-shadow(0 2px 6px rgba(0,0,0,0.08));
 }
 </style>

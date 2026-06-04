@@ -304,7 +304,7 @@ class BookingWizardController extends Controller
                     }
                 }
 
-                $current->addDay();
+                $current = $current->addDay();
             }
         }
 
@@ -331,7 +331,7 @@ class BookingWizardController extends Controller
                     'nama_ruang'    => $booking->displayRoomName(),
                     'nama_training' => $booking->nama_training,
                 ];
-                $current->addDay();
+                $current = $current->addDay();
             }
         }
 
