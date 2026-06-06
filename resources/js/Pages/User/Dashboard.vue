@@ -140,6 +140,42 @@ onUnmounted(() => {
     }
 })
 
+const setupMarquee = (el) => {
+    if (!el) return
+    if (!el._ro) {
+        el._ro = new ResizeObserver(() => {
+            const containerWidth = el.clientWidth
+            const innerDiv = el.firstElementChild
+            if (!innerDiv) return
+            const textSpan = innerDiv.firstElementChild
+            if (!textSpan) return
+            
+            const textWidth = textSpan.getBoundingClientRect().width
+            
+            if (textWidth > containerWidth && containerWidth > 0) {
+                if (!innerDiv.classList.contains('animate-gantt-marquee')) {
+                    innerDiv.classList.add('animate-gantt-marquee')
+                    if (innerDiv.children.length === 1) {
+                        const dup = document.createElement('span')
+                        dup.className = textSpan.className
+                        dup.setAttribute('aria-hidden', 'true')
+                        dup.textContent = textSpan.textContent
+                        innerDiv.appendChild(dup)
+                    }
+                }
+            } else {
+                if (innerDiv.classList.contains('animate-gantt-marquee')) {
+                    innerDiv.classList.remove('animate-gantt-marquee')
+                    if (innerDiv.children.length > 1) {
+                        innerDiv.removeChild(innerDiv.lastElementChild)
+                    }
+                }
+            }
+        })
+        el._ro.observe(el)
+    }
+}
+
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027, 2028]
 
 watch(() => props.selectedYear, (newYear) => {
@@ -1095,9 +1131,10 @@ function getVisualStatus(b) {
                                             >
                                             <div class="flex items-center gap-1.5 min-w-0 w-full overflow-hidden" style="container-type: inline-size;">
                                                 <!-- Text Marquee -->
-                                                <div class="flex font-extrabold text-[11px] leading-none whitespace-nowrap animate-gantt-marquee">
-                                                    <span class="pr-6">{{ b.nama_training }}</span>
-                                                    <span class="pr-6" aria-hidden="true">{{ b.nama_training }}</span>
+                                                <div class="flex-1 min-w-0 overflow-hidden relative" :ref="setupMarquee">
+                                                    <div class="flex font-extrabold text-[11px] leading-none whitespace-nowrap w-max">
+                                                        <span class="shrink-0 pr-6">{{ b.nama_training }}</span>
+                                                    </div>
                                                 </div>
                                                 
                                                 <!-- Status indicator dot at the end -->
