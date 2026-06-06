@@ -138,7 +138,7 @@ Tambahkan baris ini ke **crontab** server:
 - [x] **Banner Peringatan Final:** Tambahkan pesan `⚠️ Ruangan sedang dipersiapkan Tim Lapangan` di `BookingDetail.vue` saat status `final` (Selesai pada `fe1949c`)
 - [x] **Standarisasi Status:** Satukan penggunaan `final` vs `final_confirmed` di seluruh codebase (Selesai pada `fe1949c`)
 - [ ] **Integrasi WhatsApp:** Kirim notifikasi otomatis ke Grup WhatsApp Tim Housekeeping & Security saat booking di-ACC Final (Ditunda sementara - belum fokus ke sini)
-- [ ] **Ganti frekuensi scheduler** dari `everyMinute()` → `hourly()` sebelum deploy ke production (Ditunda sementara - belum fokus ke sini)
+- [x] **Ganti frekuensi scheduler** dari `everyMinute()` → `hourly()` sebelum deploy ke production (Selesai)
 
 ---
 
