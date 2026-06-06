@@ -324,6 +324,61 @@ watch(() => page.props.flash, (newVal) => {
                                 {{ notifCount > 9 ? '9+' : notifCount }}
                             </span>
                         </button>
+                        
+                        <!-- Notification Dropdown -->
+                        <Transition
+                            enter-active-class="transition ease-out duration-200"
+                            enter-from-class="opacity-0 translate-y-2 scale-95"
+                            enter-to-class="opacity-100 translate-y-0 scale-100"
+                            leave-active-class="transition ease-in duration-150"
+                            leave-from-class="opacity-100 translate-y-0 scale-100"
+                            leave-to-class="opacity-0 translate-y-2 scale-95"
+                        >
+                            <div 
+                                v-if="showNotif" 
+                                class="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] z-50 overflow-hidden transform origin-top-right"
+                            >
+                                <div class="px-5 py-3.5 border-b border-gray-100 bg-slate-50/80 flex items-center justify-between backdrop-blur-sm">
+                                    <span class="text-[11px] font-bold text-gray-800 uppercase tracking-wider">Notifikasi Sistem</span>
+                                    <span class="text-[10px] text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full font-bold shadow-sm ring-1 ring-blue-700/10">{{ notifCount }} Baru</span>
+                                </div>
+                                
+                                <div class="max-h-[360px] overflow-y-auto divide-y divide-gray-50 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+                                    <div v-if="notifCount === 0" class="px-6 py-12 text-center flex flex-col items-center">
+                                        <div class="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mb-3 ring-4 ring-gray-50/50">
+                                            <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                            </svg>
+                                        </div>
+                                        <span class="text-xs font-semibold text-gray-500">Semua aman terkendali!</span>
+                                        <span class="text-[10px] text-gray-400 mt-1">Belum ada aktivitas baru.</span>
+                                    </div>
+                                    
+                                    <div 
+                                        v-for="n in notifications" 
+                                        :key="n.booking_id" 
+                                        @click="goToBooking(n.filter)"
+                                        class="p-4 transition-all duration-200 cursor-pointer flex gap-3.5 items-start group relative"
+                                        :class="notifTypeStyle[n.type]?.bg || 'hover:bg-slate-50'"
+                                    >
+                                        <!-- Indicator dot -->
+                                        <div class="mt-1 shrink-0">
+                                            <div class="w-2 h-2 rounded-full ring-4 ring-opacity-20 shadow-[0_0_0_4px_rgba(0,0,0,0.05)]" 
+                                                :class="[notifTypeStyle[n.type]?.dot || 'bg-gray-500', (notifTypeStyle[n.type]?.dot || 'bg-gray-500').replace('bg-', 'ring-')]">
+                                            </div>
+                                        </div>
+                                        <div class="space-y-1 min-w-0 flex-1">
+                                            <div class="text-xs font-bold leading-tight transition-colors" :class="[notifTypeStyle[n.type]?.text || 'text-gray-800', 'group-hover:opacity-80']">{{ n.label }}</div>
+                                            <div class="text-[11px] text-gray-500 leading-relaxed">{{ n.sub }}</div>
+                                            <div class="text-[10px] font-semibold text-gray-400 flex items-center gap-1.5 mt-1.5">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z"/></svg>
+                                                {{ n.created_at }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Transition>
                     </div>
 
                     <!-- Admin name -->
