@@ -59,7 +59,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Set perizinan yang tepat untuk folder storage dan bootstrap/cache
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+    && chmod -R 775 /var/www/html/bootstrap/cache \
+    && chmod -R 777 /var/www/html/database
 
 # Salin script entrypoint
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
