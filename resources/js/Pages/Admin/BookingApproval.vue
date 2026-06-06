@@ -1,7 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { useForm, usePage, router } from '@inertiajs/vue3'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 defineOptions({ layout: AdminLayout })
 import axios from 'axios'
@@ -67,6 +67,24 @@ function isPastH14(tglMulai) {
     const diffDays = (start - today) / (1000 * 60 * 60 * 24)
     return diffDays <= 14 && diffDays >= 0
 }
+
+onMounted(() => {
+    if (window.Echo) {
+        window.Echo.channel('bookings')
+            .listen('NewBookingCreated', (e) => {
+                router.reload({ only: ['bookings'], preserveState: true, preserveScroll: true })
+            })
+            .listen('BookingStatusUpdated', (e) => {
+                router.reload({ only: ['bookings'], preserveState: true, preserveScroll: true })
+            })
+    }
+})
+
+onUnmounted(() => {
+    if (window.Echo) {
+        window.Echo.leaveChannel('bookings')
+    }
+})
 
 function formatDate(d) {
     if (!d) return '-'

@@ -117,8 +117,26 @@ function handleFilterClickOutside(e) {
     }
 }
 
-onMounted(() => document.addEventListener('click', handleFilterClickOutside))
-onUnmounted(() => document.removeEventListener('click', handleFilterClickOutside))
+onMounted(() => {
+    document.addEventListener('click', handleFilterClickOutside)
+    
+    if (window.Echo) {
+        window.Echo.channel('bookings')
+            .listen('NewBookingCreated', (e) => {
+                router.reload({ only: ['bookings', 'stats'], preserveState: true, preserveScroll: true })
+            })
+            .listen('BookingStatusUpdated', (e) => {
+                router.reload({ only: ['bookings', 'stats'], preserveState: true, preserveScroll: true })
+            })
+    }
+})
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleFilterClickOutside)
+    if (window.Echo) {
+        window.Echo.leaveChannel('bookings')
+    }
+})
 
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027, 2028]
 

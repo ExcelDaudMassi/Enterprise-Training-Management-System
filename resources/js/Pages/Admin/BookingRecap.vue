@@ -1,7 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { useForm, usePage, router } from '@inertiajs/vue3'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 defineOptions({ layout: AdminLayout })
 import axios from 'axios'
@@ -193,6 +193,25 @@ const layoutLabels = {
 function exportExcel() {
     window.open(`/admin/bookings/export?filter=${activeTab.value}`, '_blank')
 }
+
+// ── Real-time WebSockets ──────────────────────────────────────────
+onMounted(() => {
+    if (window.Echo) {
+        window.Echo.channel('bookings')
+            .listen('NewBookingCreated', (e) => {
+                router.reload({ only: ['bookings'], preserveState: true, preserveScroll: true })
+            })
+            .listen('BookingStatusUpdated', (e) => {
+                router.reload({ only: ['bookings'], preserveState: true, preserveScroll: true })
+            })
+    }
+})
+
+onUnmounted(() => {
+    if (window.Echo) {
+        window.Echo.leave('bookings')
+    }
+})
 </script>
 
 <template>

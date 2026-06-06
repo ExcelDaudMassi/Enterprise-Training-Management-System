@@ -131,6 +131,28 @@ function downloadExcel(booking) {
     window.location.href = `/user/booking/${booking.id}/export`
 }
 
+// ─── Real-time WebSockets ──────────────────────────────────────
+onMounted(() => {
+    if (window.Echo) {
+        window.Echo.channel('bookings')
+            .listen('NewBookingCreated', (e) => {
+                if (e.booking.user_id === props.auth.user.id) {
+                    router.reload({ only: ['bookings'], preserveState: true, preserveScroll: true })
+                }
+            })
+            .listen('BookingStatusUpdated', (e) => {
+                if (e.booking.user_id === props.auth.user.id) {
+                    router.reload({ only: ['bookings'], preserveState: true, preserveScroll: true })
+                }
+            })
+    }
+})
+
+onUnmounted(() => {
+    if (window.Echo) {
+        window.Echo.leave('bookings')
+    }
+})
 </script>
 
 <template>

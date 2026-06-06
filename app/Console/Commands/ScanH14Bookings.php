@@ -47,7 +47,7 @@ class ScanH14Bookings extends Command
 
                 \App\Models\BookingLog::create([
                     'booking_id' => $booking->id,
-                    'user_id'    => null, // Log oleh sistem
+                    'user_id'    => $booking->user_id, // Menggunakan user_id pemilik booking agar tidak error NOT NULL
                     'action'     => 'auto_approve_final',
                     'message'    => 'Sistem secara otomatis menyetujui booking ini (H-14 Auto ACC).',
                 ]);
@@ -59,6 +59,10 @@ class ScanH14Bookings extends Command
                     'title'      => 'Booking Final ACC (Otomatis H-14)',
                     'message'    => "Booking Anda untuk '{$booking->nama_training}' telah otomatis di-ACC Final oleh sistem karena telah memasuki H-14. Persiapan lapangan segera dilakukan.",
                 ]);
+
+                // Kirim notifikasi Real-Time ke UI
+                broadcast(new \App\Events\BookingStatusUpdated($booking));
+                \Illuminate\Support\Facades\Log::info("Broadcast H-14 Auto ACC sent for booking #{$booking->id}");
 
                 $this->info("Booking #{$booking->id} otomatis di-ACC Final (H-14).");
                 $count++;
@@ -72,7 +76,7 @@ class ScanH14Bookings extends Command
 
                 \App\Models\BookingLog::create([
                     'booking_id' => $booking->id,
-                    'user_id'    => null,
+                    'user_id'    => $booking->user_id, // Gunakan user pemilik booking
                     'action'     => 'auto_cancel',
                     'message'    => 'Sistem otomatis membatalkan booking (H-14 Auto Cancel).',
                 ]);
@@ -84,6 +88,9 @@ class ScanH14Bookings extends Command
                     'title'      => 'Booking Dibatalkan (Otomatis H-14)',
                     'message'    => "Booking Anda untuk '{$booking->nama_training}' telah dibatalkan secara otomatis karena {$alasan}",
                 ]);
+
+                // Kirim notifikasi Real-Time ke UI
+                broadcast(new \App\Events\BookingStatusUpdated($booking));
 
                 $this->info("Booking #{$booking->id} otomatis dibatalkan (H-14).");
                 $count++;

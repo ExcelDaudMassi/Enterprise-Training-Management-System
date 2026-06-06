@@ -105,7 +105,7 @@ async function handleParticipantUpload(e) {
         fd.append('file_peserta', file)
         await window.axios.post(`/api/booking/${props.booking.id}/update-participants`, fd)
         showParticipantModal.value = false
-        router.reload({ only: ['booking'] })
+        router.reload({ only: ['booking'], preserveState: true, preserveScroll: true })
     } catch (err) {
         participantError.value = err.response?.data?.message ?? 'Gagal upload file peserta.'
     } finally {

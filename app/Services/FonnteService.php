@@ -21,6 +21,7 @@ class FonnteService
             CURLOPT_URL            => 'https://file.io/?expires=1h',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
+            CURLOPT_TIMEOUT        => 5,
             CURLOPT_POSTFIELDS     => [
                 'file' => new \CURLFile($filePath, $mime, $filename),
             ],
@@ -89,7 +90,7 @@ class FonnteService
 
             $response = Http::withHeaders([
                 'Authorization' => $token,
-            ])->post('https://api.fonnte.com/send', $payload);
+            ])->timeout(5)->post('https://api.fonnte.com/send', $payload);
 
             $result = $response->json();
 

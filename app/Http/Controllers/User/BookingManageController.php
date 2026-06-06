@@ -65,6 +65,8 @@ class BookingManageController extends Controller
             ]);
         }
 
+        broadcast(new \App\Events\BookingStatusUpdated($booking));
+
         return response()->json([
             'success' => true,
             'message' => 'Booking berhasil dibatalkan.',
@@ -131,6 +133,8 @@ class BookingManageController extends Controller
             // Simpan alasan di catatan_user
             'catatan_user'         => $validated['alasan'] ?? null,
         ]);
+
+        broadcast(new \App\Events\BookingStatusUpdated($booking));
 
         return response()->json([
             'success' => true,
@@ -271,6 +275,8 @@ class BookingManageController extends Controller
                 'is_read'    => false,
             ]);
         }
+
+        broadcast(new \App\Events\BookingStatusUpdated($booking));
 
         return response()->json([
             'success'         => true,

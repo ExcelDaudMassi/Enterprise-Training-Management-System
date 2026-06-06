@@ -575,6 +575,14 @@ class BookingWizardController extends Controller
             DB::commit();
             session()->forget('booking_step4');
 
+            // Broadcast di luar try-catch utama agar tidak mengganggu response
+            try {
+                broadcast(new \App\Events\NewBookingCreated($booking));
+                \Log::info('[WebSocket] Broadcast NewBookingCreated berhasil untuk booking #' . $booking->id);
+            } catch (\Exception $broadcastErr) {
+                \Log::error('[WebSocket] Broadcast GAGAL: ' . $broadcastErr->getMessage());
+            }
+
             return response()->json([
                 'success'    => true,
                 'message'    => 'Booking berhasil diajukan.',
@@ -583,6 +591,7 @@ class BookingWizardController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('[Booking] Submit GAGAL: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()

@@ -515,7 +515,7 @@ class BookingApprovalController extends Controller
 
                 \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} disetujui oleh admin ID #" . auth()->id());
 
-
+                broadcast(new \App\Events\BookingStatusUpdated($booking));
             });
 
             return back()->with('success', "Booking #{$booking->id} berhasil disetujui.");
@@ -565,7 +565,7 @@ class BookingApprovalController extends Controller
 
                 \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} ditolak oleh admin ID #" . auth()->id());
 
-
+                broadcast(new \App\Events\BookingStatusUpdated($booking));
             });
 
             return back()->with('success', "Booking #{$booking->id} telah ditolak.");
@@ -609,6 +609,7 @@ class BookingApprovalController extends Controller
                 \Illuminate\Support\Facades\Log::info("Booking #{$booking->id} di-ACC tahap 2 oleh admin ID #" . auth()->id());
 
                 $this->notifyFrontdesk($booking);
+                broadcast(new \App\Events\BookingStatusUpdated($booking));
             });
 
             return back()->with('success', "Booking #{$booking->id} berhasil di-ACC tahap 2 (Final Confirmation).");
@@ -653,6 +654,8 @@ class BookingApprovalController extends Controller
 
                 $this->notifyFrontdesk($booking);
             });
+
+            broadcast(new \App\Events\BookingStatusUpdated($booking));
 
             return back()->with('success', "Booking #{$booking->id} berhasil di-ACC Final. Status: FINAL.");
         } catch (\Exception $e) {
@@ -703,6 +706,8 @@ class BookingApprovalController extends Controller
 
                 $this->notifyFrontdesk($booking);
             });
+
+            broadcast(new \App\Events\BookingStatusUpdated($booking));
 
             return back()->with('success', "Booking #{$booking->id} di-ACC Terlambat dan kini berstatus FINAL.");
         } catch (\Exception $e) {
@@ -758,6 +763,8 @@ class BookingApprovalController extends Controller
             'status_perubahan'     => Booking::CHANGE_APPROVED,
         ]);
 
+        broadcast(new \App\Events\BookingStatusUpdated($booking));
+
         return back()->with('success', "Perubahan tanggal untuk Booking #{$booking->id} telah disetujui.");
     }
 
@@ -784,7 +791,7 @@ class BookingApprovalController extends Controller
             'catatan_admin'        => $request->catatan_admin,
         ]);
 
-
+        broadcast(new \App\Events\BookingStatusUpdated($booking));
 
         return back()->with('success', "Usulan perubahan tanggal Booking #{$booking->id} ditolak. Tanggal lama tetap berlaku.");
     }
@@ -842,6 +849,8 @@ class BookingApprovalController extends Controller
             'action'     => 'Admin Edit Participant',
             'message'    => "Admin mengubah data {$participant->tipe} bernama '{$participant->nama}'.",
         ]);
+
+        broadcast(new \App\Events\BookingStatusUpdated($participant->booking));
 
         $res = $this->showDetails($participant->booking);
         $data = $res->getData(true);
@@ -907,37 +916,39 @@ class BookingApprovalController extends Controller
         $frontdeskPhone = config('services.fonnte.frontdesk_target');
         if (empty($frontdeskPhone)) return;
 
-        $booking->loadMissing(['ruangan', 'participants']);
-        $ruangName = $booking->displayRoomName();
-        $tglMulai = \Carbon\Carbon::parse($booking->tgl_mulai)->translatedFormat('d M Y');
-        $tglSelesai = \Carbon\Carbon::parse($booking->tgl_selesai)->translatedFormat('d M Y');
-        $tglStr = $tglMulai === $tglSelesai ? $tglMulai : "{$tglMulai} s/d {$tglSelesai}";
-        $jmlPeserta = $booking->participants->where('tipe', 'peserta')->count();
-        $layout = ucfirst($booking->layout_preferensi);
-        
-        $kebutuhan = collect([
-            $booking->is_hybrid ? 'Hybrid (Kamera & Mic)' : null,
-            $booking->is_flipchart ? 'Papan Flipchart' : null,
-            $booking->is_pena_mini_note ? 'Pena & Mini Note' : null
-        ])->filter()->implode(', ');
-        if (empty($kebutuhan)) {
-            $kebutuhan = '-';
-        }
+        // Jalankan di background setelah response dikirim ke browser agar UI tidak loading lama
+        app()->terminating(function () use ($booking, $frontdeskPhone) {
+            $booking->loadMissing(['ruangan', 'participants']);
+            $ruangName = $booking->displayRoomName();
+            $tglMulai = \Carbon\Carbon::parse($booking->tgl_mulai)->translatedFormat('d M Y');
+            $tglSelesai = \Carbon\Carbon::parse($booking->tgl_selesai)->translatedFormat('d M Y');
+            $tglStr = $tglMulai === $tglSelesai ? $tglMulai : "{$tglMulai} s/d {$tglSelesai}";
+            $jmlPeserta = $booking->participants->where('tipe', 'peserta')->count();
+            $layout = ucfirst($booking->layout_preferensi);
+            
+            $kebutuhan = collect([
+                $booking->is_hybrid ? 'Hybrid (Kamera & Mic)' : null,
+                $booking->is_flipchart ? 'Papan Flipchart' : null,
+                $booking->is_pena_mini_note ? 'Pena & Mini Note' : null
+            ])->filter()->implode(', ');
+            if (empty($kebutuhan)) {
+                $kebutuhan = '-';
+            }
 
-        // Buat signed URL yang berlaku 7 hari (tanpa perlu login)
-        $shareUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-            'booking.share',
-            now()->addDays(7),
-            ['booking' => $booking->id]
-        );
+            // Buat signed URL yang berlaku 7 hari (tanpa perlu login)
+            $shareUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'booking.share',
+                now()->addDays(7),
+                ['booking' => $booking->id]
+            );
 
-        // Persingkat URL dengan TinyURL agar bisa langsung diklik di WhatsApp
-        // (WhatsApp tidak mengenali domain .test / IP lokal sebagai hyperlink)
-        $shortUrl = $this->shortenUrl($shareUrl);
+            // Persingkat URL dengan TinyURL agar bisa langsung diklik di WhatsApp
+            $shortUrl = $this->shortenUrl($shareUrl);
 
-        $msg = "*INFORMASI TRAINING BARU (FINAL)*\n\nHalo Frontdesk,\nTerdapat jadwal training baru yang telah di-ACC Final dan perlu disiapkan:\n\n*Nama Training:* {$booking->nama_training}\n*Ruangan:* {$ruangName}\n*Tanggal:* {$tglStr}\n*PIC:* {$booking->pic}\n*Peserta:* {$jmlPeserta} Orang\n*Tata Letak:* {$layout}\n*Tambahan:* {$kebutuhan}\n\n📋 *Lihat Detail Peserta & Panitia:*\n{$shortUrl}\n\n_(Link berlaku 7 hari)_\n\nMohon segera dipersiapkan sesuai kebutuhan. Terima kasih!";
+            $msg = "*INFORMASI TRAINING BARU (FINAL)*\n\nHalo Frontdesk,\nTerdapat jadwal training baru yang telah di-ACC Final dan perlu disiapkan:\n\n*Nama Training:* {$booking->nama_training}\n*Ruangan:* {$ruangName}\n*Tanggal:* {$tglStr}\n*PIC:* {$booking->pic}\n*Peserta:* {$jmlPeserta} Orang\n*Tata Letak:* {$layout}\n*Tambahan:* {$kebutuhan}\n\n📋 *Lihat Detail Peserta & Panitia:*\n{$shortUrl}\n\n_(Link berlaku 7 hari)_\n\nMohon segera dipersiapkan sesuai kebutuhan. Terima kasih!";
 
-        \App\Jobs\SendWhatsAppNotification::dispatch($frontdeskPhone, $msg);
+            \App\Jobs\SendWhatsAppNotification::dispatch($frontdeskPhone, $msg);
+        });
     }
 
     /**
@@ -947,7 +958,7 @@ class BookingApprovalController extends Controller
     private function shortenUrl(string $longUrl): string
     {
         try {
-            $response = \Illuminate\Support\Facades\Http::timeout(5)
+            $response = \Illuminate\Support\Facades\Http::timeout(2)
                 ->get('https://tinyurl.com/api-create.php', ['url' => $longUrl]);
 
             if ($response->successful() && str_starts_with(trim($response->body()), 'https://')) {

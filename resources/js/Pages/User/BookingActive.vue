@@ -1,6 +1,6 @@
 <script setup>
 import UserLayout from '@/Layouts/UserLayout.vue'
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 
 defineOptions({ layout: UserLayout })
@@ -63,6 +63,24 @@ async function submitCancel() {
         cancelLoading.value = false
     }
 }
+
+onMounted(() => {
+    if (window.Echo) {
+        window.Echo.channel('bookings')
+            .listen('NewBookingCreated', (e) => {
+                router.reload({ only: ['bookings'], preserveState: true, preserveScroll: true })
+            })
+            .listen('BookingStatusUpdated', (e) => {
+                router.reload({ only: ['bookings'], preserveState: true, preserveScroll: true })
+            })
+    }
+})
+
+onUnmounted(() => {
+    if (window.Echo) {
+        window.Echo.leaveChannel('bookings')
+    }
+})
 </script>
 
 <template>

@@ -124,3 +124,14 @@ Route::get('/booking/{booking}/share', [BookingShareController::class, 'show'])
      ->name('booking.share');
 Route::get('/booking/{booking}/share/download', [BookingShareController::class, 'download'])
      ->name('booking.share.download');
+
+// Temporary test route for WebSocket debugging
+Route::get('/test-broadcast', function () {
+    try {
+        $booking = \App\Models\Booking::latest()->first();
+        broadcast(new \App\Events\NewBookingCreated($booking));
+        return response()->json(['status' => 'SUCCESS', 'booking_id' => $booking->id, 'config' => config('broadcasting.connections.reverb')]);
+    } catch (\Exception $e) {
+        return response()->json(['status' => 'FAILED', 'error' => $e->getMessage(), 'class' => get_class($e)]);
+    }
+});
