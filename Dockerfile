@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libzip-dev \
+    libpq-dev \
     unzip \
     git \
     curl \
@@ -33,7 +34,7 @@ RUN apt-get update && apt-get install -y \
 
 # Konfigurasi dan instal ekstensi PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql gd zip bcmath
+    && docker-php-ext-install pdo_mysql pdo_pgsql gd zip bcmath
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite headers
