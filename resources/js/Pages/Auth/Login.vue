@@ -19,7 +19,8 @@ function submit() {
         <div class="bg-white rounded-lg shadow p-6 sm:p-8 w-full max-w-sm">
 
             <!-- Header -->
-            <div class="text-center mb-6">
+            <div class="text-center mb-6 flex flex-col items-center">
+                <img :src="'/pama.png'" alt="PAMA Logo" class="h-16 w-auto mb-4 object-contain" />
                 <h1 class="text-2xl font-bold text-gray-800">BBSO Booking</h1>
                 <p class="text-sm text-gray-500 mt-1">Sistem Manajemen Ruang Training</p>
             </div>
