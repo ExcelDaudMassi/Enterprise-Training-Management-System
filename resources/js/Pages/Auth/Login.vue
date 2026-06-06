@@ -15,8 +15,8 @@ function submit() {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow p-8 w-full max-w-sm">
+    <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow p-6 sm:p-8 w-full max-w-sm">
 
             <!-- Header -->
             <div class="text-center mb-6">

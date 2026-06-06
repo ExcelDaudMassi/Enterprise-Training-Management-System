@@ -619,7 +619,7 @@ function getVisualStatus(b) {
 <template>
 
         <!-- Header -->
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <h2 class="text-lg font-bold text-gray-800">User Dashboard</h2>
             <div v-if="!isWindowActive"
                  class="bg-gray-250 text-gray-400 text-sm font-medium px-4 py-2 rounded-lg cursor-not-allowed border border-gray-300 flex items-center gap-1.5 select-none"
