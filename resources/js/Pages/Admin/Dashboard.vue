@@ -1417,7 +1417,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 </div>
             </div>
         </div>
-        <div v-else class="bg-white rounded-lg shadow-xs px-5 py-10 text-center flex flex-col items-center justify-center min-h-[180px] h-full mb-6">
+        <div v-else class="bg-white rounded-lg shadow-xs px-5 py-10 text-center flex flex-col items-center justify-center min-h-[180px] mb-6">
             <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
