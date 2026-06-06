@@ -1291,12 +1291,16 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                             <div v-for="d in selectedMonthDays" :key="d.dayNum" class="border-r border-gray-200/60 last:border-r-0 h-full" :class="d.isWeekend ? 'bg-red-50/10' : ''"></div>
                                         </div>
                                         
-                                        <div v-for="b in room.bookings" :key="b.id" @click="openDetailModal(b)" @mouseenter="openDetailTooltip(b, $event)" @mousemove="updateTooltipPos($event)" @mouseleave="closeDetailTooltip" class="absolute px-2.5 flex items-center border shadow-3xs hover:shadow-2xs transition-all cursor-pointer group select-none" :style="getGanttBarStyle(b, room)">
-                                            <div class="flex items-center gap-2 min-w-0 w-full">
-                                                <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(b.ruangan_id).bg }"></span>
-                                                <span class="font-extrabold text-[11px] truncate leading-none">{{ b.nama_training }}</span>
+                                        <TransitionGroup name="gantt-bar" tag="div" class="contents">
+                                        <div v-for="b in room.bookings" :key="b.id" @click="openDetailModal(b)" @mouseenter="openDetailTooltip(b, $event)" @mousemove="updateTooltipPos($event)" @mouseleave="closeDetailTooltip" class="absolute px-2.5 flex items-center border shadow-3xs hover:shadow-2xs transition-all cursor-pointer group select-none transform-origin-left" :style="getGanttBarStyle(b, room)">
+                                            <div class="flex items-center gap-1.5 min-w-0 w-full overflow-hidden" style="container-type: inline-size;">
+                                                <!-- Text Marquee -->
+                                                <div class="flex font-extrabold text-[11px] leading-none whitespace-nowrap animate-gantt-marquee">
+                                                    <span class="pr-6">{{ b.nama_training }}</span>
+                                                    <span class="pr-6" aria-hidden="true">{{ b.nama_training }}</span>
+                                                </div>
                                                 
-                                                <span class="w-2 h-2 rounded-full shrink-0 ml-auto shadow-xs" :class="[
+                                                <span class="w-2 h-2 rounded-full shrink-0 ml-auto shadow-xs z-10" :class="[
                                                     getVisualStatus(b) === 'plotting' ? 'bg-red-500 animate-pulse' : '',
                                                     getVisualStatus(b) === 'pending' ? 'bg-amber-500 animate-pulse' : '',
                                                     getVisualStatus(b) === 'confirmed' ? 'bg-indigo-500' : '',
@@ -1305,6 +1309,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                                 ]"></span>
                                             </div>
                                         </div>
+                                        </TransitionGroup>
                                     </div>
                                 </div>
                                 
@@ -1734,5 +1739,31 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 }
 .gantt-tooltip {
     filter: drop-shadow(0 8px 24px rgba(0,0,0,0.12)) drop-shadow(0 2px 6px rgba(0,0,0,0.08));
+}
+
+.transform-origin-left {
+    transform-origin: left center;
+}
+.gantt-bar-enter-active,
+.gantt-bar-leave-active {
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+}
+.gantt-bar-enter-from,
+.gantt-bar-leave-to {
+    transform: scaleX(0);
+    opacity: 0;
+}
+.gantt-bar-enter-to,
+.gantt-bar-leave-from {
+    transform: scaleX(1);
+    opacity: 1;
+}
+
+@keyframes gantt-marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.animate-gantt-marquee {
+    animation: gantt-marquee 6s linear infinite;
 }
 </style>
