@@ -438,7 +438,7 @@ provide('collapseDetailMenu', () => {
             </header>
 
             <!-- Page Slot -->
-            <main class="flex-1 p-4 md:p-6 overflow-auto">
+            <main class="flex-1 p-4 md:p-6 overflow-x-hidden" style="overflow-y: overlay;">
                 <slot />
             </main>
         </div>

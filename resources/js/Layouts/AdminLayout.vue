@@ -387,7 +387,7 @@ watch(() => page.props.flash, (newVal) => {
             </header>
 
             <!-- Page Slot -->
-            <main class="flex-1 p-4 md:p-6 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <main class="flex-1 p-4 md:p-6 overflow-x-hidden" style="overflow-y: overlay;">
                 <slot />
             </main>
         </div>
