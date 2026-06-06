@@ -33,7 +33,7 @@ function submit() {
                     <input
                         v-model="form.email"
                         type="email"
-                        placeholder="nama@bbso.com"
+                        placeholder="Masukkan alamat email"
                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                         autofocus
@@ -46,7 +46,7 @@ function submit() {
                     <input
                         v-model="form.password"
                         type="password"
-                        placeholder="••••••••"
+                        placeholder="Masukkan password Anda"
                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
