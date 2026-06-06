@@ -161,6 +161,7 @@ class BookingExcelExportService
             ['Tata Letak (Layout)',  ucfirst($booking->layout_preferensi)],
             ['Kebutuhan Hybrid',     $booking->is_hybrid ? 'AKTIF (Kamera & Mic)' : 'TIDAK AKTIF'],
             ['Papan Tulis Flipchart', $booking->is_flipchart ? 'AKTIF' : 'TIDAK AKTIF'],
+            ['Pena & Mini Note', $booking->is_pena_mini_note ? 'AKTIF' : 'TIDAK AKTIF'],
             ['Catatan Tambahan',     $booking->catatan_admin ?: '-'],
         ];
 

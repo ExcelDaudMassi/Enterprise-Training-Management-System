@@ -228,6 +228,7 @@ class BookingApprovalController extends Controller
                 'layout_url'        => $layoutUrl,
                 'is_hybrid'         => $booking->is_hybrid,
                 'is_flipchart'      => $booking->is_flipchart,
+                'is_pena_mini_note' => $booking->is_pena_mini_note,
                 'catatan_admin'     => $booking->catatan_admin,
                 'created_at'        => $booking->created_at->format('d M Y, H:i'),
                 // Ruangan
@@ -368,6 +369,7 @@ class BookingApprovalController extends Controller
             $fasilitas = collect([
                 $b->is_hybrid ? 'Hybrid' : null,
                 $b->is_flipchart ? 'Flipchart' : null,
+                $b->is_pena_mini_note ? 'Pena & Mini Note' : null,
                 $b->gabung_ruang ? 'Gabung Ruang' : null,
                 $b->layout_preferensi ? ('Layout: ' . ucfirst($b->layout_preferensi)) : null,
             ])->filter()->implode(', ');
@@ -874,6 +876,7 @@ class BookingApprovalController extends Controller
             'layout'                  => $b->layout_preferensi,
             'is_hybrid'               => $b->is_hybrid,
             'is_flipchart'            => $b->is_flipchart,
+            'is_pena_mini_note'       => $b->is_pena_mini_note,
             'catatan_admin'           => $b->catatan_admin,
             'catatan_user'            => $b->catatan_user,
             'catatan_acc_terlambat'   => $b->catatan_acc_terlambat,
@@ -914,7 +917,8 @@ class BookingApprovalController extends Controller
         
         $kebutuhan = collect([
             $booking->is_hybrid ? 'Hybrid (Kamera & Mic)' : null,
-            $booking->is_flipchart ? 'Papan Flipchart' : null
+            $booking->is_flipchart ? 'Papan Flipchart' : null,
+            $booking->is_pena_mini_note ? 'Pena & Mini Note' : null
         ])->filter()->implode(', ');
         if (empty($kebutuhan)) {
             $kebutuhan = '-';

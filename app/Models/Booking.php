@@ -44,6 +44,7 @@ class Booking extends Model
         'layout_custom_path',
         'is_hybrid',
         'is_flipchart',
+        'is_pena_mini_note',
         'catatan_admin',
         'catatan_user',
         // Workflow Tahap 3 — Perubahan Tanggal
@@ -71,6 +72,7 @@ class Booking extends Model
             'gabung_ruang'         => 'boolean',
             'is_hybrid'            => 'boolean',
             'is_flipchart'         => 'boolean',
+            'is_pena_mini_note'    => 'boolean',
         ];
     }
 

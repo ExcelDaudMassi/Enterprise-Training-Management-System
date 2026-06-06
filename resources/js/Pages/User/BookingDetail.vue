@@ -285,14 +285,15 @@ function getAvatarBg(id) {
                                             HYBRID MODE
                                         </span>
                                         <span v-if="booking.is_flipchart" 
-                                              class="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-50 border border-orange-100 text-orange-700 rounded-md text-[10px] font-bold">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0 1 16.5 7.605" />
-                                            </svg>
+                                            class="inline-flex items-center justify-center h-5 px-2 text-[10px] font-bold tracking-wider rounded bg-orange-100 text-orange-700 uppercase border border-orange-200">
                                             FLIPCHART
                                         </span>
-                                        <span v-if="!booking.layout_preferensi && !booking.is_hybrid && !booking.is_flipchart"
-                                              class="text-xs text-gray-400 italic">Tidak ada preferensi fasilitas khusus</span>
+                                        <span v-if="booking.is_pena_mini_note" 
+                                            class="inline-flex items-center justify-center h-5 px-2 text-[10px] font-bold tracking-wider rounded bg-teal-100 text-teal-700 uppercase border border-teal-200">
+                                            PENA & MINI NOTE
+                                        </span>
+                                        <span v-if="!booking.layout_preferensi && !booking.is_hybrid && !booking.is_flipchart && !booking.is_pena_mini_note"
+                                            class="text-xs text-gray-400 font-medium italic">Tidak ada preferensi layout / tambahan fasilitas.</span>
                                     </div>
                                 </div>
                             </div>

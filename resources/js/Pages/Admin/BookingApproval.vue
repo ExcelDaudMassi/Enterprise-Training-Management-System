@@ -418,7 +418,10 @@ const layoutLabels = {
                                 <div v-if="b.is_flipchart" class="flex items-center gap-2 bg-orange-50 text-orange-700 font-semibold px-2 py-1 rounded-md border border-orange-100 w-fit">
                                     <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
                                 </div>
-                                <div v-if="!b.is_hybrid && !b.is_flipchart" class="text-slate-300 font-medium">—</div>
+                                <div v-if="b.is_pena_mini_note" class="flex items-center gap-2 bg-teal-50 text-teal-700 font-semibold px-2 py-1 rounded-md border border-teal-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0"></span>Pena & Mini Note
+                                </div>
+                                <div v-if="!b.is_hybrid && !b.is_flipchart && !b.is_pena_mini_note" class="text-slate-300 font-medium">—</div>
                             </td>
                             <td class="px-5 py-4 text-center">
                                 <span class="px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm"
@@ -756,6 +759,10 @@ const layoutLabels = {
                                                     <div class="flex items-center gap-2">
                                                         <span :class="detailData.booking.is_flipchart ? 'bg-orange-500' : 'bg-gray-300'" class="w-3 h-3 rounded-full flex-shrink-0"></span>
                                                         <span class="text-sm text-gray-700">Flipchart</span>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <span :class="detailData.booking.is_pena_mini_note ? 'bg-teal-500' : 'bg-gray-300'" class="w-3 h-3 rounded-full flex-shrink-0"></span>
+                                                        <span class="text-sm text-gray-700">Pena & Mini Note</span>
                                                     </div>
                                                 </div>
                                                 <div v-if="detailData.booking.layout_url" class="col-span-2">

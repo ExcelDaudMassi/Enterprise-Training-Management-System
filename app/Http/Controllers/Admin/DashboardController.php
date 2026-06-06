@@ -202,6 +202,7 @@ class DashboardController extends Controller
                 'layout_url'    => $booking->layout_custom_path ? asset('storage/' . $booking->layout_custom_path) : null,
                 'is_hybrid'     => (bool) $booking->is_hybrid,
                 'is_flipchart'  => (bool) $booking->is_flipchart,
+                'is_pena_mini_note' => (bool) $booking->is_pena_mini_note,
                 'catatan_admin' => $booking->catatan_admin,
                 'tgl_mulai'     => $booking->tgl_mulai->toDateString(),
                 'tgl_selesai'   => $booking->tgl_selesai->toDateString(),

@@ -296,8 +296,11 @@
                         @if($booking->is_flipchart)
                             <span class="chip chip-amber">📋 Papan Flipchart</span>
                         @endif
-                        @if(!$booking->is_hybrid && !$booking->is_flipchart)
-                            <span style="color:#94a3b8; font-size:13px;">Tidak ada kebutuhan tambahan</span>
+                        @if($booking->is_pena_mini_note)
+                            <span class="chip" style="background-color: #f0fdfa; color: #0f766e; border-color: #ccfbf1;">📝 Pena & Mini Note</span>
+                        @endif
+                        @if(!$booking->is_hybrid && !$booking->is_flipchart && !$booking->is_pena_mini_note)
+                            <span class="text-muted" style="font-size: 13px;">—</span>
                         @endif
                     </div>
                 </div>

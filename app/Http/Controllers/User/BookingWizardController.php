@@ -437,7 +437,8 @@ class BookingWizardController extends Controller
             'layout_custom_file' => 'nullable|file|mimes:jpeg,png,pdf|max:2048',
             'hybrid'             => 'nullable|boolean',
             'flipchart'          => 'nullable|boolean',
-            'catatan'            => 'nullable|string',
+            'pena_mini_note'     => 'nullable|boolean',
+            'catatan_user'       => 'nullable|string|max:500',
         ]);
 
         $path = session('booking_step4.layout_custom_path');
@@ -454,7 +455,8 @@ class BookingWizardController extends Controller
             'layout_custom_path' => $path,
             'hybrid'             => $validated['hybrid'] ?? false,
             'flipchart'          => $validated['flipchart'] ?? false,
-            'catatan'            => $validated['catatan'] ?? '',
+            'pena_mini_note'     => $validated['pena_mini_note'] ?? false,
+            'catatan_user'       => $validated['catatan_user'] ?? null,
         ]]);
 
         return response()->json([
@@ -528,7 +530,9 @@ class BookingWizardController extends Controller
                 'layout_custom_path' => $stage4Data['layout_custom_path'],
                 'is_hybrid'          => $stage4Data['hybrid'],
                 'is_flipchart'       => $stage4Data['flipchart'],
-                'catatan_admin'      => $stage4Data['catatan'],
+                'is_pena_mini_note'  => $stage4Data['pena_mini_note'],
+                'catatan_user'       => $stage4Data['catatan_user'] ?? $stage4Data['catatan'] ?? null,
+                'catatan_admin'      => null,
             ]);
 
             // Save Participants

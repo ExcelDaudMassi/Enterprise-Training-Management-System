@@ -78,6 +78,7 @@ const formStage4 = ref({
     layout_custom_file: null,
     hybrid: false,
     flipchart: false,
+    pena_mini_note: false,
     catatan: ''
 })
 const uploadedCustomFileName = ref('')
@@ -126,7 +127,8 @@ const stateToSave = computed(() => {
             layout_preferensi: formStage4.value.layout_preferensi,
             hybrid: formStage4.value.hybrid,
             flipchart: formStage4.value.flipchart,
-            catatan: formStage4.value.catatan,
+            pena_mini_note: formStage4.value.pena_mini_note,
+            catatan_user: formStage4.value.catatan,
         }
     }
 })
@@ -272,7 +274,8 @@ onMounted(() => {
                             formStage4.value.layout_preferensi = data.formStage4.layout_preferensi || 'classroom'
                             formStage4.value.hybrid = data.formStage4.hybrid || false
                             formStage4.value.flipchart = data.formStage4.flipchart || false
-                            formStage4.value.catatan = data.formStage4.catatan || ''
+                            formStage4.value.pena_mini_note = data.formStage4.pena_mini_note || false
+                            formStage4.value.catatan = data.formStage4.catatan_user || ''
                         }
                     } catch (e) {
                         console.error('Gagal memulihkan state formulir:', e)
@@ -699,6 +702,7 @@ async function proceedToStage5() {
     }
     formData.append('hybrid', formStage4.value.hybrid ? 1 : 0)
     formData.append('flipchart', formStage4.value.flipchart ? 1 : 0)
+    formData.append('pena_mini_note', formStage4.value.pena_mini_note ? 1 : 0)
     formData.append('catatan', formStage4.value.catatan)
 
     try {
@@ -777,6 +781,7 @@ function backToStage1() {
         layout_custom_file: null,
         hybrid: false,
         flipchart: false,
+        pena_mini_note: false,
         catatan: ''
     }
     uploadedCustomFileName.value = ''
@@ -795,6 +800,7 @@ function backToStage2() {
         layout_custom_file: null,
         hybrid: false,
         flipchart: false,
+        pena_mini_note: false,
         catatan: ''
     }
     uploadedCustomFileName.value = ''
@@ -1676,13 +1682,17 @@ const getLayoutDesc = (layout) => {
                 <div>
                     <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Kebutuhan Tambahan</p>
                     <div class="flex gap-4 flex-wrap">
-                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <label class="flex items-center gap-2 px-3 py-2 border rounded-md cursor-pointer hover:bg-gray-50 transition">
                             <input type="checkbox" v-model="formStage4.hybrid" class="rounded-sm text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
                             <span class="text-xs text-gray-600 font-medium">Hybrid (Kamera &amp; Mic)</span>
                         </label>
-                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <label class="flex items-center gap-2 px-3 py-2 border rounded-md cursor-pointer hover:bg-gray-50 transition">
                             <input type="checkbox" v-model="formStage4.flipchart" class="rounded-sm text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
                             <span class="text-xs text-gray-600 font-medium">Flipchart (Papan Tulis)</span>
+                        </label>
+                        <label class="flex items-center gap-2 px-3 py-2 border rounded-md cursor-pointer hover:bg-gray-50 transition">
+                            <input type="checkbox" v-model="formStage4.pena_mini_note" class="rounded-sm text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
+                            <span class="text-xs text-gray-600 font-medium">Pena & Mini Note</span>
                         </label>
                     </div>
                     <div class="mt-3">
@@ -1725,6 +1735,7 @@ const getLayoutDesc = (layout) => {
                                 <div class="flex justify-between"><span class="text-gray-500">Layout</span><span class="font-medium text-gray-800 capitalize">{{ formStage4.layout_preferensi }}</span></div>
                                 <div class="flex justify-between"><span class="text-gray-500">Hybrid</span><span :class="formStage4.hybrid ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.hybrid ? 'Ya' : 'Tidak' }}</span></div>
                                 <div class="flex justify-between"><span class="text-gray-500">Flipchart</span><span :class="formStage4.flipchart ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.flipchart ? 'Ya' : 'Tidak' }}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Pena & Mini Note</span><span :class="formStage4.pena_mini_note ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.pena_mini_note ? 'Ya' : 'Tidak' }}</span></div>
                             </div>
                         </div>
                     </div>

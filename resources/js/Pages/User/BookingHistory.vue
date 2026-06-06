@@ -278,7 +278,10 @@ function downloadExcel(booking) {
                                 <div v-if="b.is_flipchart" class="flex items-center gap-2 bg-orange-50 text-orange-700 font-semibold px-2 py-1 rounded-md border border-orange-100 w-fit">
                                     <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
                                 </div>
-                                <div v-if="!b.is_hybrid && !b.is_flipchart" class="text-slate-300 font-medium">—</div>
+                                <div v-if="b.is_pena_mini_note" class="flex items-center gap-2 bg-teal-50 text-teal-700 font-semibold px-2 py-1 rounded-md border border-teal-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0"></span>Pena & Mini Note
+                                </div>
+                                <div v-if="!b.is_hybrid && !b.is_flipchart && !b.is_pena_mini_note" class="text-slate-300 font-medium">—</div>
                             </td>
 
                             <!-- Status -->
@@ -462,7 +465,8 @@ function downloadExcel(booking) {
                                     <span v-if="selectedBooking.layout_preferensi" class="px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-gray-600 uppercase shadow-xs">Layout: {{ selectedBooking.layout_preferensi }}</span>
                                     <span v-if="selectedBooking.is_hybrid" class="px-2.5 py-1 bg-violet-100 border border-violet-200 rounded-lg text-[10px] font-bold text-violet-700 uppercase">Hybrid Mode</span>
                                     <span v-if="selectedBooking.is_flipchart" class="px-2.5 py-1 bg-orange-100 border border-orange-200 rounded-lg text-[10px] font-bold text-orange-700 uppercase">Flipchart</span>
-                                    <span v-if="!selectedBooking.layout_preferensi && !selectedBooking.is_hybrid && !selectedBooking.is_flipchart" class="text-xs text-gray-400 italic">Tidak ada</span>
+                                    <span v-if="selectedBooking.is_pena_mini_note" class="px-2.5 py-1 bg-teal-100 border border-teal-200 rounded-lg text-[10px] font-bold text-teal-700 uppercase">Pena & Mini Note</span>
+                                    <span v-if="!selectedBooking.layout_preferensi && !selectedBooking.is_hybrid && !selectedBooking.is_flipchart && !selectedBooking.is_pena_mini_note" class="text-xs text-gray-400 italic">Tidak ada</span>
                                 </div>
                             </div>
                             <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
