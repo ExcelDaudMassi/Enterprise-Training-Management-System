@@ -396,7 +396,7 @@ watch(() => page.props.flash, (newVal) => {
                 <footer class="mt-auto border-t border-gray-200 bg-white py-4 px-4 md:px-6 shrink-0">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
                         <div class="text-[11px] text-gray-500 font-medium">
-                            &copy; {{ new Date().getFullYear() }} <span class="font-bold text-gray-800">PT. Borneo Bhakti Surya Optima (BBSO)</span>. All rights reserved.
+                            &copy; {{ new Date().getFullYear() }} &nbsp; <span class="font-bold text-gray-800">PAMA BANJARBARU SUPPORT OFFICE (BBSO)</span>. All rights reserved.
                         </div>
                         <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
                             <span class="hover:text-blue-600 cursor-pointer transition-colors">Bantuan</span>
