@@ -1682,15 +1682,15 @@ const getLayoutDesc = (layout) => {
                 <div>
                     <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Kebutuhan Tambahan</p>
                     <div class="flex gap-4 flex-wrap">
-                        <label class="flex items-center gap-2 px-3 py-2 border rounded-md cursor-pointer hover:bg-gray-50 transition">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
                             <input type="checkbox" v-model="formStage4.hybrid" class="rounded-sm text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
                             <span class="text-xs text-gray-600 font-medium">Hybrid (Kamera &amp; Mic)</span>
                         </label>
-                        <label class="flex items-center gap-2 px-3 py-2 border rounded-md cursor-pointer hover:bg-gray-50 transition">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
                             <input type="checkbox" v-model="formStage4.flipchart" class="rounded-sm text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
                             <span class="text-xs text-gray-600 font-medium">Flipchart (Papan Tulis)</span>
                         </label>
-                        <label class="flex items-center gap-2 px-3 py-2 border rounded-md cursor-pointer hover:bg-gray-50 transition">
+                        <label class="flex items-center gap-2 cursor-pointer select-none">
                             <input type="checkbox" v-model="formStage4.pena_mini_note" class="rounded-sm text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
                             <span class="text-xs text-gray-600 font-medium">Pena & Mini Note</span>
                         </label>
