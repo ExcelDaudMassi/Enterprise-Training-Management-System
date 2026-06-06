@@ -17,3 +17,5 @@ yarn-error.log
 /.fleet
 /.git
 /.github
+/database/database.sqlite
+/database/database.sqlite.bak

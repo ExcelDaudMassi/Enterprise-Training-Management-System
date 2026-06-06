@@ -8,8 +8,8 @@ php artisan event:cache
 php artisan route:cache
 php artisan view:cache
 
-# Force migration (Dinonaktifkan untuk personal testing SQLite)
-# php artisan migrate --force
+# Force migration (pastikan koneksi database benar-benar ke Cloud SQL MySQL/Postgres)
+php artisan migrate --force
 
 # Start Apache di foreground
 apache2-foreground
