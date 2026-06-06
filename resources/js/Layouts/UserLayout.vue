@@ -437,9 +437,27 @@ provide('collapseDetailMenu', () => {
                 </div>
             </header>
 
-            <!-- Page Slot -->
-            <main class="flex-1 p-4 md:p-6 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable]">
-                <slot />
+            <!-- Page Slot & Footer -->
+            <main class="flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] flex flex-col bg-slate-50/30">
+                <div class="flex-1 p-4 md:p-6">
+                    <slot />
+                </div>
+                
+                <!-- Footer -->
+                <footer class="mt-auto border-t border-gray-200 bg-white py-4 px-4 md:px-6 shrink-0">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+                        <div class="text-[11px] text-gray-500 font-medium">
+                            &copy; {{ new Date().getFullYear() }} <span class="font-bold text-gray-800">PT. Borneo Bhakti Surya Optima (BBSO)</span>. All rights reserved.
+                        </div>
+                        <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                            <span class="hover:text-blue-600 cursor-pointer transition-colors">Bantuan</span>
+                            <span class="text-gray-300">•</span>
+                            <span class="hover:text-blue-600 cursor-pointer transition-colors">Kebijakan Privasi</span>
+                            <span class="text-gray-300">•</span>
+                            <span class="text-gray-500">v1.0.0</span>
+                        </div>
+                    </div>
+                </footer>
             </main>
         </div>
     </div>
