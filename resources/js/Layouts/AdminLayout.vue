@@ -160,7 +160,7 @@ watch(() => page.props.flash, (newVal) => {
         <div 
             v-if="isSidebarOpen" 
             @click="isSidebarOpen = false" 
-            class="fixed inset-0 bg-black/40 z-30 lg:hidden transition-opacity duration-300"
+            class="fixed inset-0 bg-white/60 backdrop-blur-sm z-30 lg:hidden transition-opacity duration-300"
         ></div>
 
         <!-- ======================================================= -->
@@ -405,7 +405,7 @@ watch(() => page.props.flash, (newVal) => {
             leave-to-class="opacity-0"
         >
             <div v-if="showWindowModal"
-                 class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+                 class="fixed inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                  @click.self="closeWindowModal">
 
                 <Transition

@@ -386,7 +386,7 @@ onUnmounted(() => {
         >
             <div 
                 v-if="showRecapModal && selectedBooking"
-                class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+                class="fixed inset-0 bg-white/60 backdrop-blur-sm z-40"
                 @click="showRecapModal = false"
             />
         </Transition>

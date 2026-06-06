@@ -207,7 +207,7 @@ provide('collapseDetailMenu', () => {
         <div 
             v-if="isSidebarOpen" 
             @click="isSidebarOpen = false" 
-            class="fixed inset-0 bg-black/40 z-30 lg:hidden transition-opacity duration-300"
+            class="fixed inset-0 bg-white/60 backdrop-blur-sm z-30 lg:hidden transition-opacity duration-300"
         ></div>
 
         <!-- ======================================================= -->

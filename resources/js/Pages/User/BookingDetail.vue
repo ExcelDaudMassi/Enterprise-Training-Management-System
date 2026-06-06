@@ -529,7 +529,7 @@ function getAvatarBg(id) {
             leave-active-class="transition-all ease-in duration-200" 
             leave-from-class="opacity-100 scale-100 translate-y-0" 
             leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
-            <div v-if="showCancelModal" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
+            <div v-if="showCancelModal" class="fixed inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div class="bg-white rounded-xl border border-gray-250 shadow-xl w-full max-w-md p-6">
                     <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-50 border border-red-200 rounded-full mb-4">
                         <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -572,7 +572,7 @@ function getAvatarBg(id) {
             leave-active-class="transition-all ease-in duration-200" 
             leave-from-class="opacity-100 scale-100 translate-y-0" 
             leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
-            <div v-if="showParticipantModal" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
+            <div v-if="showParticipantModal" class="fixed inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div class="bg-white rounded-xl border border-gray-250 shadow-xl w-full max-w-md p-6">
                     <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-50 border border-blue-100 rounded-full mb-4">
                         <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -622,7 +622,7 @@ function getAvatarBg(id) {
             leave-active-class="transition-all ease-in duration-200" 
             leave-from-class="opacity-100 scale-100 translate-y-0" 
             leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
-            <div v-if="showDateModal" class="fixed inset-0 backdrop-blur-sm bg-black/40 z-50 flex items-center justify-center p-4">
+            <div v-if="showDateModal" class="fixed inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 border border-gray-250">
                     <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-50 border border-blue-100 rounded-full mb-4 shadow-xs">
                         <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

@@ -827,7 +827,7 @@ onUnmounted(() => {
                 leave-from-class="opacity-100 scale-100"
                 leave-to-class="opacity-0 scale-95"
             >
-                <div v-if="showEditParticipantModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+                <div v-if="showEditParticipantModal" class="fixed inset-0 bg-white/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                     <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200" @click.stop>
                         <div class="px-6 py-4 border-b border-gray-200 bg-white flex justify-between items-center">
                             <div>

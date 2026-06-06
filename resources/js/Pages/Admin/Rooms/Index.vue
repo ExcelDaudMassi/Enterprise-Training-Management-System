@@ -259,7 +259,7 @@ const filteredRooms = computed(() => {
                 leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showFormModal"
-                     class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                     class="fixed inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                      @click.self="closeFormModal">
                     <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
 
@@ -385,7 +385,7 @@ const filteredRooms = computed(() => {
                 leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0"
             >
                 <div v-if="showDeleteModal"
-                     class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                     class="fixed inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                      @click.self="closeDeleteModal">
                     <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden border border-gray-200">
                         <div class="p-6">

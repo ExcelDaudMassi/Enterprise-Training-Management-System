@@ -1439,7 +1439,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
             >
             <div
                 v-if="detailModalOpen"
-                class="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                class="fixed inset-0 z-[110] flex items-center justify-center bg-white/60 backdrop-blur-sm p-4"
                 @click.self="closeDetailModal"
             >
                 <div class="bg-white rounded-xl shadow-2xl w-full max-w-7xl md:w-[94vw] overflow-hidden flex flex-col border border-gray-200 h-[85vh] min-h-[550px]">
