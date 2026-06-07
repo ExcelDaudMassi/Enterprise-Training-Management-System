@@ -19,7 +19,7 @@ const participants        = ref([
     { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
 ])
 const isManualInput       = ref(true)
-const uploadedFileName    = ref('Input Manual')
+const uploadedFileName    = ref('Manual Input')
 const isUploadingExcel    = ref(false)
 const excelSuccessMessage = ref('')
 const eligibleRooms        = ref([])
@@ -154,16 +154,16 @@ onMounted(() => {
             try {
                 const data = JSON.parse(saved)
                 const stageNames = {
-                    1: 'Kapasitas & Peserta',
-                    2: 'Pilih Tanggal',
-                    3: 'Pilih Ruangan',
-                    4: 'Detail Acara',
-                    5: 'Review & Ajukan'
+                    1: 'Capacity & Participants',
+                    2: 'Select Date',
+                    3: 'Select Room',
+                    4: 'Event Details',
+                    5: 'Review & Submit'
                 }
-                const stageName = stageNames[data.currentStage] || 'Formulir'
+                const stageName = stageNames[data.currentStage] || 'Form'
                 
                 // Format tanggal jika ada
-                let dateRangeStr = 'Belum dipilih'
+                let dateRangeStr = 'Not selected'
                 if (data.startDate && data.endDate) {
                     const formatDateLocal = (dateStr) => {
                         const d = new Date(dateStr)
@@ -181,28 +181,28 @@ onMounted(() => {
                     <div class="mt-4 p-3.5 bg-gray-50 border border-gray-100 rounded-xl text-left font-sans shadow-inner">
                         <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5 select-none">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block animate-pulse"></span>
-                            <span>Resume Progres Tersimpan:</span>
+                            <span>Saved Progress Resume:</span>
                         </div>
                         <div class="space-y-2 text-[11px] leading-relaxed">
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-400 font-medium">Langkah Terakhir:</span>
+                                <span class="text-gray-400 font-medium">Last Step:</span>
                                 <span class="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-[4px] text-[10px] border border-blue-100/50">
-                                    Tahap ${data.currentStage}: ${stageName}
+                                    Stage ${data.currentStage}: ${stageName}
                                 </span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-400 font-medium">Rentang Tanggal:</span>
+                                <span class="text-gray-400 font-medium">Date Range:</span>
                                 <span class="text-gray-700 font-semibold">${dateRangeStr}</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-400 font-medium">Total Kapasitas:</span>
-                                <span class="text-gray-700 font-semibold">${totalOrang > 0 ? `${totalOrang} Orang` : 'Belum diisi'}</span>
+                                <span class="text-gray-400 font-medium">Total Capacity:</span>
+                                <span class="text-gray-700 font-semibold">${totalOrang > 0 ? `${totalOrang} People` : 'Not filled'}</span>
                             </div>
                 `
                 if (data.selectedRoom) {
                     infoHtml += `
                             <div class="flex items-center justify-between border-t border-gray-200/50 pt-2 mt-2">
-                                <span class="text-gray-400 font-medium">Ruangan Terpilih:</span>
+                                <span class="text-gray-400 font-medium">Selected Room:</span>
                                 <span class="text-blue-600 font-bold">${data.selectedRoom.nama_ruang}</span>
                             </div>
                     `
@@ -216,7 +216,7 @@ onMounted(() => {
             }
 
             Swal.fire({
-                title: 'Lanjutkan Isian?',
+                title: 'Continue Filling?',
                 html: `
                     <div class="text-center font-sans">
                         <div class="w-14 h-14 bg-blue-50 border border-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-600 relative shadow-sm">
@@ -226,15 +226,15 @@ onMounted(() => {
                             </svg>
                         </div>
                         <div class="text-[11.5px] text-gray-500 leading-relaxed px-2">
-                            Anda memiliki data isian form booking yang belum selesai. Apakah Anda ingin melanjutkannya?
+                            You have incomplete booking form data. Would you like to continue?
                         </div>
                         ${infoHtml}
                     </div>
                 `,
                 width: '22rem', // Ukuran box ramping dan elegan (352px)
                 showCancelButton: true,
-                confirmButtonText: 'Ya, Lanjutkan',
-                cancelButtonText: 'Buat Baru',
+                confirmButtonText: 'Yes, Continue',
+                cancelButtonText: 'Create New',
                 allowOutsideClick: false,
                 buttonsStyling: false,
                 customClass: {
@@ -352,7 +352,7 @@ watch([startDate, endDate], async ([newStart, newEnd]) => {
                 }
             }
         } catch (err) {
-            autoFetchRoomsError.value = 'Gagal mengecek ruangan otomatis.'
+            autoFetchRoomsError.value = 'Gagal memeriksa ruangan secara otomatis.'
         } finally {
             isAutoFetchingRooms.value = false
         }
@@ -371,7 +371,7 @@ async function handleExcelUpload(event) {
 
     // Batasi ketat hanya berkas .xlsx
     if (!file.name.endsWith('.xlsx')) {
-        stage1Error.value = 'Pemberitahuan: Format berkas harus berupa Excel asli (.xlsx)!'
+        stage1Error.value = 'Pemberitahuan: Format file harus berupa Excel asli (.xlsx)!'
         return
     }
 
@@ -620,7 +620,7 @@ function validateRange() {
         // blockedDates[dateStr] adalah object { status, occupied_rooms }, bukan string
         const entry = blockedDates.value[dateStr]
         if (entry?.status === 'full') {
-            rangeError.value = 'Rentang tanggal yang Anda pilih mengandung hari yang sudah penuh. Silakan pilih rentang lain.'
+            rangeError.value = 'Rentang tanggal yang dipilih berisi hari yang sudah penuh. Harap pilih rentang lain.'
             return false
         }
         current.setDate(current.getDate() + 1)
@@ -679,7 +679,7 @@ function handleCustomLayoutUpload(event) {
     const file = event.target.files[0]
     if (!file) return
     if (file.size > 2 * 1024 * 1024) {
-        stage4Error.value = 'Ukuran file maksimal 2MB.'
+        stage4Error.value = 'Ukuran file maksimal adalah 2MB.'
         return
     }
     formStage4.value.layout_custom_file = file
@@ -739,7 +739,7 @@ async function submitFinal() {
             // Langkah C: Menghapus localStorage state karena booking berhasil diajukan
             clearSavedState()
         } else {
-            submitError.value = res.data.message || 'Terjadi kesalahan tidak diketahui.'
+            submitError.value = res.data.message || 'Terjadi kesalahan yang tidak diketahui.'
         }
     } catch (err) {
         // Handle Laravel Validation Errors (422)
@@ -754,7 +754,7 @@ async function submitFinal() {
         } else if (err.response?.data?.message) {
             submitError.value = err.response.data.message
         } else {
-            submitError.value = 'Koneksi bermasalah. Silakan coba lagi.'
+            submitError.value = 'Masalah koneksi. Silakan coba lagi.'
         }
     } finally {
         isSubmitting.value = false
@@ -826,11 +826,11 @@ const getStageTitle = (stage) => {
 
 const getStageSubtitle = (stage) => {
     switch (stage) {
-        case 1: return 'Lengkapi daftar peserta training dan panitia penyelenggara untuk mencari ruangan yang sesuai.'
-        case 2: return 'Pilih rentang tanggal mulai dan selesai pada kalender untuk melihat ketersediaan ruangan.'
-        case 3: return 'Pilih salah satu ruangan yang tersedia untuk kapasitas dan rentang tanggal yang telah ditentukan.'
-        case 4: return 'Lengkapi informasi acara, PIC, layout ruangan, dan kebutuhan tambahan.'
-        case 5: return 'Tinjau kembali seluruh data sebelum diajukan ke admin.'
+        case 1: return 'Lengkapi daftar peserta dan panitia pelatihan untuk mencari ruangan yang sesuai.'
+        case 2: return 'Pilih rentang tanggal mulai dan berakhir pada kalender untuk melihat ketersediaan ruangan.'
+        case 3: return 'Pilih salah satu ruangan yang tersedia untuk kapasitas dan rentang tanggal yang ditentukan.'
+        case 4: return 'Lengkapi informasi acara, PIC, tata letak ruangan, dan kebutuhan tambahan.'
+        case 5: return 'Tinjau kembali semua data sebelum mengajukan ke admin.'
         default: return ''
     }
 }
@@ -840,9 +840,9 @@ const STAGE_LABELS = ['Kapasitas', 'Tanggal', 'Ruangan', 'Detail', 'Review']
 const getLayoutLabel = (layout) => {
     switch (layout) {
         case 'classroom': return 'Kelas'
-        case 'u-shape': return 'Bentuk U'
+        case 'u-shape': return 'U-Shape'
         case 'i-shape': return 'Boardroom'
-        case 'o-shape': return 'Melingkar'
+        case 'o-shape': return 'O-Shape'
         case 'custom': return 'Kustom'
         default: return layout
     }
@@ -852,9 +852,9 @@ const getLayoutDesc = (layout) => {
     switch (layout) {
         case 'classroom': return 'Meja kelas paralel'
         case 'u-shape': return 'Kolaborasi aktif'
-        case 'i-shape': return 'Meja rapat panjang'
-        case 'o-shape': return 'Hollow square/bulat'
-        case 'custom': return 'Upload denah sendiri'
+        case 'i-shape': return 'Meja meeting panjang'
+        case 'o-shape': return 'Kotak/bulat berongga'
+        case 'custom': return 'Unggah denah ruangan sendiri'
         default: return ''
     }
 }
@@ -867,8 +867,8 @@ const getLayoutDesc = (layout) => {
             <!-- Header & Progress Bar -->
             <!-- ======================================================= -->
             <div class="mb-6">
-                <h1 class="text-2xl font-bold text-gray-800">Booking Ruang Training</h1>
-                <p class="text-gray-500 text-sm mt-1">Ikuti langkah-langkah untuk menyelesaikan pemesanan ruangan.</p>
+                <h1 class="text-2xl font-bold text-gray-800">Booking Ruang Pelatihan</h1>
+                <p class="text-gray-500 text-sm mt-1">Ikuti langkah-langkah berikut untuk menyelesaikan pemesanan ruangan.</p>
 
                 <div class="mt-4 flex items-center">
                     <template v-for="(label, idx) in STAGE_LABELS" :key="idx">
@@ -994,8 +994,8 @@ const getLayoutDesc = (layout) => {
                             <div class="flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full shrink-0" :class="isRangeSelected ? 'bg-green-500' : 'bg-yellow-400 animate-pulse'"></span>
                                 <span>
-                                    <template v-if="!startDate">Pilih tanggal mulai di kalender</template>
-                                    <template v-else-if="!endDate">Mulai: <strong class="text-blue-600">{{ formatDate(startDate) }}</strong> — pilih selesai</template>
+                                    <template v-if="!startDate">Pilih tanggal mulai pada kalender</template>
+                                    <template v-else-if="!endDate">Mulai: <strong class="text-blue-600">{{ formatDate(startDate) }}</strong> — pilih tanggal selesai</template>
                                     <template v-else><strong class="text-green-600">{{ formatDate(startDate) }}</strong> s/d <strong class="text-green-600">{{ formatDate(endDate) }}</strong></template>
                                 </span>
                             </div>
@@ -1057,7 +1057,7 @@ const getLayoutDesc = (layout) => {
                                 <input type="checkbox" v-model="termsAccepted" :disabled="isSubmitting"
                                     class="w-4 h-4 mt-0.5 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-100 shrink-0" />
                                 <div>
-                                    <span class="text-xs font-semibold text-gray-700 block leading-tight">Saya memastikan data pemesanan sudah benar</span>
+                                    <span class="text-xs font-semibold text-gray-700 block leading-tight">Saya mengonfirmasi bahwa data booking sudah benar</span>
                                     <span class="text-[10px] text-gray-450 block mt-0.5 leading-tight">Saya bertanggung jawab penuh atas kelengkapan data & menyetujui syarat penggunaan ruangan.</span>
                                 </div>
                             </label>
@@ -1099,7 +1099,7 @@ const getLayoutDesc = (layout) => {
 
                         <div v-if="currentStage === 2" class="hidden md:flex items-center gap-2 text-[10px] text-gray-400 font-medium mr-2 shrink-0">
                             <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Tersedia</div>
-                            <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> Parsial</div>
+                            <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> Sebagian</div>
                             <div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span> Penuh</div>
                         </div>
 
@@ -1110,7 +1110,7 @@ const getLayoutDesc = (layout) => {
                             <svg v-else class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637z" />
                             </svg>
-                            <span>{{ isChecking ? 'Mengecek...' : 'Cari Ruangan' }}</span>
+                            <span>{{ isChecking ? 'Memeriksa...' : 'Cari Ruangan' }}</span>
                             <svg v-if="!isChecking" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                             </svg>
@@ -1120,12 +1120,12 @@ const getLayoutDesc = (layout) => {
                             <button @click="backToStage1"
                                 class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-                                Kembali
+                                Back
                             </button>
                             <button @click="proceedToStage3" :disabled="!isRangeSelected || isLoadingRooms || (availableRooms.length > 0 && !availableRooms.some(r => r.is_available))"
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2 select-none">
                                 <span v-if="isLoadingRooms" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                <span>{{ isLoadingRooms ? 'Memproses...' : 'Pilih Ruangan' }}</span>
+                                <span>{{ isLoadingRooms ? 'Processing...' : 'Select Room' }}</span>
                                 <svg v-if="!isLoadingRooms" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                             </button>
                         </template>
@@ -1134,11 +1134,11 @@ const getLayoutDesc = (layout) => {
                             <button @click="backToStage2"
                                 class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-                                Kembali
+                                Back
                             </button>
                             <button @click="proceedToStage4" :disabled="!isRoomSelected"
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2 select-none">
-                                <span>Isi Detail</span>
+                                <span>Fill Details</span>
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                             </button>
                         </template>
@@ -1147,12 +1147,12 @@ const getLayoutDesc = (layout) => {
                             <button @click="currentStage = 3" :disabled="isSavingStage4"
                                 class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-                                Kembali
+                                Back
                             </button>
                             <button @click="proceedToStage5" :disabled="!isStage4Valid || isSavingStage4"
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2 select-none">
                                 <span v-if="isSavingStage4" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                <span>{{ isSavingStage4 ? 'Menyimpan...' : 'Lanjut ke Review' }}</span>
+                                <span>{{ isSavingStage4 ? 'Saving...' : 'Proceed to Review' }}</span>
                                 <svg v-if="!isSavingStage4" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                             </button>
                         </template>
@@ -1161,16 +1161,16 @@ const getLayoutDesc = (layout) => {
                             <button @click="currentStage = 4" :disabled="isSubmitting"
                                 class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-                                Kembali Edit
+                                Back to Edit
                             </button>
                             <div class="flex flex-col items-end gap-0.5 shrink-0">
                                 <button @click="submitFinal" :disabled="isSubmitting || !termsAccepted"
                                     class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-md text-xs transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap select-none">
                                     <span v-if="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                     <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
-                                    {{ isSubmitting ? 'Mengajukan...' : 'Ajukan Booking' }}
+                                    {{ isSubmitting ? 'Submitting...' : 'Submit Booking' }}
                                 </button>
-                                <span class="text-[9px] text-gray-405 select-none">Direview admin maks. 1×24 jam</span>
+                                <span class="text-[9px] text-gray-405 select-none">Reviewed by admin max. 1×24 hours</span>
                             </div>
                         </template>
                     </div>
@@ -1192,9 +1192,9 @@ const getLayoutDesc = (layout) => {
                                     <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                                     </svg>
-                                    <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">List Peserta</span>
+                                    <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Participant List</span>
                                     <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-100">
-                                        {{ participantCount }} Orang
+                                        {{ participantCount }} People
                                     </span>
                                 </div>
                                 <button @click="addParticipant"
@@ -1202,7 +1202,7 @@ const getLayoutDesc = (layout) => {
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                     </svg>
-                                    Tambah Peserta
+                                    Add Participant
                                 </button>
                             </div>
                             
@@ -1211,11 +1211,11 @@ const getLayoutDesc = (layout) => {
                                     <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-gray-100">
                                         <tr>
                                             <th class="px-4 py-3 w-12 text-center font-bold">#</th>
-                                            <th class="px-4 py-3 font-bold">Nama Lengkap<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Full Name<span class="text-red-500">*</span></th>
                                             <th class="px-4 py-3 font-bold">NRP<span class="text-red-500">*</span></th>
-                                            <th class="px-4 py-3 font-bold">Jabatan<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Position<span class="text-red-500">*</span></th>
                                             <th class="px-4 py-3 font-bold">Site<span class="text-red-500">*</span></th>
-                                            <th class="px-4 py-3 font-bold">No. HP<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Phone Number<span class="text-red-500">*</span></th>
                                             <th class="px-4 py-3 w-40 text-center font-bold">Gender<span class="text-red-500">*</span></th>
                                             <th class="px-4 py-3 w-12 text-center font-bold"></th>
                                         </tr>
@@ -1224,17 +1224,17 @@ const getLayoutDesc = (layout) => {
                                         <tr v-for="(p, i) in participants" :key="i" class="hover:bg-blue-50/20 transition-colors">
                                             <td class="px-4 py-2.5 text-center text-gray-400 font-bold">{{ i + 1 }}</td>
                                             <td class="px-4 py-2.5">
-                                                <input v-model="p.nama" type="text" placeholder="Ketik nama lengkap..."
+                                                <input v-model="p.nama" type="text" placeholder="Type full name..."
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
-                                                <input v-model="p.nrp" type="text" placeholder="Ketik NRP atau 'N/A'..."
+                                                <input v-model="p.nrp" type="text" placeholder="Type NRP or 'N/A'..."
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.nrp.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
-                                                <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
+                                                <input v-model="p.jabatan" type="text" placeholder="Position..."
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.jabatan.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
@@ -1244,21 +1244,21 @@ const getLayoutDesc = (layout) => {
                                                     :class="p.site.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
-                                                <input v-model="p.no_hp" type="text" placeholder="Contoh: 0812..."
+                                                <input v-model="p.no_hp" type="text" placeholder="Example: 0812..."
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.no_hp.trim() === '' || !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <select v-model="p.gender"
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white min-w-[110px] appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.6em_auto] bg-[right_0.65rem_center] bg-no-repeat">
-                                                    <option value="L">Laki-laki</option>
-                                                    <option value="P">Perempuan</option>
+                                                    <option value="L">Male</option>
+                                                    <option value="P">Female</option>
                                                 </select>
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <button @click="removeParticipant(i)"
                                                     class="text-gray-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition"
-                                                    title="Hapus baris">
+                                                    title="Delete row">
                                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9 9m6.24-3.5v-.75A2.25 2.25 0 0 0 14.25 2.25h-4.5A2.25 2.25 0 0 0 7.5 4.5v.75m3 3h4.5M5.625 6h12.75L17.25 18a2.25 2.25 0 0 1-2.25 2.25h-6A2.25 2.25 0 0 1 6.75 18L5.625 6Z" />
                                                     </svg>
@@ -1272,20 +1272,20 @@ const getLayoutDesc = (layout) => {
                             <!-- Footer hint validasi peserta -->
                             <div class="bg-gray-50/70 px-4 py-2.5 flex items-center justify-between shrink-0">
                                 <span class="text-[10px] text-gray-500 font-medium">
-                                    Semua kolom bertanda asterisk (<span class="text-red-500 font-bold">*</span>) wajib diisi.
+                                    All fields marked with an asterisk (<span class="text-red-500 font-bold">*</span>) are required.
                                 </span>
                                 <div class="flex items-center gap-1 ml-auto">
                                     <template v-if="!participantsValid">
                                         <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                                         </svg>
-                                        <span class="text-[10px] text-red-650 font-bold">Ada kolom kosong</span>
+                                        <span class="text-[10px] text-red-650 font-bold">There are empty fields</span>
                                     </template>
                                     <template v-else>
                                         <svg class="w-3.5 h-3.5 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                         </svg>
-                                        <span class="text-[10px] text-green-655 font-bold">Peserta siap validasi</span>
+                                        <span class="text-[10px] text-green-655 font-bold">Participants ready for validation</span>
                                     </template>
                                 </div>
                             </div>
@@ -1298,9 +1298,9 @@ const getLayoutDesc = (layout) => {
                                     <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
                                     </svg>
-                                    <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">List Panitia</span>
+                                    <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Organizer List</span>
                                     <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100">
-                                        {{ panitiaCount }} Orang
+                                        {{ panitiaCount }} People
                                     </span>
                                 </div>
                                 <button @click="addPanitia"
@@ -1308,7 +1308,7 @@ const getLayoutDesc = (layout) => {
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                     </svg>
-                                    Tambah Panitia
+                                    Add Organizer
                                 </button>
                             </div>
                             
@@ -1317,11 +1317,11 @@ const getLayoutDesc = (layout) => {
                                     <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-gray-100">
                                         <tr>
                                             <th class="px-4 py-3 w-12 text-center font-bold">#</th>
-                                            <th class="px-4 py-3 font-bold">Nama Lengkap<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Full Name<span class="text-red-500">*</span></th>
                                             <th class="px-4 py-3 font-bold">NRP<span class="text-red-500">*</span></th>
-                                            <th class="px-4 py-3 font-bold">Jabatan</th>
+                                            <th class="px-4 py-3 font-bold">Position</th>
                                             <th class="px-4 py-3 font-bold">Site</th>
-                                            <th class="px-4 py-3 font-bold">No. HP</th>
+                                            <th class="px-4 py-3 font-bold">Phone Number</th>
                                             <th class="px-4 py-3 w-40 text-center font-bold">Gender</th>
                                             <th class="px-4 py-3 w-12 text-center font-bold"></th>
                                         </tr>
@@ -1330,17 +1330,17 @@ const getLayoutDesc = (layout) => {
                                         <tr v-for="(p, i) in panitiaList" :key="i" class="hover:bg-amber-50/20 transition-colors">
                                             <td class="px-4 py-2.5 text-center text-gray-400 font-bold">{{ i + 1 }}</td>
                                             <td class="px-4 py-2.5">
-                                                <input v-model="p.nama" type="text" placeholder="Nama lengkap..."
+                                                <input v-model="p.nama" type="text" placeholder="Full name..."
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
-                                                <input v-model="p.nrp" type="text" placeholder="Ketik NRP atau 'N/A'..."
+                                                <input v-model="p.nrp" type="text" placeholder="Type NRP or 'N/A'..."
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.nrp.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5">
-                                                <input v-model="p.jabatan" type="text" placeholder="Jabatan..."
+                                                <input v-model="p.jabatan" type="text" placeholder="Position..."
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white" />
                                             </td>
                                             <td class="px-4 py-2.5">
@@ -1348,21 +1348,21 @@ const getLayoutDesc = (layout) => {
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white" />
                                             </td>
                                             <td class="px-4 py-2.5">
-                                                <input v-model="p.no_hp" type="text" placeholder="Contoh: 0812..."
+                                                <input v-model="p.no_hp" type="text" placeholder="Example: 0812..."
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
                                                     :class="p.no_hp.trim() !== '' && !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <select v-model="p.gender"
                                                     class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white min-w-[110px] appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.6em_auto] bg-[right_0.65rem_center] bg-no-repeat">
-                                                    <option value="L">Laki-laki</option>
-                                                    <option value="P">Perempuan</option>
+                                                    <option value="L">Male</option>
+                                                    <option value="P">Female</option>
                                                 </select>
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
                                                 <button @click="removePanitia(i)" :disabled="panitiaList.length === 1"
                                                     class="text-gray-400 hover:text-red-655 disabled:opacity-30 disabled:cursor-not-allowed p-1.5 hover:bg-red-50 rounded-lg transition"
-                                                    title="Hapus baris">
+                                                    title="Delete row">
                                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9 9m6.24-3.5v-.75A2.25 2.25 0 0 0 14.25 2.25h-4.5A2.25 2.25 0 0 0 7.5 4.5v.75m3 3h4.5M5.625 6h12.75L17.25 18a2.25 2.25 0 0 1-2.25 2.25h-6A2.25 2.25 0 0 1 6.75 18L5.625 6Z" />
                                                     </svg>
@@ -1376,20 +1376,20 @@ const getLayoutDesc = (layout) => {
                             <!-- Footer hint validasi panitia -->
                             <div class="bg-gray-50/70 px-4 py-2.5 flex items-center justify-between shrink-0">
                                 <span class="text-[10px] text-gray-500 font-medium">
-                                    Kolom <strong>Nama*</strong> dan <strong>NRP*</strong> wajib diisi semua baris (NRP boleh diisi "N/A").
+                                    <strong>Name*</strong> and <strong>NRP*</strong> fields are required for all rows (NRP can be "N/A").
                                 </span>
                                 <div class="flex items-center gap-1 ml-auto">
                                     <template v-if="!panitiaValid">
                                         <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                                         </svg>
-                                        <span class="text-[10px] text-red-650 font-bold">Ada nama atau NRP belum diisi</span>
+                                        <span class="text-[10px] text-red-650 font-bold">There are names or NRPs not filled</span>
                                     </template>
                                     <template v-else>
                                         <svg class="w-3.5 h-3.5 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                         </svg>
-                                        <span class="text-[10px] text-green-600 font-semibold">List panitia valid</span>
+                                        <span class="text-[10px] text-green-600 font-semibold">Organizer list is valid</span>
                                     </template>
                                 </div>
                             </div>
@@ -1402,7 +1402,7 @@ const getLayoutDesc = (layout) => {
             <div v-if="currentStage === 2" class="space-y-6">
 
                 <div v-if="isLoadingCalendar" class="bg-white rounded-md border border-gray-100 shadow-sm p-10 text-center text-gray-400 text-sm">
-                    Memuat data ketersediaan kalender...
+                    Loading calendar availability data...
                 </div>
 
                 <div v-else class="bg-white rounded-md border border-gray-100 shadow-sm p-6">
@@ -1459,11 +1459,11 @@ const getLayoutDesc = (layout) => {
                         <!-- Selected badge -->
                         <div v-if="isRoomSelected_(room)"
                             class="absolute top-0 right-0 bg-blue-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-md">
-                            TERPILIH
+                            SELECTED
                         </div>
                         <div v-if="!room.is_available"
                             class="absolute top-0 right-0 bg-red-400 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-md">
-                            PENUH
+                            FULL
                         </div>
 
                         <div class="p-4">
@@ -1488,7 +1488,7 @@ const getLayoutDesc = (layout) => {
                                     <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
                                     </svg>
-                                    <span>Maks <strong class="text-gray-700">{{ room.kapasitas_max }}</strong> orang</span>
+                                    <span>Max <strong class="text-gray-700">{{ room.kapasitas_max }}</strong> people</span>
                                 </div>
                             </div>
                         </div>
@@ -1499,7 +1499,7 @@ const getLayoutDesc = (layout) => {
                 <div v-if="availableRooms.length > 0 && availableRooms.every(r => !r.is_available)"
                     class="bg-orange-50 border border-orange-200 text-orange-700 text-xs rounded-md px-4 py-3 flex items-center gap-2">
                     <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
-                    Semua ruangan tidak tersedia pada tanggal ini. Silakan kembali dan pilih tanggal lain.
+                    All rooms are unavailable on these dates. Please go back and select other dates.
                 </div>
             </div>
 
@@ -1514,34 +1514,34 @@ const getLayoutDesc = (layout) => {
                         </svg>
                     </div>
                     <div>
-                        <p class="text-xs font-black text-blue-900 mb-0.5">Identitas Pemesan Terkunci Otomatis</p>
-                        <p class="text-[11px] text-blue-700 leading-tight">Departemen dan Site diambil dari akun Anda secara otomatis dan tidak dapat diubah. Harap isi <strong>Nama PIC</strong> dan <strong>No. HP PIC</strong> — yaitu nama manusia nyata yang dapat dihubungi saat hari-H.</p>
+                        <p class="text-xs font-black text-blue-900 mb-0.5">Booker Identity Auto-Locked</p>
+                        <p class="text-[11px] text-blue-700 leading-tight">Department and Site are automatically retrieved from your account and cannot be changed. Please fill in <strong>PIC Name</strong> and <strong>PIC Phone Number</strong> — a real human name that can be contacted on the D-day.</p>
                     </div>
                 </div>
 
                 <!-- Locked: Departemen & Site -->
                 <div class="mb-4">
-                    <h2 class="text-sm font-bold text-gray-800 mb-3 uppercase tracking-wider text-blue-900/80">Identitas Pemesan (Terkunci)</h2>
+                    <h2 class="text-sm font-bold text-gray-800 mb-3 uppercase tracking-wider text-blue-900/80">Booker Identity (Locked)</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-750 mb-1">Departemen</label>
+                            <label class="block text-xs font-bold text-gray-750 mb-1">Department</label>
                             <div class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50 text-gray-600 flex items-center gap-2">
                                 <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.33m-16.5 0V21m6-12h9" />
                                 </svg>
                                 <span class="font-semibold">{{ auth?.user?.divisi || '—' }}</span>
-                                <span class="ml-auto text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">Terkunci</span>
+                                <span class="ml-auto text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">Locked</span>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-750 mb-1">Site / Lokasi</label>
+                            <label class="block text-xs font-bold text-gray-750 mb-1">Site / Location</label>
                             <div class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50 text-gray-600 flex items-center gap-2">
                                 <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                                 </svg>
                                 <span class="font-semibold">{{ auth?.user?.site || '—' }}</span>
-                                <span class="ml-auto text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">Terkunci</span>
+                                <span class="ml-auto text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">Locked</span>
                             </div>
                         </div>
                     </div>
@@ -1549,23 +1549,23 @@ const getLayoutDesc = (layout) => {
 
                 <!-- Informasi Utama -->
                 <div>
-                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Informasi Utama</p>
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Main Information</p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Nama Training / Acara <span class="text-red-500">*</span></label>
-                            <input v-model="formStage4.nama_training" type="text" placeholder="Masukkan nama acara..."
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Training / Event Name <span class="text-red-500">*</span></label>
+                            <input v-model="formStage4.nama_training" type="text" placeholder="Enter event name..."
                                 class="w-full border border-gray-200 rounded-sm px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-400 focus:outline-none bg-white" />
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Nama PIC <span class="text-red-500">*</span></label>
-                            <input v-model="formStage4.nama_pic" type="text" placeholder="Nama PIC..."
+                            <label class="block text-xs font-medium text-gray-600 mb-1">PIC Name <span class="text-red-500">*</span></label>
+                            <input v-model="formStage4.nama_pic" type="text" placeholder="PIC Name..."
                                 class="w-full border border-gray-200 rounded-sm px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-400 focus:outline-none bg-white" />
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">No. HP PIC <span class="text-red-500">*</span></label>
-                            <input v-model="formStage4.no_hp_pic" type="tel" placeholder="Contoh: 08123456789"
+                            <label class="block text-xs font-medium text-gray-600 mb-1">PIC Phone Number <span class="text-red-500">*</span></label>
+                            <input v-model="formStage4.no_hp_pic" type="tel" placeholder="Example: 08123456789"
                                 class="w-full border border-gray-200 rounded-sm px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-400 focus:outline-none bg-white" />
-                            <p class="text-[10px] text-gray-400 mt-1">Dihubungi Admin Gedung saat hari-H.</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Contacted by Building Admin on the D-day.</p>
                         </div>
                     </div>
                 </div>
@@ -1574,7 +1574,7 @@ const getLayoutDesc = (layout) => {
 
                 <!-- Layout Ruangan -->
                 <div>
-                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Layout Ruangan (Pilih Salah Satu)</p>
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Room Layout (Choose One)</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                         <label v-for="layout in ['classroom', 'u-shape', 'i-shape', 'o-shape', 'custom']" :key="layout"
                             class="relative flex flex-col items-center justify-between p-3 border rounded-lg cursor-pointer transition select-none h-40"
@@ -1655,7 +1655,7 @@ const getLayoutDesc = (layout) => {
                                         <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
                                         </svg>
-                                        <span class="text-[7px] text-gray-400 font-bold">Sketsa</span>
+                                        <span class="text-[7px] text-gray-400 font-bold">Sketch</span>
                                     </div>
                                 </template>
                             </div>
@@ -1670,7 +1670,7 @@ const getLayoutDesc = (layout) => {
 
                     <!-- Custom layout file upload section -->
                     <div v-if="formStage4.layout_preferensi === 'custom'" class="mt-4 bg-gray-50 border border-gray-100 rounded-lg p-4 transition-all duration-350">
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Unggah Denah/Sketsa Kustom (Maks 2MB) <span class="text-red-500">*</span></label>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Upload Custom Floor Plan/Sketch (Max 2MB) <span class="text-red-500">*</span></label>
                         <input type="file" @change="handleCustomLayoutUpload" accept=".jpg,.png,.pdf" class="text-xs text-gray-600 bg-white border border-gray-200 rounded-sm p-2 file:bg-gray-100 file:border-none file:px-2 file:py-1 file:rounded-sm file:mr-2 file:text-xs" />
                         <p v-if="uploadedCustomFileName" class="text-xs text-green-600 font-medium mt-1.5">✓ {{ uploadedCustomFileName }}</p>
                     </div>
@@ -1680,24 +1680,24 @@ const getLayoutDesc = (layout) => {
 
                 <!-- Kebutuhan Tambahan -->
                 <div>
-                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Kebutuhan Tambahan</p>
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Additional Requirements</p>
                     <div class="flex gap-4 flex-wrap">
                         <label class="flex items-center gap-2 cursor-pointer select-none">
                             <input type="checkbox" v-model="formStage4.hybrid" class="rounded-sm text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
-                            <span class="text-xs text-gray-600 font-medium">Hybrid (Kamera &amp; Mic)</span>
+                            <span class="text-xs text-gray-600 font-medium">Hybrid (Camera &amp; Mic)</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer select-none">
                             <input type="checkbox" v-model="formStage4.flipchart" class="rounded-sm text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
-                            <span class="text-xs text-gray-600 font-medium">Flipchart (Papan Tulis)</span>
+                            <span class="text-xs text-gray-600 font-medium">Flipchart (Whiteboard)</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer select-none">
                             <input type="checkbox" v-model="formStage4.pena_mini_note" class="rounded-sm text-blue-600 focus:ring-blue-100 focus:ring-offset-0 border-gray-200" />
-                            <span class="text-xs text-gray-600 font-medium">Pena & Mini Note</span>
+                            <span class="text-xs text-gray-600 font-medium">Pen & Mini Note</span>
                         </label>
                     </div>
                     <div class="mt-3">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Catatan Tambahan (Opsional)</label>
-                        <textarea v-model="formStage4.catatan" rows="3" placeholder="Pesan khusus untuk Admin..."
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Additional Notes (Optional)</label>
+                        <textarea v-model="formStage4.catatan" rows="3" placeholder="Special message for Admin..."
                             class="w-full border border-gray-200 rounded-sm px-3 py-2 text-xs focus:ring-1 focus:ring-blue-100 focus:border-blue-400 focus:outline-none bg-white"></textarea>
                     </div>
                 </div>
@@ -1712,30 +1712,30 @@ const getLayoutDesc = (layout) => {
                     <!-- Summary 3 kolom -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div class="bg-gray-50 border border-gray-100 rounded-md p-4">
-                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Informasi Acara</p>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Event Information</p>
                             <p class="text-sm font-semibold text-gray-800 leading-tight">{{ formStage4.nama_training || '-' }}</p>
                             <p class="text-xs text-gray-500 mt-1">PIC: <span class="text-gray-700 font-medium">{{ formStage4.nama_pic || '-' }}</span></p>
                             <p class="text-xs text-gray-500">HP: <span class="text-gray-700 font-medium">{{ formStage4.no_hp_pic || '-' }}</span></p>
                             <p v-if="formStage4.catatan" class="text-[11px] text-gray-500 italic mt-2 border-t border-gray-100 pt-2">{{ formStage4.catatan }}</p>
                         </div>
                         <div class="bg-gray-50 border border-gray-100 rounded-md p-4">
-                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Ruangan & Jadwal</p>
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Room & Schedule</p>
                             <p class="text-sm font-semibold text-gray-800 leading-tight">{{ selectedRoom?.nama_ruang || '-' }}</p>
                             <p class="text-xs text-gray-500 mt-0.5">{{ selectedRoom?.lokasi_gedung || '-' }}</p>
                             <div class="flex items-center gap-1.5 mt-2 text-xs text-gray-600">
                                 <span class="font-medium">{{ formatDate(startDate) }}</span>
-                                <span class="text-gray-300">s/d</span>
+                                <span class="text-gray-300">to</span>
                                 <span class="font-medium">{{ formatDate(endDate) }}</span>
                             </div>
                         </div>
                         <div class="bg-gray-50 border border-gray-100 rounded-md p-4">
                             <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Setup</p>
                             <div class="space-y-1.5 text-xs">
-                                <div class="flex justify-between"><span class="text-gray-500">Total</span><span class="font-medium text-gray-800">{{ totalOrang }} ({{ participantCount }}P + {{ panitiaCount }}Pan)</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Total</span><span class="font-medium text-gray-800">{{ totalOrang }} ({{ participantCount }}P + {{ panitiaCount }}Org)</span></div>
                                 <div class="flex justify-between"><span class="text-gray-500">Layout</span><span class="font-medium text-gray-800 capitalize">{{ formStage4.layout_preferensi }}</span></div>
-                                <div class="flex justify-between"><span class="text-gray-500">Hybrid</span><span :class="formStage4.hybrid ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.hybrid ? 'Ya' : 'Tidak' }}</span></div>
-                                <div class="flex justify-between"><span class="text-gray-500">Flipchart</span><span :class="formStage4.flipchart ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.flipchart ? 'Ya' : 'Tidak' }}</span></div>
-                                <div class="flex justify-between"><span class="text-gray-500">Pena & Mini Note</span><span :class="formStage4.pena_mini_note ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.pena_mini_note ? 'Ya' : 'Tidak' }}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Hybrid</span><span :class="formStage4.hybrid ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.hybrid ? 'Yes' : 'No' }}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Flipchart</span><span :class="formStage4.flipchart ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.flipchart ? 'Yes' : 'No' }}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Pen & Mini Note</span><span :class="formStage4.pena_mini_note ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.pena_mini_note ? 'Yes' : 'No' }}</span></div>
                             </div>
                         </div>
                     </div>
@@ -1744,19 +1744,19 @@ const getLayoutDesc = (layout) => {
                     <div class="rounded-sm overflow-hidden border border-gray-100 bg-white">
                         <div class="bg-gray-50 px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
                             <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
-                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Daftar Peserta</span>
-                            <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-100">{{ participantCount }} orang</span>
+                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Participant List</span>
+                            <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-100">{{ participantCount }} people</span>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-xs text-left">
                                 <thead class="bg-gray-50 text-gray-500 font-semibold uppercase tracking-wider text-[10px] border-b border-gray-100">
                                     <tr>
                                         <th class="px-4 py-2.5 w-10 text-center">#</th>
-                                        <th class="px-4 py-2.5">Nama Lengkap</th>
+                                        <th class="px-4 py-2.5">Full Name</th>
                                         <th class="px-4 py-2.5">NRP</th>
-                                        <th class="px-4 py-2.5">Jabatan</th>
+                                        <th class="px-4 py-2.5">Position</th>
                                         <th class="px-4 py-2.5">Site</th>
-                                        <th class="px-4 py-2.5">No. HP</th>
+                                        <th class="px-4 py-2.5">Phone Number</th>
                                         <th class="px-4 py-2.5">Gender</th>
                                     </tr>
                                 </thead>
@@ -1779,19 +1779,19 @@ const getLayoutDesc = (layout) => {
                     <div class="rounded-sm overflow-hidden border border-gray-100 bg-white">
                         <div class="bg-gray-50 px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
                             <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
-                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Daftar Panitia</span>
-                            <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100">{{ panitiaCount }} orang</span>
+                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Organizer List</span>
+                            <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100">{{ panitiaCount }} people</span>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-xs text-left">
                                 <thead class="bg-gray-50 text-gray-500 font-semibold uppercase tracking-wider text-[10px] border-b border-gray-100">
                                     <tr>
                                         <th class="px-4 py-2.5 w-10 text-center">#</th>
-                                        <th class="px-4 py-2.5">Nama Lengkap</th>
+                                        <th class="px-4 py-2.5">Full Name</th>
                                         <th class="px-4 py-2.5">NRP</th>
-                                        <th class="px-4 py-2.5">Jabatan</th>
+                                        <th class="px-4 py-2.5">Position</th>
                                         <th class="px-4 py-2.5">Site</th>
-                                        <th class="px-4 py-2.5">No. HP</th>
+                                        <th class="px-4 py-2.5">Phone Number</th>
                                         <th class="px-4 py-2.5">Gender</th>
                                     </tr>
                                 </thead>

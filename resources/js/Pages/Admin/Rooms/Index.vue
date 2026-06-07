@@ -112,8 +112,8 @@ const filteredRooms = computed(() => {
         <!-- ── Page Header ──────────────────────────────────────── -->
         <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-black bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Master Data Ruangan</h1>
-                <p class="text-sm text-slate-500 mt-1 font-medium">Kelola kapasitas, lokasi, dan konfigurasi gabungan ruang training.</p>
+                <h1 class="text-2xl font-black bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Room Master Data</h1>
+                <p class="text-sm text-slate-500 mt-1 font-medium">Manage capacity, location, and combined configuration of training rooms.</p>
             </div>
             <button
                 @click="openCreate"
@@ -122,7 +122,7 @@ const filteredRooms = computed(() => {
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
-                Tambah Ruangan
+                Add Room
             </button>
         </div>
 
@@ -134,7 +134,7 @@ const filteredRooms = computed(() => {
                 </div>
                 <div>
                     <p class="text-2xl font-black text-slate-800 leading-none">{{ rooms.length }}</p>
-                    <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">Total Ruangan</p>
+                    <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">Total Rooms</p>
                 </div>
             </div>
             <div class="bg-white/80 backdrop-blur rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300">
@@ -143,7 +143,7 @@ const filteredRooms = computed(() => {
                 </div>
                 <div>
                     <p class="text-2xl font-black text-slate-800 leading-none">{{ rooms.filter(r => r.bisa_digabung).length }}</p>
-                    <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">Bisa Digabung</p>
+                    <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">Combinable</p>
                 </div>
             </div>
             <div class="bg-white/80 backdrop-blur rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300">
@@ -152,7 +152,7 @@ const filteredRooms = computed(() => {
                 </div>
                 <div>
                     <p class="text-2xl font-black text-slate-800 leading-none">{{ rooms.reduce((a, r) => a + r.kapasitas_max, 0) }}</p>
-                    <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">Kapasitas (Orang)</p>
+                    <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">Capacity (People)</p>
                 </div>
             </div>
         </div>
@@ -167,7 +167,7 @@ const filteredRooms = computed(() => {
             <input
                 v-model="searchQuery"
                 type="text"
-                placeholder="Cari nama ruangan atau lokasi gedung..."
+                placeholder="Search room name or building location..."
                 class="w-full pl-11 pr-4 py-3 text-sm border-0 ring-1 ring-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white shadow-sm transition-all placeholder:text-slate-400"
             />
         </div>
@@ -177,7 +177,7 @@ const filteredRooms = computed(() => {
             <!-- Empty state -->
             <div v-if="filteredRooms.length === 0" class="col-span-3 py-16 text-center text-gray-400">
                 <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                <p class="text-sm font-medium">Tidak ada ruangan ditemukan.</p>
+                <p class="text-sm font-medium">No rooms found.</p>
             </div>
 
             <div
@@ -189,12 +189,12 @@ const filteredRooms = computed(() => {
                     <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-100 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
                     <div class="min-w-0 relative z-10">
                         <h3 class="text-lg font-black text-slate-800 truncate group-hover:text-blue-700 transition-colors">{{ room.nama_ruang }}</h3>
-                        <p class="text-[11px] text-slate-500 mt-1 font-medium">{{ room.lokasi_gedung || 'Lokasi tidak diisi' }}</p>
+                        <p class="text-[11px] text-slate-500 mt-1 font-medium">{{ room.lokasi_gedung || 'Location not filled' }}</p>
                     </div>
                     <div class="flex flex-col items-end gap-1.5 ml-3 flex-shrink-0 relative z-10">
                         <span v-if="room.bisa_digabung"
                               class="px-2 py-0.5 rounded-md bg-teal-400/20 text-teal-300 text-[10px] font-bold tracking-wide border border-teal-500/30">
-                            🔗 GABUNG
+                            🔗 COMBINE
                         </span>
                     </div>
                 </div>
@@ -207,8 +207,8 @@ const filteredRooms = computed(() => {
                             <svg class="w-4.5 h-4.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         </div>
                         <div>
-                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Kapasitas Maksimal</p>
-                            <p class="text-sm font-black text-slate-800">{{ room.kapasitas_max }} orang</p>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Max Capacity</p>
+                            <p class="text-sm font-black text-slate-800">{{ room.kapasitas_max }} people</p>
                         </div>
                     </div>
 
@@ -219,8 +219,8 @@ const filteredRooms = computed(() => {
                             <svg class="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                         </div>
                         <div>
-                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Booking Aktif</p>
-                            <p class="text-sm font-black text-slate-800">{{ room.total_bookings }} booking</p>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Active Bookings</p>
+                            <p class="text-sm font-black text-slate-800">{{ room.total_bookings }} bookings</p>
                         </div>
                     </div>
                 </div>
@@ -235,11 +235,11 @@ const filteredRooms = computed(() => {
                     <button @click="openDelete(room)"
                         class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 rounded-xl text-xs font-bold transition-all border border-slate-200 hover:border-rose-300 shadow-sm hover:shadow active:scale-95"
                         :disabled="room.total_bookings > 0"
-                        :title="room.total_bookings > 0 ? 'Tidak bisa dihapus — ruangan memiliki booking aktif' : 'Hapus ruangan'"
+                        :title="room.total_bookings > 0 ? 'Cannot be deleted — room has active bookings' : 'Delete room'"
                         :class="room.total_bookings > 0 ? 'opacity-40 cursor-not-allowed hover:bg-white hover:text-slate-700 hover:border-slate-200 hover:shadow-sm active:scale-100' : ''"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        Hapus
+                        Delete
                     </button>
                 </div>
             </div>
@@ -268,10 +268,10 @@ const filteredRooms = computed(() => {
                             <div>
                                 <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                                     <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z" /></svg>
-                                    {{ isEditing ? 'Edit Ruangan' : 'Tambah Ruangan Baru' }}
+                                    {{ isEditing ? 'Edit Room' : 'Add New Room' }}
                                 </h2>
                                 <p class="text-xs text-gray-500 mt-1 font-medium">
-                                    {{ isEditing ? `Mengedit: ${editingRoom?.nama_ruang}` : 'Isi informasi ruangan training baru.' }}
+                                    {{ isEditing ? `Editing: ${editingRoom?.nama_ruang}` : 'Fill in new training room information.' }}
                                 </p>
                             </div>
                             <button @click="closeFormModal" class="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-all cursor-pointer">
@@ -284,12 +284,12 @@ const filteredRooms = computed(() => {
 
                             <!-- Nama Ruangan -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama Ruangan <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Room Name <span class="text-red-500">*</span></label>
                                 <input
                                     v-model="form.nama_ruang"
                                     type="text"
                                     required
-                                    placeholder="Contoh: Ruang 7"
+                                    placeholder="Example: Room 7"
                                     class="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     :class="form.errors.nama_ruang ? 'border-red-400' : 'border-gray-200'"
                                 />
@@ -298,11 +298,11 @@ const filteredRooms = computed(() => {
 
                             <!-- Lokasi Gedung -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Lokasi Gedung</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Building Location</label>
                                 <input
                                     v-model="form.lokasi_gedung"
                                     type="text"
-                                    placeholder="Contoh: Gedung A Lantai 2"
+                                    placeholder="Example: Building A Floor 2"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <p v-if="form.errors.lokasi_gedung" class="text-xs text-red-500 mt-1">{{ form.errors.lokasi_gedung }}</p>
@@ -310,14 +310,14 @@ const filteredRooms = computed(() => {
 
                             <!-- Kapasitas -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Kapasitas Maksimal (orang) <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Max Capacity (people) <span class="text-red-500">*</span></label>
                                 <input
                                     v-model="form.kapasitas_max"
                                     type="number"
                                     required
                                     min="1"
                                     max="500"
-                                    placeholder="Contoh: 30"
+                                    placeholder="Example: 30"
                                     class="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     :class="form.errors.kapasitas_max ? 'border-red-400' : 'border-gray-200'"
                                 />
@@ -333,19 +333,19 @@ const filteredRooms = computed(() => {
                                         <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-semibold text-gray-800">Bisa Digabungkan</p>
-                                        <p class="text-xs text-gray-500">Ruangan ini dapat digabung dengan ruangan pasangannya.</p>
+                                        <p class="text-sm font-semibold text-gray-800">Can be Combined</p>
+                                        <p class="text-xs text-gray-500">This room can be combined with its paired room.</p>
                                     </div>
                                 </label>
 
                                 <!-- Pasangan Ruang (tampil hanya jika bisa_digabung) -->
                                 <div v-if="form.bisa_digabung" class="mt-3">
-                                    <label class="block text-xs font-medium text-gray-700 mb-1">Ruangan Pasangan</label>
+                                    <label class="block text-xs font-medium text-gray-700 mb-1">Paired Room</label>
                                     <select
                                         v-model="form.pasangan_ruang_id"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                                     >
-                                        <option :value="null">— Pilih ruangan pasangan —</option>
+                                        <option :value="null">— Select paired room —</option>
                                         <option v-for="r in pasanganOptions" :key="r.id" :value="r.id">
                                             {{ r.nama_ruang }}
                                         </option>
@@ -358,11 +358,11 @@ const filteredRooms = computed(() => {
                             <div class="flex gap-3 pt-2">
                                 <button type="button" @click="closeFormModal"
                                     class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">
-                                    Batal
+                                    Cancel
                                 </button>
                                 <button type="submit" :disabled="form.processing"
                                     class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-60">
-                                    {{ form.processing ? 'Menyimpan...' : (isEditing ? 'Perbarui' : 'Tambah Ruangan') }}
+                                    {{ form.processing ? 'Saving...' : (isEditing ? 'Update' : 'Add Room') }}
                                 </button>
                             </div>
                         </form>
@@ -392,19 +392,19 @@ const filteredRooms = computed(() => {
                             <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 border border-red-200">
                                 <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
                             </div>
-                            <h3 class="text-lg font-bold text-gray-900 text-center mb-1.5">Hapus Ruangan?</h3>
+                            <h3 class="text-lg font-bold text-gray-900 text-center mb-1.5">Delete Room?</h3>
                             <p class="text-sm text-gray-600 text-center leading-relaxed">
-                                Ruangan <strong class="text-gray-800">{{ deletingRoom?.nama_ruang }}</strong> akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
+                                Room <strong class="text-gray-800">{{ deletingRoom?.nama_ruang }}</strong> will be permanently deleted. This action cannot be undone.
                             </p>
                         </div>
                         <div class="px-6 pb-6 flex gap-3">
                             <button @click="closeDeleteModal"
                                 class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">
-                                Batal
+                                Cancel
                             </button>
                             <button @click="submitDelete" :disabled="deleteForm.processing"
                                 class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none">
-                                {{ deleteForm.processing ? 'Menghapus...' : 'Ya, Hapus' }}
+                                {{ deleteForm.processing ? 'Deleting...' : 'Yes, Delete' }}
                             </button>
                         </div>
                     </div>

@@ -194,14 +194,14 @@ watch(() => page.props.flash, (newVal) => {
                     <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Dashboard
                 </Link>
 
-                <div class="px-3 pt-3 pb-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider">Manajemen</div>
+                <div class="px-3 pt-3 pb-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider">Management</div>
 
                 <Link
                     href="/admin/bookings"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/bookings') && !isActive('/admin/booking-recap') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Manajemen Booking
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Booking Management
                 </Link>
 
                 <Link
@@ -209,7 +209,7 @@ watch(() => page.props.flash, (newVal) => {
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/booking-recap') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg> Rekap Booking
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg> Booking Recap
                 </Link>
 
                 <Link
@@ -217,7 +217,7 @@ watch(() => page.props.flash, (newVal) => {
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/booking-windows') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z"/></svg> Riwayat Window
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z"/></svg> Window History
                 </Link>
 
                 <div class="px-3 pt-3 pb-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider">Master Data</div>
@@ -227,17 +227,17 @@ watch(() => page.props.flash, (newVal) => {
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/rooms') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Master Ruangan
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Master Facilities
                 </Link>
 
-                <div class="px-3 pt-3 pb-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider">Sistem</div>
+                <div class="px-3 pt-3 pb-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider">System</div>
 
                 <Link
                     href="/admin/settings"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
                     :class="isActive('/admin/settings') ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'"
                 >
-                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Pengaturan
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Settings
                 </Link>
             </nav>
 
@@ -249,7 +249,7 @@ watch(() => page.props.flash, (newVal) => {
                     :disabled="logoutForm.processing"
                     class="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                 >
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Logout
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Sign Out
                 </button>
             </div>
         </aside>
@@ -288,7 +288,7 @@ watch(() => page.props.flash, (newVal) => {
                         <!-- ACTIVE window -->
                         <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-xs font-semibold text-emerald-700">Window Booking Aktif</span>
+                            <span class="text-xs font-semibold text-emerald-700">Booking Window Active</span>
                             <button
                                 @click="closeWindow"
                                 class="ml-1 text-[10px] text-emerald-700 hover:text-red-600 font-medium transition-colors"
@@ -300,11 +300,11 @@ watch(() => page.props.flash, (newVal) => {
                         <!-- INACTIVE window (including null) -->
                         <div class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-full">
                             <span class="w-2 h-2 rounded-full bg-gray-400"></span>
-                            <span class="text-xs font-semibold text-gray-500">Window Booking Tutup</span>
+                            <span class="text-xs font-semibold text-gray-500">Booking Window Closed</span>
                             <button
                                 @click.stop="openWindowModal"
                                 class="ml-1 text-[10px] font-semibold text-blue-600 hover:text-blue-800 transition-colors underline"
-                            >Buka</button>
+                            >Open</button>
                         </div>
                     </template>
 
@@ -339,8 +339,8 @@ watch(() => page.props.flash, (newVal) => {
                                 class="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] z-50 overflow-hidden transform origin-top-right"
                             >
                                 <div class="px-5 py-3.5 border-b border-gray-100 bg-slate-50/80 flex items-center justify-between backdrop-blur-sm">
-                                    <span class="text-[11px] font-bold text-gray-800 uppercase tracking-wider">Notifikasi Sistem</span>
-                                    <span class="text-[10px] text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full font-bold shadow-sm ring-1 ring-blue-700/10">{{ notifCount }} Baru</span>
+                                    <span class="text-[11px] font-bold text-gray-800 uppercase tracking-wider">System Notifications</span>
+                                    <span class="text-[10px] text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full font-bold shadow-sm ring-1 ring-blue-700/10">{{ notifCount }} New</span>
                                 </div>
                                 
                                 <div class="max-h-[360px] overflow-y-auto divide-y divide-gray-50 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full">
@@ -350,8 +350,8 @@ watch(() => page.props.flash, (newVal) => {
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                             </svg>
                                         </div>
-                                        <span class="text-xs font-semibold text-gray-500">Semua aman terkendali!</span>
-                                        <span class="text-[10px] text-gray-400 mt-1">Belum ada aktivitas baru.</span>
+                                        <span class="text-xs font-semibold text-gray-500">All clear!</span>
+                                        <span class="text-[10px] text-gray-400 mt-1">No new activity.</span>
                                     </div>
                                     
                                     <div 
@@ -399,9 +399,9 @@ watch(() => page.props.flash, (newVal) => {
                             &copy; {{ new Date().getFullYear() }} &nbsp; <span class="font-bold text-gray-800">PAMA BANJARBARU SUPPORT OFFICE (BBSO)</span>. All rights reserved.
                         </div>
                         <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                            <span class="hover:text-blue-600 cursor-pointer transition-colors">Bantuan</span>
+                            <span class="hover:text-blue-600 cursor-pointer transition-colors">Help Center</span>
                             <span class="text-gray-300">•</span>
-                            <span class="hover:text-blue-600 cursor-pointer transition-colors">Kebijakan Privasi</span>
+                            <span class="hover:text-blue-600 cursor-pointer transition-colors">Privacy Policy</span>
                             <span class="text-gray-300">•</span>
                             <span class="text-gray-500">v1.0.0</span>
                         </div>
@@ -437,8 +437,8 @@ watch(() => page.props.flash, (newVal) => {
                         <!-- Modal Header -->
                         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                             <div>
-                                <h2 class="text-base font-semibold text-gray-900">Buka Window Booking</h2>
-                                <p class="text-xs text-gray-500 mt-0.5">User akan bisa mengajukan booking baru setelah window dibuka.</p>
+                                <h2 class="text-base font-semibold text-gray-900">Open Booking Window</h2>
+                                <p class="text-xs text-gray-500 mt-0.5">Users will be able to submit new reservations once opened.</p>
                             </div>
                             <button @click="closeWindowModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -451,7 +451,7 @@ watch(() => page.props.flash, (newVal) => {
                         <form @submit.prevent="submitOpenWindow" class="px-6 py-5 space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Tahun Target Booking <span class="text-red-500">*</span>
+                                    Target Booking Year <span class="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="number"
@@ -466,7 +466,7 @@ watch(() => page.props.flash, (newVal) => {
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                                        Tanggal Mulai <span class="text-red-500">*</span>
+                                        Start Date <span class="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="date"
@@ -478,7 +478,7 @@ watch(() => page.props.flash, (newVal) => {
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                                        Tanggal Penutupan <span class="text-red-500">*</span>
+                                        Closing Date <span class="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="date"
@@ -490,7 +490,7 @@ watch(() => page.props.flash, (newVal) => {
                                     <p v-if="windowForm.errors.end_date" class="text-xs text-red-500 mt-1">{{ windowForm.errors.end_date }}</p>
                                 </div>
                             </div>
-                            <p class="text-xs text-gray-400 mt-1 pt-1">User dapat mengajukan booking selama window ini aktif.</p>
+                            <p class="text-xs text-gray-400 mt-1 pt-1">Users can submit requests as long as this window is active.</p>
 
                             <!-- Action Buttons -->
                             <div class="flex gap-3 pt-2">
@@ -499,14 +499,14 @@ watch(() => page.props.flash, (newVal) => {
                                     @click="closeWindowModal"
                                     class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
-                                    Batal
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     :disabled="windowForm.processing || !windowForm.end_date"
                                     class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors"
                                 >
-                                    {{ windowForm.processing ? 'Membuka...' : '✓ Buka Window' }}
+                                    {{ windowForm.processing ? 'Opening...' : '✓ Open Window' }}
                                 </button>
                             </div>
                         </form>

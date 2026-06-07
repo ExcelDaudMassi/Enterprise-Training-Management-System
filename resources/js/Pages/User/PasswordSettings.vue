@@ -49,8 +49,8 @@ function submit() {
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-gray-800">Pengaturan Password</h1>
-                    <p class="text-xs text-gray-500 mt-1">Kelola keamanan akun departemen Anda dengan memperbarui password secara mandiri.</p>
+                    <h1 class="text-xl font-bold text-gray-800">Password Settings</h1>
+                    <p class="text-xs text-gray-500 mt-1">Manage your department's account security by updating the password independently.</p>
                 </div>
             </div>
 
@@ -65,8 +65,8 @@ function submit() {
                         </svg>
                     </div>
                     <div class="text-xs text-blue-700 leading-snug">
-                        <p class="font-bold">Informasi Keamanan:</p>
-                        <p class="mt-1">Admin maupun sistem tidak dapat melihat password baru Anda. Seluruh password dienkripsi dengan metode hash berstandar industri demi menjamin kerahasiaan penuh.</p>
+                        <p class="font-bold">Security Information:</p>
+                        <p class="mt-1">Neither the admin nor the system can view your new password. All passwords are encrypted with industry-standard hashing methods to ensure full confidentiality.</p>
                     </div>
                 </div>
 
@@ -75,13 +75,13 @@ function submit() {
                     
                     <!-- Password Saat Ini -->
                     <div class="space-y-1">
-                        <label class="block text-xs font-semibold text-gray-600">Password Saat Ini</label>
+                        <label class="block text-xs font-semibold text-gray-600">Current Password</label>
                         <div class="relative">
                             <input 
                                 :type="showCurrent ? 'text' : 'password'" 
                                 v-model="form.current_password"
                                 class="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 pr-10"
-                                placeholder="Masukkan password Anda sekarang"
+                                placeholder="Enter your current password"
                                 required
                             />
                             <button 
@@ -105,13 +105,13 @@ function submit() {
 
                     <!-- Password Baru -->
                     <div class="space-y-1">
-                        <label class="block text-xs font-semibold text-gray-600">Password Baru</label>
+                        <label class="block text-xs font-semibold text-gray-600">New Password</label>
                         <div class="relative">
                             <input 
                                 :type="showNew ? 'text' : 'password'" 
                                 v-model="form.password"
                                 class="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 pr-10"
-                                placeholder="Minimal 8 karakter"
+                                placeholder="Minimum 8 characters"
                                 required
                             />
                             <button 
@@ -137,7 +137,7 @@ function submit() {
                                 <svg v-else class="w-3.5 h-3.5 shrink-0 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <circle cx="12" cy="12" r="9" />
                                 </svg>
-                                Minimal 8 karakter
+                                Minimum 8 characters
                             </span>
                         </div>
                         <p v-if="form.errors.password" class="text-xs text-red-500 font-medium">{{ form.errors.password }}</p>
@@ -145,13 +145,13 @@ function submit() {
 
                     <!-- Konfirmasi Password Baru -->
                     <div class="space-y-1">
-                        <label class="block text-xs font-semibold text-gray-600">Konfirmasi Password Baru</label>
+                        <label class="block text-xs font-semibold text-gray-600">Confirm New Password</label>
                         <div class="relative">
                             <input 
                                 :type="showConfirm ? 'text' : 'password'" 
                                 v-model="form.password_confirmation"
                                 class="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 pr-10"
-                                placeholder="Ulangi password baru Anda"
+                                placeholder="Repeat your new password"
                                 required
                             />
                             <button 
@@ -177,7 +177,7 @@ function submit() {
                                 <svg v-else class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                                 </svg>
-                                {{ isMatched ? 'Password baru cocok' : 'Password baru tidak cocok' }}
+                                {{ isMatched ? 'New passwords match' : 'New passwords do not match' }}
                             </span>
                         </div>
                         <p v-if="form.errors.password_confirmation" class="text-xs text-red-500 font-medium">{{ form.errors.password_confirmation }}</p>
@@ -189,7 +189,7 @@ function submit() {
                             href="/user/dashboard" 
                             class="px-4 py-2 border border-gray-250 rounded-lg text-xs font-semibold text-gray-600 bg-white hover:bg-gray-50 transition"
                         >
-                            Batal
+                            Cancel
                         </Link>
                         <button 
                             type="submit" 
@@ -197,7 +197,7 @@ function submit() {
                             class="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-1.5"
                         >
                             <span v-if="form.processing" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                            {{ form.processing ? 'Menyimpan...' : 'Simpan Password' }}
+                            {{ form.processing ? 'Saving...' : 'Save Password' }}
                         </button>
                     </div>
 

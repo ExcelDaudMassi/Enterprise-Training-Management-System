@@ -62,7 +62,7 @@ function getStatusMeta(b) {
         const start = new Date(b.tgl_mulai)
         if (start >= today && start <= h14Cutoff) {
             return {
-                label: 'H - 14 (Perlu ACC Final)',
+                label: 'H - 14 (Needs Final ACC)',
                 class: 'bg-red-50 text-red-850 border border-red-200',
             }
         }
@@ -75,9 +75,9 @@ function getStatusMeta(b) {
 }
 
 const CHANGE_META = {
-    pending:  { label: 'Menunggu Persetujuan Ubah Tanggal', class: 'text-orange-750 bg-orange-50/70 border border-orange-200' },
-    approved: { label: 'Perubahan Tanggal Disetujui',       class: 'text-green-750 bg-green-50/70 border border-green-200' },
-    rejected: { label: 'Perubahan Tanggal Ditolak',         class: 'text-red-750 bg-red-50/70 border border-red-200' },
+    pending:  { label: 'Waiting for Date Change Approval', class: 'text-orange-750 bg-orange-50/70 border border-orange-200' },
+    approved: { label: 'Date Change Approved',       class: 'text-green-750 bg-green-50/70 border border-green-200' },
+    rejected: { label: 'Date Change Rejected',         class: 'text-red-750 bg-red-50/70 border border-red-200' },
 }
 
 function formatDate(d) {
@@ -167,26 +167,26 @@ onUnmounted(() => {
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-800">Riwayat Booking</h1>
-                    <p class="text-sm text-gray-500 mt-1">Daftar seluruh riwayat pemesanan ruangan dan status pengajuannya.</p>
+                    <h1 class="text-2xl font-bold text-gray-800">Booking History</h1>
+                    <p class="text-sm text-gray-500 mt-1">List of all room booking history and application status.</p>
                 </div>
             </div>
 
             <!-- Buat Booking Baru -->
             <div v-if="!isWindowActive"
                  class="bg-gray-100 text-gray-400 text-sm font-semibold px-4 py-2 rounded-lg cursor-not-allowed border border-gray-200 flex items-center gap-1.5 shrink-0"
-                 title="Window Booking sedang ditutup oleh Admin.">
+                 title="Booking Window is currently closed by Admin.">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
-                Buat Booking Baru (Tutup)
+                Create New Booking (Closed)
             </div>
             <a v-else href="/user/booking/create"
                class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition shadow-sm shrink-0">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Buat Booking Baru
+                Create New Booking
             </a>
         </div>
 
@@ -195,22 +195,22 @@ onUnmounted(() => {
             <button @click="currentTab = 'all'" 
                     :class="currentTab === 'all' ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'"
                     class="px-4 py-1.5 rounded-full text-xs font-bold border transition-colors shadow-2xs cursor-pointer select-none">
-                Semua Riwayat
+                All History
             </button>
             <button @click="currentTab = 'siap'" 
                     :class="currentTab === 'siap' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'"
                     class="px-4 py-1.5 rounded-full text-xs font-bold border transition-colors shadow-2xs cursor-pointer select-none">
-                Siap Dilaksanakan
+                Ready for Execution
             </button>
             <button @click="currentTab = 'selesai'" 
                     :class="currentTab === 'selesai' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'"
                     class="px-4 py-1.5 rounded-full text-xs font-bold border transition-colors shadow-2xs cursor-pointer select-none">
-                Selesai Dilaksanakan
+                Completed
             </button>
             <button @click="currentTab = 'batal'" 
                     :class="currentTab === 'batal' ? 'bg-red-600 text-white border-red-600' : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'"
                     class="px-4 py-1.5 rounded-full text-xs font-bold border transition-colors shadow-2xs cursor-pointer select-none">
-                Dibatalkan
+                Cancelled
             </button>
         </div>
 
@@ -222,14 +222,14 @@ onUnmounted(() => {
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" />
                 </svg>
             </div>
-            <p class="text-gray-500 font-medium">Belum ada riwayat booking.</p>
-            <p class="text-sm text-gray-400 mt-1">Booking yang sudah selesai atau dibatalkan akan muncul di sini.</p>
+            <p class="text-gray-500 font-medium">No booking history yet.</p>
+            <p class="text-sm text-gray-400 mt-1">Completed or cancelled bookings will appear here.</p>
             <a href="/user/booking/create"
                class="inline-flex items-center gap-1.5 mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-lg text-sm transition shadow-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Buat Booking Sekarang
+                Create Booking Now
             </a>
         </div>
 
@@ -239,11 +239,11 @@ onUnmounted(() => {
                 <table class="min-w-full table-fixed divide-y divide-slate-100">
                     <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
                         <tr>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[29%]">Acara / PIC</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[18%]">Ruangan</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[20%]">Jadwal</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[29%]">Event / PIC</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[18%]">Room</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[20%]">Schedule</th>
                             <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[20%]">Status</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[13%]">Aksi</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[13%]">Action</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-slate-100">
@@ -265,9 +265,9 @@ onUnmounted(() => {
                             <td class="px-5 py-4">
                                 <div class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-lg border border-slate-200">
                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                    {{ b.ruangan?.nama_ruang ?? b.nama_ruang ?? 'Ruang Gabungan' }}
+                                    {{ b.ruangan?.nama_ruang ?? b.nama_ruang ?? 'Combined Room' }}
                                 </div>
-                                <div v-if="b.gabung_ruang" class="text-[10px] text-emerald-600 font-medium mt-1.5">Gabungan Ruang 2+3</div>
+                                <div v-if="b.gabung_ruang" class="text-[10px] text-emerald-600 font-medium mt-1.5">Combined Room 2+3</div>
                                 <div v-else-if="b.ruangan?.lokasi_gedung" class="text-[10px] text-slate-400 mt-1.5">{{ b.ruangan.lokasi_gedung }}</div>
                                 <div v-if="b.layout_preferensi" class="text-[11px] text-slate-400 capitalize mt-1.5 flex items-center gap-1">
                                     Layout: <span class="font-medium text-slate-600">{{ b.layout_preferensi }}</span>
@@ -277,7 +277,7 @@ onUnmounted(() => {
                             <!-- Jadwal -->
                             <td class="px-5 py-4 text-xs text-slate-700">
                                 <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block mb-1">{{ formatDate(b.tgl_mulai) }}</div>
-                                <div class="text-slate-400 text-[10px] ml-2 mb-1">s/d</div>
+                                <div class="text-slate-400 text-[10px] ml-2 mb-1">to</div>
                                 <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block">{{ formatDate(b.tgl_selesai) }}</div>
                             </td>
 
@@ -327,10 +327,10 @@ onUnmounted(() => {
                             <td class="px-5 py-4">
                                 <div class="flex flex-col gap-2">
                                     <button @click="openDetail(b)"
-                                            title="Lihat Detail Rekapan"
+                                            title="View Details"
                                             class="group/btn flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 text-[11px] font-bold py-2 px-3 rounded-xl transition-all border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow cursor-pointer">
                                         <svg class="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-blue-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        Lihat Detail
+                                        View Details
                                     </button>
                                     <button @click="downloadExcel(b)"
                                             title="Download Excel"
@@ -390,7 +390,7 @@ onUnmounted(() => {
                                 <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                                 </svg>
-                                Detail Rekapan Booking
+                                Booking Recap Detail
                             </h2>
                             <p class="text-[11px] text-gray-400 mt-0.5">ID: #{{ String(selectedBooking.id).padStart(5, '0') }}</p>
                         </div>
@@ -411,7 +411,7 @@ onUnmounted(() => {
 
                         <!-- Nama Kegiatan & Status -->
                         <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                            <div class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Nama Kegiatan</div>
+                            <div class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Event Name</div>
                             <h3 class="text-lg font-bold text-gray-900 leading-snug">{{ selectedBooking.nama_training }}</h3>
                             <div class="mt-2">
                                 <span class="text-xs font-semibold px-2.5 py-1 rounded-full" :class="getStatusMeta(selectedBooking).class">
@@ -425,88 +425,53 @@ onUnmounted(() => {
                             <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
                                 <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" /></svg>
-                                    Ruangan
+                                    Room
                                 </div>
-                                <p class="text-sm font-bold text-gray-900">{{ selectedBooking.ruangan?.nama_ruang ?? selectedBooking.nama_ruang ?? 'Ruang Gabungan' }}</p>
-                                <p class="text-xs text-gray-500 mt-0.5">{{ selectedBooking.gabung_ruang ? 'Gabungan Ruang 2 & 3' : (selectedBooking.ruangan?.lokasi_gedung ?? '-') }}</p>
+                                <p class="text-sm font-bold text-gray-900">{{ selectedBooking.ruangan?.nama_ruang ?? selectedBooking.nama_ruang ?? 'Combined Room' }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ selectedBooking.gabung_ruang ? 'Combined Room 2 & 3' : (selectedBooking.ruangan?.lokasi_gedung ?? '-') }}</p>
                             </div>
                             <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
                                 <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-                                    Waktu Pelaksanaan
+                                    Execution Time
                                 </div>
                                 <p class="text-sm font-bold text-gray-900">{{ formatDate(selectedBooking.tgl_mulai) }}</p>
-                                <p class="text-xs text-gray-500 mt-0.5">s/d {{ formatDate(selectedBooking.tgl_selesai) }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">to {{ formatDate(selectedBooking.tgl_selesai) }}</p>
                             </div>
                             <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
                                 <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
-                                    PIC (Penanggung Jawab)
+                                    PIC (Person in Charge)
                                 </div>
                                 <p class="text-sm font-bold text-gray-900">{{ selectedBooking.pic }}</p>
                             </div>
                             <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
                                 <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
-                                    Kapasitas
+                                    Capacity
                                 </div>
-                                <p class="text-sm font-bold text-gray-900">{{ selectedBooking.jumlah_peserta }} <span class="font-normal text-xs text-gray-500">Peserta</span></p>
-                                <p class="text-xs text-gray-500 mt-0.5">{{ selectedBooking.jumlah_panitia }} Panitia</p>
+                                <p class="text-sm font-bold text-gray-900">{{ selectedBooking.jumlah_peserta }} <span class="font-normal text-xs text-gray-500">Participants</span></p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ selectedBooking.jumlah_panitia }} Organizer</p>
                             </div>
                         </div>
 
                         <!-- Fasilitas & Catatan -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Fasilitas Preferensi</h4>
-                                <div class="flex flex-wrap gap-2">
-                                    <span v-if="selectedBooking.layout_preferensi" class="px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-gray-600 uppercase shadow-xs">Layout: {{ selectedBooking.layout_preferensi }}</span>
-                                    <span v-if="selectedBooking.is_hybrid" class="px-2.5 py-1 bg-violet-100 border border-violet-200 rounded-lg text-[10px] font-bold text-violet-700 uppercase">Hybrid Mode</span>
-                                    <span v-if="selectedBooking.is_flipchart" class="px-2.5 py-1 bg-orange-100 border border-orange-200 rounded-lg text-[10px] font-bold text-orange-700 uppercase">Flipchart</span>
-                                    <span v-if="selectedBooking.is_pena_mini_note" class="px-2.5 py-1 bg-teal-100 border border-teal-200 rounded-lg text-[10px] font-bold text-teal-700 uppercase">Pena & Mini Note</span>
-                                    <span v-if="!selectedBooking.layout_preferensi && !selectedBooking.is_hybrid && !selectedBooking.is_flipchart && !selectedBooking.is_pena_mini_note" class="text-xs text-gray-400 italic">Tidak ada</span>
-                                </div>
-                            </div>
-                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Catatan Tambahan</h4>
+                            <!-- Removed Facilities & Setup block based on user request -->
+                            
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 col-span-1 md:col-span-2">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Additional Notes</h4>
                                 <p v-if="selectedBooking.catatan_user" class="text-xs text-gray-700 italic leading-relaxed">"{{ selectedBooking.catatan_user }}"</p>
-                                <p v-else class="text-xs text-gray-400 italic">Tidak ada catatan dari pengaju.</p>
+                                <p v-else class="text-xs text-gray-400 italic">No notes from the applicant.</p>
                                 
                                 <template v-if="selectedBooking.catatan_admin">
-                                    <h4 class="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2 mt-4">Catatan Admin</h4>
+                                    <h4 class="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2 mt-4">Admin Notes</h4>
                                     <p class="text-xs text-red-700 font-semibold italic leading-relaxed">"{{ selectedBooking.catatan_admin }}"</p>
                                 </template>
                             </div>
                         </div>
 
-                        <!-- Daftar Peserta & Panitia -->
-                        <div v-if="selectedBooking.participants && selectedBooking.participants.length > 0">
-                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <span class="w-4 h-px bg-gray-200 inline-block"></span>
-                                Daftar Peserta &amp; Panitia
-                                <span class="w-4 h-px bg-gray-200 inline-block"></span>
-                            </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                <div v-for="p in selectedBooking.participants" :key="p.id" 
-                                     class="flex items-center gap-3 p-3 border border-gray-100 bg-white rounded-xl shadow-xs hover:border-blue-100 hover:bg-blue-50/30 transition-colors">
-                                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" 
-                                         :class="p.tipe === 'panitia' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700'">
-                                        {{ getInitials(p.nama) }}
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-xs font-bold text-gray-800 leading-snug truncate">{{ p.nama }}</p>
-                                        <div class="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5 text-[9px] text-gray-400 font-medium">
-                                            <span v-if="p.nrp">NRP: <strong class="text-gray-600">{{ p.nrp }}</strong></span>
-                                            <span v-if="p.jabatan" class="truncate max-w-[90px]" :title="p.jabatan">{{ p.jabatan }}</span>
-                                        </div>
-                                    </div>
-                                    <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded shrink-0"
-                                          :class="p.tipe === 'panitia' ? 'bg-violet-100 text-violet-700' : 'bg-blue-100 text-blue-700'">
-                                        {{ p.tipe }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Removed Participant List based on user request -->
 
                     </div>
                 </div>
@@ -520,7 +485,7 @@ onUnmounted(() => {
                         Download Excel
                     </button>
                     <button @click="showRecapModal = false" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-50 transition shadow-xs cursor-pointer">
-                        Tutup
+                        Close
                     </button>
                 </div>
             </div>

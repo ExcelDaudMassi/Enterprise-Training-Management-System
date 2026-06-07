@@ -58,7 +58,7 @@ async function submitCancel() {
         showCancelModal.value = false
         router.reload({ only: ['bookings'] })
     } catch (e) {
-        cancelError.value = e.response?.data?.message ?? 'Terjadi kesalahan.'
+        cancelError.value = e.response?.data?.message ?? 'An error occurred.'
     } finally {
         cancelLoading.value = false
     }
@@ -95,8 +95,8 @@ onUnmounted(() => {
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-800">Booking Aktif</h1>
-                        <p class="text-sm text-gray-500 mt-1">Booking yang sedang menunggu persetujuan atau sudah dikonfirmasi</p>
+                        <h1 class="text-2xl font-bold text-gray-800">Active Bookings</h1>
+                        <p class="text-sm text-gray-500 mt-1">Bookings waiting for approval or already confirmed</p>
                     </div>
                 </div>
                 <a href="/user/booking/create"
@@ -104,7 +104,7 @@ onUnmounted(() => {
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
-                    Buat Booking Baru
+                    Create New Booking
                 </a>
             </div>
 
@@ -116,14 +116,14 @@ onUnmounted(() => {
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                     </svg>
                 </div>
-                <p class="text-gray-500 font-medium">Tidak ada booking aktif saat ini.</p>
-                <p class="text-sm text-gray-400 mt-1">Booking yang sudah selesai atau dibatalkan ada di menu Riwayat Booking.</p>
+                <p class="text-gray-500 font-medium">There are no active bookings at this time.</p>
+                <p class="text-sm text-gray-400 mt-1">Completed or cancelled bookings are in the Booking History menu.</p>
                 <a href="/user/booking/create"
                    class="inline-flex items-center gap-1.5 mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-lg text-sm transition shadow-sm">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
-                    Buat Booking Sekarang
+                    Create Booking Now
                 </a>
             </div>
 
@@ -133,13 +133,13 @@ onUnmounted(() => {
                     <table class="min-w-full table-fixed divide-y divide-slate-100">
                         <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
                             <tr>
-                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[24%]">Acara / PIC</th>
-                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Ruangan</th>
-                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Jadwal</th>
-                                <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Peserta</th>
-                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Fasilitas</th>
+                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[24%]">Event / PIC</th>
+                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Room</th>
+                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Schedule</th>
+                                <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Participants</th>
+                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Facilities</th>
                                 <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Status</th>
-                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[14%]">Aksi</th>
+                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[14%]">Action</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-slate-100">
@@ -161,7 +161,7 @@ onUnmounted(() => {
                                 <td class="px-5 py-4">
                                     <div class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-lg border border-slate-200">
                                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                        {{ b.nama_ruang ?? 'Ruang Gabungan' }}
+                                        {{ b.nama_ruang ?? 'Combined Room' }}
                                     </div>
                                     <div v-if="b.layout_preferensi" class="text-[11px] text-slate-400 capitalize mt-2 flex items-center gap-1">
                                         Layout: <span class="font-medium text-slate-600">{{ b.layout_preferensi }}</span>
@@ -171,7 +171,7 @@ onUnmounted(() => {
                                 <!-- Jadwal -->
                                 <td class="px-5 py-4 text-xs text-slate-700">
                                     <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block mb-1">{{ formatDate(b.tgl_mulai) }}</div>
-                                    <div class="text-slate-400 text-[10px] ml-2 mb-1">s/d</div>
+                                    <div class="text-slate-400 text-[10px] ml-2 mb-1">to</div>
                                     <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block">{{ formatDate(b.tgl_selesai) }}</div>
                                     <!-- Countdown H-X -->
                                     <div v-if="b.tgl_mulai && diffDays(b.tgl_mulai) > 0"
@@ -183,7 +183,7 @@ onUnmounted(() => {
                                     </div>
                                     <div v-else-if="b.tgl_mulai && diffDays(b.tgl_mulai) === 0"
                                          class="mt-2 inline-flex items-center gap-1 text-[11px] bg-orange-50 text-orange-700 border border-orange-100 px-2 py-0.5 rounded-md font-bold animate-pulse">
-                                        Hari ini!
+                                        Today!
                                     </div>
                                 </td>
 
@@ -191,9 +191,9 @@ onUnmounted(() => {
                                 <td class="px-5 py-4 text-center">
                                     <div class="inline-flex flex-col items-center bg-blue-50/50 border border-blue-100 px-3 py-1.5 rounded-xl">
                                         <div class="text-lg font-black text-blue-700 leading-none">{{ b.jumlah_peserta }}</div>
-                                        <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Peserta</div>
+                                        <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Participants</div>
                                     </div>
-                                    <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Panitia</div>
+                                    <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Org</div>
                                 </td>
 
                                 <!-- Fasilitas -->
@@ -205,7 +205,7 @@ onUnmounted(() => {
                                         <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
                                     </div>
                                     <div v-if="b.is_pena_mini_note" class="flex items-center gap-2 bg-teal-50 text-teal-700 font-semibold px-2 py-1 rounded-md border border-teal-100 w-fit">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0"></span>Pena & Mini Note
+                                        <span class="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0"></span>Pen & Mini Note
                                     </div>
                                     <div v-if="!b.is_hybrid && !b.is_flipchart && !b.is_pena_mini_note" class="text-slate-300 font-medium">—</div>
                                 </td>
@@ -224,7 +224,7 @@ onUnmounted(() => {
                                         <a :href="`/user/booking/${b.id}/detail`"
                                            class="group/btn flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 text-[11px] font-bold py-2 px-3 rounded-xl transition-all border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow">
                                             <svg class="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-blue-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            Lihat Detail
+                                            View Details
                                         </a>
                                     </div>
                                 </td>
@@ -254,23 +254,23 @@ onUnmounted(() => {
                                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                     </div>
-                    <h2 class="text-lg font-bold text-center text-gray-900 mb-2">Batalkan Booking?</h2>
+                    <h2 class="text-lg font-bold text-center text-gray-900 mb-2">Cancel Booking?</h2>
                     <p class="text-sm text-center text-gray-600 mb-1">
-                        Anda yakin ingin membatalkan:
+                        Are you sure you want to cancel:
                         <strong class="text-gray-800 block mt-0.5">{{ selectedBooking?.nama_training }}</strong>?
                     </p>
-                    <p class="text-xs text-center text-red-500 mb-4">Tindakan ini permanen dan tidak dapat diurungkan.</p>
+                    <p class="text-xs text-center text-red-500 mb-4">This action is permanent and cannot be undone.</p>
                     <div v-if="cancelError" class="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
                         {{ cancelError }}
                     </div>
                     <div class="flex gap-3">
                         <button @click="showCancelModal = false"
                                 class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">
-                            Kembali
+                            Back
                         </button>
                         <button @click="submitCancel" :disabled="cancelLoading"
                                 class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-bold disabled:opacity-50 transition cursor-pointer select-none">
-                            {{ cancelLoading ? 'Membatalkan...' : 'Ya, Batalkan' }}
+                            {{ cancelLoading ? 'Cancelling...' : 'Yes, Cancel' }}
                         </button>
                     </div>
                 </div>

@@ -234,8 +234,8 @@ function resetFilter() {
 // ============================================================
 // Kalender: 12 bulan dalam 1 halaman
 // ============================================================
-const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
-const DAY_NAMES   = ['Min','Sen','Sel','Rab','Kam','Jum','Sab']
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const today       = new Date()
 
 // Fungsi: ambil semua hari dalam satu bulan sebagai array grid (7 kolom)
@@ -362,7 +362,7 @@ const selectedMonthDays = computed(() => {
         const dayOfWeek = date.getDay()
         daysArray.push({
             dayNum: d,
-            dayName: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][dayOfWeek],
+            dayName: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayOfWeek],
             isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
             isToday: dateToYmd(date) === dateToYmd(new Date())
         })
@@ -463,8 +463,8 @@ function formatIndoDateShort(dateStr) {
     if (parts.length < 3) return dateStr
     const day = parseInt(parts[2], 10)
     const monthIdx = parseInt(parts[1], 10) - 1
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-    return `${day} ${months[monthIdx]}`
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return `${months[monthIdx]} ${day}`
 }
 
 function formatDateRange(startStr, endStr) {
@@ -475,9 +475,9 @@ function formatDateRange(startStr, endStr) {
     const endYear = endStr.split('-')[0]
     
     if (startYear === endYear) {
-        return `${start} s/d ${end} ${startYear}`
+        return `${start} to ${end}, ${startYear}`
     }
-    return `${start} ${startYear} s/d ${end} ${endYear}`
+    return `${start}, ${startYear} to ${end}, ${endYear}`
 }
 
 function selectGanttMonth(year, monthIdx) {
@@ -550,17 +550,17 @@ const LEGEND_INFO = {
     pending: {
         label: 'Pending',
         color: 'amber',
-        desc: 'Booking sedang menunggu verifikasi dan persetujuan dari Admin BBSO. Anda belum dapat melakukan perubahan pada data pemesanan sampai status diperbarui.',
+        desc: 'Booking is awaiting verification and approval from BBSO Admin. You cannot make changes to the booking data until the status is updated.',
     },
     confirmed: {
         label: 'Confirmed',
         color: 'indigo',
-        desc: 'Pemesanan telah diverifikasi dan masuk ke dalam jadwal resmi. Data detail booking serta daftar peserta masih dapat diubah melalui halaman detail.',
+        desc: 'Booking has been verified and added to the official schedule. Details and participants can still be updated via the details page.',
     },
     finalized: {
         label: 'Finalized',
         color: 'emerald',
-        desc: 'Pemesanan telah disetujui sepenuhnya oleh Admin BBSO. Seluruh data pemesanan telah dikunci dan tidak dapat diubah kembali.',
+        desc: 'Booking has been fully approved by BBSO Admin. All data is locked and can no longer be changed.',
     },
 }
 
@@ -688,9 +688,9 @@ function getVisualStatus(b) {
             <h2 class="text-lg font-bold text-gray-800">User Dashboard</h2>
             <div v-if="!isWindowActive"
                  class="bg-gray-250 text-gray-400 text-sm font-medium px-4 py-2 rounded-lg cursor-not-allowed border border-gray-300 flex items-center gap-1.5 select-none"
-                 title="Window Booking sedang ditutup oleh Admin.">
+                 title="Booking window is currently closed by Admin.">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                <span>Create New Booking (Tutup)</span>
+                <span>Create New Booking (Closed)</span>
             </div>
             <Link v-else href="/user/booking/create" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -711,8 +711,8 @@ function getVisualStatus(b) {
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                         </svg>
                     </div>
-                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Filter Tampilan</span>
-                    <span v-if="hasActiveFilter" class="ml-1 px-1.5 py-0.5 text-[9px] font-bold bg-blue-100 text-blue-700 rounded-full uppercase tracking-wide">Aktif</span>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">View Filter</span>
+                    <span v-if="hasActiveFilter" class="ml-1 px-1.5 py-0.5 text-[9px] font-bold bg-blue-100 text-blue-700 rounded-full uppercase tracking-wide">Active</span>
                 </div>
                 <button
                     v-if="hasActiveFilter"
@@ -735,7 +735,7 @@ function getVisualStatus(b) {
                         <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
-                        Tahun
+                        Year
                     </label>
                     <div class="relative">
                         <!-- Trigger Display -->
@@ -795,7 +795,7 @@ function getVisualStatus(b) {
                         <svg class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                         </svg>
-                        Ruangan
+                        Facility
                     </label>
                     <div class="relative">
                         <!-- Trigger Display -->
@@ -846,7 +846,7 @@ function getVisualStatus(b) {
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                                         </svg>
                                     </span>
-                                    <span>Semua Ruangan</span>
+                                    <span>All Facilities</span>
                                     <svg v-if="filterRuangan === null" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                                 </button>
                                 <div class="my-1 border-t border-gray-100"></div>
@@ -883,14 +883,14 @@ function getVisualStatus(b) {
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
                     </svg>
-                    Terapkan
+                    Apply
                 </button>
 
             </div>
 
             <!-- Legend Ruangan -->
             <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/60 flex flex-wrap gap-2">
-                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider self-center mr-1">Warna Ruangan:</span>
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider self-center mr-1">Facility Colors:</span>
                 <button
                     v-for="(r, idx) in ruanganList"
                     :key="r.id"
@@ -917,8 +917,8 @@ function getVisualStatus(b) {
         <!-- Tabs Navigation -->
         <!-- ============================================================ -->
         <div class="flex items-center gap-2 mb-5">
-            <button @click="activeTab = 'calendar'" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all focus:outline-none" :class="activeTab === 'calendar' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'">Kalender Bulanan</button>
-            <button @click="activeTab = 'timeline'" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all focus:outline-none" :class="activeTab === 'timeline' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'">Timeline Gantt Chart</button>
+            <button @click="activeTab = 'calendar'" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all focus:outline-none" :class="activeTab === 'calendar' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'">Monthly Calendar</button>
+            <button @click="activeTab = 'timeline'" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all focus:outline-none" :class="activeTab === 'timeline' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'">Gantt Chart Timeline</button>
         </div>
 
         <!-- ============================================================ -->
@@ -934,8 +934,8 @@ function getVisualStatus(b) {
                     </svg>
                 </span>
                 <div>
-                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Jadwal Kalender Pemesanan</h3>
-                    <h2 class="text-sm font-black text-gray-800 mt-1.5 font-sans">Kalender Pemesanan Ruangan — {{ selectedYear }}</h2>
+                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Master Booking Calendar</h3>
+                    <h2 class="text-sm font-black text-gray-800 mt-1.5 font-sans">Facility Booking Calendar — {{ selectedYear }}</h2>
                 </div>
             </div>
 
@@ -1006,7 +1006,7 @@ function getVisualStatus(b) {
                         <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/></svg>
                     </span>
                     <div>
-                        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Diagram Jadwal Training</h3>
+                        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Training Schedule Diagram</h3>
                         <h2 class="text-sm font-black text-gray-800 mt-1.5 font-sans">{{ MONTH_NAMES[ganttMonthIdx] }} {{ ganttYear }}</h2>
                     </div>
                 </div>
@@ -1133,7 +1133,7 @@ function getVisualStatus(b) {
 
                         <div class="ml-auto text-[10px] text-gray-400 font-medium hidden md:flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" /></svg>
-                            <span>Arahkan kursor pada bar untuk detail</span>
+                            <span>Hover for quick info — Click for details</span>
                         </div>
                     </div>
                 </div>
@@ -1147,7 +1147,7 @@ function getVisualStatus(b) {
                             <div class="flex border-b border-gray-200 bg-white select-none shrink-0 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                                 <!-- Room Name Column Header -->
                                 <div class="w-48 p-4 shrink-0 font-extrabold text-[11px] text-gray-500 uppercase tracking-wider border-r border-gray-200 flex items-center bg-white sticky left-0 z-40 shadow-[2px_0_5px_rgba(0,0,0,0.015)]">
-                                    Nama Ruangan
+                                    Facility Name
                                 </div>
                                 <!-- Days Column Headers -->
                                 <div class="flex-1 grid" :style="{ gridTemplateColumns: `repeat(${selectedMonthDaysCount}, minmax(0, 1fr))` }">
@@ -1182,7 +1182,7 @@ function getVisualStatus(b) {
                                             <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs" :style="{ backgroundColor: getRoomColor(room.id).bg }"></span>
                                             <span class="font-extrabold text-gray-800 text-[11.5px] truncate leading-snug">{{ room.nama_ruang }}</span>
                                         </div>
-                                        <span class="text-[9px] text-gray-400 font-semibold mt-1">Kapasitas: {{ room.kapasitas || '-' }} pax</span>
+                                        <span class="text-[9px] text-gray-400 font-semibold mt-1">Capacity: {{ room.kapasitas || '-' }} pax</span>
                                     </div>
                                     
                                     <!-- Gantt Track Area (Absolute Bars Overlay) -->
@@ -1234,7 +1234,7 @@ function getVisualStatus(b) {
                                 
                                 <!-- Empty state if there are no rooms -->
                                 <div v-if="roomGanttData.length === 0" class="py-16 text-center text-gray-400">
-                                    Tidak ada ruangan terdaftar.
+                                    No facilities registered.
                                 </div>
                             </div>
                         </div>
@@ -1250,17 +1250,17 @@ function getVisualStatus(b) {
             <h3 class="text-sm font-semibold text-gray-700 mb-3">My Bookings – Divisi {{ auth.user.divisi }}</h3>
 
             <div v-if="myBookings.length === 0" class="text-sm text-gray-400 text-center py-6">
-                Belum ada booking dari divisi ini.
+                No bookings from this division yet.
             </div>
 
             <table v-else class="w-full text-sm text-left">
                 <thead class="bg-gray-50 text-xs text-gray-600 uppercase">
                     <tr>
                         <th class="px-3 py-2">Training</th>
-                        <th class="px-3 py-2">Ruangan</th>
-                        <th class="px-3 py-2">Tanggal</th>
+                        <th class="px-3 py-2">Facility</th>
+                        <th class="px-3 py-2">Date</th>
                         <th class="px-3 py-2">Status</th>
-                        <th class="px-3 py-2">Aksi</th>
+                        <th class="px-3 py-2">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -1268,7 +1268,7 @@ function getVisualStatus(b) {
                         <td class="px-3 py-2 font-medium text-gray-800">{{ b.nama_training }}</td>
                         <td class="px-3 py-2 text-gray-600">{{ b.nama_ruang }}</td>
                         <td class="px-3 py-2 text-gray-600 text-xs">
-                            {{ b.tgl_mulai }} <span class="text-gray-400">s/d</span> {{ b.tgl_selesai }}
+                            {{ b.tgl_mulai }} <span class="text-gray-400">to</span> {{ b.tgl_selesai }}
                         </td>
                         <td class="px-3 py-2">
                             <span
@@ -1279,7 +1279,7 @@ function getVisualStatus(b) {
                             </span>
                         </td>
                         <td class="px-3 py-2">
-                            <Link :href="`/user/booking/${b.id}/detail`" class="text-blue-600 hover:underline text-xs font-semibold">Detail</Link>
+                            <Link :href="`/user/booking/${b.id}/detail`" class="text-blue-600 hover:underline text-xs font-semibold">Details</Link>
                         </td>
                     </tr>
                 </tbody>
@@ -1312,7 +1312,7 @@ function getVisualStatus(b) {
                         <span class="w-3 h-3 rounded-full shrink-0 mt-0.5 shadow-sm" :style="{ backgroundColor: getStatusColor(getVisualStatus(selectedDetailBooking)).bg }"></span>
                         <div class="flex-1 min-w-0">
                             <span class="font-extrabold text-gray-900 text-[13px] leading-snug block truncate">{{ selectedDetailBooking.nama_training }}</span>
-                            <span class="text-[9px] text-gray-500 mt-0.5 block">Informasi Pemesanan Ruangan</span>
+                            <span class="text-[9px] text-gray-500 mt-0.5 block">Facility Booking Information</span>
                         </div>
                         <span class="px-2 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider shrink-0 mt-0.5"
                             :class="STATUS_STYLE[getVisualStatus(selectedDetailBooking)] || 'bg-gray-100 text-gray-600'"
@@ -1329,11 +1329,11 @@ function getVisualStatus(b) {
                                 <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Ruangan</span>
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Facility</span>
                                 <div class="flex items-center gap-1.5 mt-0.5">
                                     <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking.ruangan_id).bg }"></span>
                                     <span class="font-bold text-gray-800 truncate">{{ selectedDetailBooking.nama_ruang }}</span>
-                                    <span v-if="selectedDetailBooking.gabung_ruang" class="text-[7px] font-bold bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded border border-teal-200/80 shrink-0">GABUNG</span>
+                                    <span v-if="selectedDetailBooking.gabung_ruang" class="text-[7px] font-bold bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded border border-teal-200/80 shrink-0">COMBINED</span>
                                 </div>
                             </div>
                         </div>
@@ -1344,7 +1344,7 @@ function getVisualStatus(b) {
                                 <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Tanggal Pelaksanaan</span>
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Event Date</span>
                                 <span class="font-bold text-gray-800 block mt-0.5">{{ formatDateRange(selectedDetailBooking.tgl_mulai, selectedDetailBooking.tgl_selesai) }}</span>
                             </div>
                         </div>
@@ -1355,12 +1355,12 @@ function getVisualStatus(b) {
                                 <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Pemohon</span>
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Applicant</span>
                                 <span class="font-bold text-gray-800 block mt-0.5 truncate">{{ selectedDetailBooking.pemohon }}</span>
-                                <span v-if="selectedDetailBooking.divisi" class="text-[9px] text-gray-400 block">Divisi {{ selectedDetailBooking.divisi }}</span>
+                                <span v-if="selectedDetailBooking.divisi" class="text-[9px] text-gray-400 block">{{ selectedDetailBooking.divisi }} Division</span>
                             </div>
                             <div v-if="selectedDetailBooking.pic" class="shrink-0 text-right">
-                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">PIC Acara</span>
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Event PIC</span>
                                 <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking.pic }}</span>
                             </div>
                         </div>
@@ -1368,14 +1368,14 @@ function getVisualStatus(b) {
                         <!-- Non-owner notice -->
                         <div v-if="!selectedDetailBooking.is_owner" class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
                             <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
-                            <span class="text-[9px] text-gray-500 font-medium">Detail pemesanan hanya terlihat oleh pemilik booking</span>
+                            <span class="text-[9px] text-gray-500 font-medium">Booking details are only visible to the owner</span>
                         </div>
                     </div>
 
                     <!-- Owner hint -->
                     <div v-if="selectedDetailBooking.is_owner" class="px-4 py-2 border-t border-gray-100 bg-blue-50/60 flex items-center gap-2">
                         <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-                        <span class="text-[9.5px] font-semibold text-blue-600">Booking Anda — Klik bar untuk masuk ke Detail Roster</span>
+                        <span class="text-[9.5px] font-semibold text-blue-600">Your Booking — Click the bar to enter Roster Details</span>
                     </div>
                 </div>
             </div>

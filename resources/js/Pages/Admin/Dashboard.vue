@@ -232,8 +232,8 @@ function resetFilter() {
 // ============================================================
 // Kalender: 12 bulan dalam 1 halaman
 // ============================================================
-const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
-const DAY_NAMES   = ['Min','Sen','Sel','Rab','Kam','Jum','Sab']
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const todayDate   = new Date()
 
 // Fungsi: ambil semua hari dalam satu bulan sebagai array grid (7 kolom)
@@ -360,7 +360,7 @@ const selectedMonthDays = computed(() => {
         const dayOfWeek = date.getDay()
         daysArray.push({
             dayNum: d,
-            dayName: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][dayOfWeek],
+            dayName: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayOfWeek],
             isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
             isToday: dateToYmd(date) === dateToYmd(new Date())
         })
@@ -461,8 +461,8 @@ function formatIndoDateShort(dateStr) {
     if (parts.length < 3) return dateStr
     const day = parseInt(parts[2], 10)
     const monthIdx = parseInt(parts[1], 10) - 1
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-    return `${day} ${months[monthIdx]}`
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return `${months[monthIdx]} ${day}`
 }
 
 function formatDateRange(startStr, endStr) {
@@ -473,9 +473,9 @@ function formatDateRange(startStr, endStr) {
     const endYear = endStr.split('-')[0]
     
     if (startYear === endYear) {
-        return `${start} s/d ${end} ${startYear}`
+        return `${start} to ${end}, ${startYear}`
     }
-    return `${start} ${startYear} s/d ${end} ${endYear}`
+    return `${start}, ${startYear} to ${end}, ${endYear}`
 }
 
 function selectGanttMonth(year, monthIdx) {
@@ -558,17 +558,17 @@ const LEGEND_INFO = {
     pending: {
         label: 'Pending',
         color: 'amber',
-        desc: 'Booking sedang menunggu verifikasi dan persetujuan dari Admin BBSO.',
+        desc: 'Booking is awaiting verification and approval from BBSO Admin.',
     },
     confirmed: {
         label: 'Confirmed',
         color: 'indigo',
-        desc: 'Pemesanan telah diverifikasi dan masuk ke dalam jadwal resmi. Data detail booking serta daftar peserta masih dapat diubah.',
+        desc: 'Booking has been verified and added to the official schedule. Details and participants can still be updated.',
     },
     finalized: {
         label: 'Finalized',
         color: 'emerald',
-        desc: 'Pemesanan telah disetujui sepenuhnya oleh Admin BBSO. Seluruh data pemesanan telah dikunci dan tidak dapat diubah kembali.',
+        desc: 'Booking has been fully approved by BBSO Admin. All data is locked and can no longer be changed.',
     },
 }
 
@@ -644,9 +644,9 @@ function getGanttBarStyle(b, room) {
 function formatIndoDateTime(dateTimeStr) {
     if (!dateTimeStr) return '-'
     const d = new Date(dateTimeStr)
-    const dateStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-    const timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })
-    return `${dateStr} pukul ${timeStr}`
+    const dateStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+    const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })
+    return `${dateStr} at ${timeStr}`
 }
 
 const filteredPeserta = computed(() => {
@@ -716,7 +716,7 @@ const cards = [
     {
         key:     'pending_approval',
         label:   'PENDING',
-        sub:     'Perlu tindakan segera',
+        sub:     'Requires immediate action',
         icon:    '⏳',
         filter:  'pending',
         theme: {
@@ -732,7 +732,7 @@ const cards = [
     {
         key:     'confirmed_count',
         label:   'CONFIRMED',
-        sub:     'Booking terkonfirmasi',
+        sub:     'Confirmed bookings',
         icon:    '✅',
         filter:  'confirmed',
         theme: {
@@ -748,7 +748,7 @@ const cards = [
     {
         key:     'finalized_count',
         label:   'FINALIZED',
-        sub:     'Fasilitas siap dipersiapkan',
+        sub:     'Facilities ready for prep',
         icon:    '✓',
         filter:  'finalized',
         theme: {
@@ -763,8 +763,8 @@ const cards = [
     },
     {
         key:     'rooms_today',
-        label:   'RUANGAN TERPAKAI',
-        sub:     'Hari ini',
+        label:   'FACILITIES IN USE',
+        sub:     'Today',
         icon:    '🏢',
         filter:  'confirmed',
         theme: {
@@ -785,7 +785,7 @@ function goToFilter(filter) {
 
 function formatDate(d) {
     if (!d) return '-'
-    return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+    return new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 // ============================================================
@@ -842,7 +842,7 @@ const chartOptions = computed(() => {
     }
 })
 
-const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+const today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 </script>
 
 <template>
@@ -850,7 +850,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <!-- ── Page Header ──────────────────────────────────────────── -->
         <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
-                <h1 class="text-2xl font-black text-gray-900 tracking-tight">Dashboard Admin</h1>
+                <h1 class="text-2xl font-black text-gray-900 tracking-tight">Admin Dashboard</h1>
                 <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mt-1">{{ today }}</p>
             </div>
         </div>
@@ -877,7 +877,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             <svg v-else-if="card.key === 'rooms_today'" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         </span>
                         <span class="text-[9px] font-bold uppercase px-2.5 py-1 rounded-full tracking-wider border transition-colors bg-white/70"
-                              :class="card.theme.badge">Tinjau →</span>
+                              :class="card.theme.badge">Review →</span>
                     </div>
  
                     <!-- Number + Label Section -->
@@ -901,13 +901,13 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/>
                         </svg>
                     </span>
-                    <h3 class="text-xs font-black text-gray-600 uppercase tracking-widest">Statistik Proporsi Booking</h3>
+                    <h3 class="text-xs font-black text-gray-600 uppercase tracking-widest">Booking Proportion Stats</h3>
                 </div>
                 <div class="w-full flex-1 flex items-center justify-center min-h-[290px]" v-if="props.bookings.length > 0">
                     <VueApexCharts type="donut" width="100%" height="290" :options="chartOptions" :series="chartSeries" />
                 </div>
                 <div v-else class="text-gray-400 text-xs font-semibold italic flex-1 flex items-center justify-center">
-                    Belum ada data booking tahun ini
+                    No bookings for this year
                 </div>
             </div>
 
@@ -928,8 +928,8 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
                         </svg>
                     </div>
-                    <span class="text-[10px] font-black text-gray-600 uppercase tracking-widest">Filter Tampilan Kalender</span>
-                    <span v-if="hasActiveFilter" class="ml-1 px-2 py-0.5 text-[9px] font-black bg-blue-50 text-blue-700 border border-blue-100 rounded-full uppercase tracking-wider">Aktif</span>
+                    <span class="text-[10px] font-black text-gray-600 uppercase tracking-widest">Calendar View Filter</span>
+                    <span v-if="hasActiveFilter" class="ml-1 px-2 py-0.5 text-[9px] font-black bg-blue-50 text-blue-700 border border-blue-100 rounded-full uppercase tracking-wider">Active</span>
                 </div>
                 <button
                     v-if="hasActiveFilter"
@@ -952,7 +952,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                         <svg class="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
-                        Tahun
+                        Year
                     </label>
                     <div class="relative">
                         <!-- Trigger Display -->
@@ -1012,7 +1012,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                         <svg class="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                         </svg>
-                        Ruangan
+                        Facility
                     </label>
                     <div class="relative">
                         <!-- Trigger Display -->
@@ -1063,7 +1063,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                                         </svg>
                                     </span>
-                                    <span>Semua Ruangan</span>
+                                    <span>All Facilities</span>
                                     <svg v-if="filterRuangan === null" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                                 </button>
                                 <div class="my-1 border-t border-gray-100"></div>
@@ -1100,14 +1100,14 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
                     </svg>
-                    Terapkan
+                    Apply
                 </button>
 
             </div>
 
             <!-- Legend Ruangan -->
             <div class="px-5 py-3 bg-gray-50/40 flex flex-wrap gap-2 rounded-b-lg">
-                <span class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest self-center mr-1">Warna Ruangan:</span>
+                <span class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest self-center mr-1">Facility Colors:</span>
                 <button
                     v-for="(r, idx) in ruanganList"
                     :key="r.id"
@@ -1118,7 +1118,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                         borderColor: filterRuangan === r.id ? ROOM_COLORS[idx % ROOM_COLORS.length].bg : '#e5e7eb',
                         color: filterRuangan === r.id ? ROOM_COLORS[idx % ROOM_COLORS.length].text : '#4b5563'
                     }"
-                    :title="`Filter cepat: ${r.nama_ruang}`"
+                    :title="`Quick filter: ${r.nama_ruang}`"
                 >
                     <span
                         class="w-2 h-2 rounded-full shrink-0 animate-pulse"
@@ -1134,8 +1134,8 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
         <!-- Tabs Navigation -->
         <!-- ============================================================ -->
         <div class="flex items-center gap-2 mb-5">
-            <button @click="activeTab = 'calendar'" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all focus:outline-none" :class="activeTab === 'calendar' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'">Kalender Bulanan</button>
-            <button @click="activeTab = 'timeline'" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all focus:outline-none" :class="activeTab === 'timeline' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'">Timeline Gantt Chart</button>
+            <button @click="activeTab = 'calendar'" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all focus:outline-none" :class="activeTab === 'calendar' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'">Monthly Calendar</button>
+            <button @click="activeTab = 'timeline'" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all focus:outline-none" :class="activeTab === 'timeline' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'">Gantt Chart Timeline</button>
         </div>
 
         <!-- ============================================================ -->
@@ -1151,8 +1151,8 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     </svg>
                 </span>
                 <div>
-                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Jadwal Kalender Pemesanan</h3>
-                    <h2 class="text-sm font-black text-gray-800 mt-1.5 font-sans">Kalender Pemesanan Ruangan — {{ selectedYear }}</h2>
+                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Master Booking Calendar</h3>
+                    <h2 class="text-sm font-black text-gray-800 mt-1.5 font-sans">Facility Booking Calendar — {{ selectedYear }}</h2>
                 </div>
             </div>
 
@@ -1223,7 +1223,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                         <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/></svg>
                     </span>
                     <div>
-                        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Diagram Jadwal Training</h3>
+                        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Training Schedule Diagram</h3>
                         <h2 class="text-sm font-black text-gray-800 mt-1.5 font-sans">{{ MONTH_NAMES[ganttMonthIdx] }} {{ ganttYear }}</h2>
                     </div>
                 </div>
@@ -1350,7 +1350,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
 
                         <div class="ml-auto text-[10px] text-gray-400 font-semibold hidden md:flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" /></svg>
-                            <span>Hover bar untuk informasi singkat — Klik bar untuk detail</span>
+                            <span>Hover for quick info — Click for details</span>
                         </div>
                     </div>
                 </div>
@@ -1364,7 +1364,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                             <div class="flex border-b border-gray-200 bg-white select-none shrink-0 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                                 <!-- Room Name Column Header -->
                                 <div class="w-48 p-4 shrink-0 font-extrabold text-[11px] text-gray-500 uppercase tracking-wider border-r border-gray-200 flex items-center bg-white sticky left-0 z-40 shadow-[2px_0_5px_rgba(0,0,0,0.015)]">
-                                    Nama Ruangan
+                                    Facility Name
                                 </div>
                                 <!-- Days Column Headers -->
                                 <div class="flex-1 grid" :style="{ gridTemplateColumns: `repeat(${selectedMonthDaysCount}, minmax(0, 1fr))` }">
@@ -1399,7 +1399,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                             <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs" :style="{ backgroundColor: getRoomColor(room.id).bg }"></span>
                                             <span class="font-extrabold text-gray-800 text-[11.5px] truncate leading-snug">{{ room.nama_ruang }}</span>
                                         </div>
-                                        <span class="text-[9px] text-gray-400 font-semibold mt-1">Kapasitas: {{ room.kapasitas || '-' }} pax</span>
+                                        <span class="text-[9px] text-gray-400 font-semibold mt-1">Capacity: {{ room.kapasitas || '-' }} pax</span>
                                     </div>
                                     
                                     <!-- Gantt Track Area (Absolute Bars Overlay) -->
@@ -1606,13 +1606,13 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                         <div class="flex items-center justify-between mb-3 shrink-0">
                             <div class="text-[9.5px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
-                                Roster Acara
+                                Event Roster
                             </div>
                             <a v-if="selectedDetailBooking?.layout_url"
                                :href="selectedDetailBooking.layout_url" target="_blank"
                                class="inline-flex items-center gap-1 text-[11px] text-purple-700 hover:text-purple-900 font-semibold hover:underline">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                Lihat File Denah Kustom
+                                View Custom Floor Plan
                             </a>
                         </div>
 
@@ -1623,16 +1623,16 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                     <thead class="bg-white sticky top-0 z-10 border-b border-gray-100">
                                         <tr>
                                             <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider w-8">#</th>
-                                            <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider">Nama</th>
-                                            <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-20">Peran</th>
+                                            <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider">Name</th>
+                                            <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-20">Role</th>
                                             <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-24">NRP</th>
-                                            <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider">Jabatan / Site</th>
-                                            <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-10">JK</th>
+                                            <th class="px-4 py-3 text-left text-[9px] font-bold text-gray-400 uppercase tracking-wider">Position / Site</th>
+                                            <th class="px-4 py-3 text-center text-[9px] font-bold text-gray-400 uppercase tracking-wider w-10">Sex</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-50">
                                         <tr v-if="!selectedDetailBooking?.participants || selectedDetailBooking.participants.length === 0">
-                                            <td colspan="6" class="px-4 py-12 text-center text-gray-400 text-[11px] italic">Tidak ada data anggota roster.</td>
+                                            <td colspan="6" class="px-4 py-12 text-center text-gray-400 text-[11px] italic">No roster members data.</td>
                                         </tr>
                                         <tr v-for="(p, idx) in sortedParticipants" :key="idx" class="hover:bg-gray-50/60 transition-colors">
                                             <td class="px-4 py-2.5 text-[10px] text-gray-400 font-medium">{{ idx + 1 }}</td>
@@ -1641,10 +1641,10 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                             </td>
                                             <td class="px-4 py-2.5 text-center select-none">
                                                 <span v-if="p.tipe === 'panitia'" class="inline-flex items-center bg-indigo-50 text-indigo-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-indigo-100">
-                                                    Panitia
+                                                    Organizer
                                                 </span>
                                                 <span v-else class="inline-flex items-center bg-emerald-50 text-emerald-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-100">
-                                                    Peserta
+                                                    Participant
                                                 </span>
                                             </td>
                                             <td class="px-4 py-2.5 text-center">
@@ -1685,7 +1685,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                         <div v-if="selectedDetailBooking?.catatan_admin" class="mt-3 bg-red-50 rounded-xl p-3.5 border border-red-100 shrink-0">
                                                             <h6 class="text-[9.5px] font-black text-red-600 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                                                                 <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                                                Catatan Admin
+                                                                Admin Note
                                                             </h6>
                             <p class="text-xs text-gray-700 leading-relaxed">{{ selectedDetailBooking.catatan_admin }}</p>
                         </div>
@@ -1696,23 +1696,23 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                     <div class="shrink-0 px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
                         <p class="text-[10px] text-gray-500 font-semibold flex items-center gap-1 select-none">
                             <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-                            Diajukan: {{ formatIndoDateTime(selectedDetailBooking?.created_at) }}
+                            Submitted: {{ formatIndoDateTime(selectedDetailBooking?.created_at) }}
                         </p>
                         <div class="flex items-center gap-2">
                             <a v-if="selectedDetailBooking"
                                :href="`/admin/bookings/${selectedDetailBooking.id}/export-detail`"
                                target="_blank"
                                class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-3 py-2 rounded-md transition shadow-sm cursor-pointer select-none"
-                               title="Unduh Excel daftar peserta & panitia"
+                               title="Download Excel list of participants & organizers"
                             >
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                Ekspor Excel
+                                Export Excel
                             </a>
                             <button
                                 @click="closeDetailModal"
                                 class="border border-gray-300 text-gray-700 font-bold text-xs px-4 py-2 rounded-md hover:bg-gray-100 transition shadow-sm cursor-pointer select-none"
                             >
-                                Tutup
+                                Close
                             </button>
                         </div>
                     </div>
@@ -1748,7 +1748,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                         <span class="w-3 h-3 rounded-full shrink-0 mt-0.5 shadow-sm" :style="{ backgroundColor: getStatusColor(getVisualStatus(selectedDetailBooking)).bg }"></span>
                         <div class="flex-1 min-w-0">
                             <span class="font-extrabold text-gray-900 text-[13px] leading-snug block truncate">{{ selectedDetailBooking.nama_training }}</span>
-                            <span class="text-[9px] text-gray-500 mt-0.5 block">Informasi Pemesanan Ruangan</span>
+                            <span class="text-[9px] text-gray-500 mt-0.5 block">Facility Booking Information</span>
                         </div>
                         <span class="px-2 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider shrink-0 mt-0.5"
                             :class="STATUS_STYLE[getVisualStatus(selectedDetailBooking)] || 'bg-gray-100 text-gray-600'"
@@ -1765,11 +1765,11 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Ruangan</span>
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Facility</span>
                                 <div class="flex items-center gap-1.5 mt-0.5">
                                     <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: getRoomColor(selectedDetailBooking.ruangan_id).bg }"></span>
                                     <span class="font-bold text-gray-800 truncate">{{ selectedDetailBooking.nama_ruang }}</span>
-                                    <span v-if="selectedDetailBooking.gabung_ruang" class="text-[7px] font-bold bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded border border-teal-200/80 shrink-0">GABUNG</span>
+                                    <span v-if="selectedDetailBooking.gabung_ruang" class="text-[7px] font-bold bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded border border-teal-200/80 shrink-0">COMBINED</span>
                                 </div>
                             </div>
                         </div>
@@ -1780,7 +1780,7 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Tanggal Pelaksanaan</span>
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Event Date</span>
                                 <span class="font-bold text-gray-800 block mt-0.5">{{ formatDateRange(selectedDetailBooking.tgl_mulai, selectedDetailBooking.tgl_selesai) }}</span>
                             </div>
                         </div>
@@ -1791,12 +1791,12 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                                 <svg class="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Pemohon</span>
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Applicant</span>
                                 <span class="font-bold text-gray-800 block mt-0.5 truncate">{{ selectedDetailBooking.pemohon }}</span>
-                                <span v-if="selectedDetailBooking.divisi" class="text-[9px] text-gray-400 block">Divisi {{ selectedDetailBooking.divisi }}</span>
+                                <span v-if="selectedDetailBooking.divisi" class="text-[9px] text-gray-400 block">{{ selectedDetailBooking.divisi }} Division</span>
                             </div>
                             <div v-if="selectedDetailBooking.pic" class="shrink-0 text-right">
-                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">PIC Acara</span>
+                                <span class="text-[8.5px] text-gray-400 font-semibold uppercase tracking-wider block leading-none">Event PIC</span>
                                 <span class="font-bold text-gray-800 block mt-0.5">{{ selectedDetailBooking.pic }}</span>
                             </div>
                         </div>

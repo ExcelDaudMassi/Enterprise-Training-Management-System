@@ -22,7 +22,7 @@ function submit() {
             <div class="text-center mb-6 flex flex-col items-center">
                 <img :src="'/pama.png'" alt="PAMA Logo" class="h-16 w-auto mb-4 object-contain" />
                 <h1 class="text-2xl font-bold text-gray-800">BBSO Booking</h1>
-                <p class="text-sm text-gray-500 mt-1">Sistem Manajemen Ruang Training</p>
+                <p class="text-sm text-gray-500 mt-1">Training Facility Management System</p>
             </div>
 
             <!-- Form -->
@@ -34,7 +34,7 @@ function submit() {
                     <input
                         v-model="form.email"
                         type="email"
-                        placeholder="Masukkan alamat email"
+                        placeholder="Enter your email address"
                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                         autofocus
@@ -47,7 +47,7 @@ function submit() {
                     <input
                         v-model="form.password"
                         type="password"
-                        placeholder="Masukkan password Anda"
+                        placeholder="Enter your password"
                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
@@ -64,7 +64,7 @@ function submit() {
                     :disabled="form.processing"
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded text-sm transition disabled:opacity-50"
                 >
-                    {{ form.processing ? 'Logging in...' : 'Login' }}
+                    {{ form.processing ? 'Signing in...' : 'Sign In' }}
                 </button>
 
             </form>

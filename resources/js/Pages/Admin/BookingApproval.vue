@@ -16,14 +16,14 @@ const props = defineProps({
 // ─── Tabs ─────────────────────────────────────────────────────
 const tabs = [
     { key: 'pending',              label: 'Pending' },
-    { key: 'h14',                  label: '🚨 H-14 (ACC Final)' },
-    { key: 'overdue',              label: '⛔ Lewat Tenggat' },
-    { key: 'date_changes',         label: '📅 Ubah Tanggal' },
+    { key: 'h14',                  label: '🚨 H-14 (Final Approval)' },
+    { key: 'overdue',              label: '⛔ Overdue' },
+    { key: 'date_changes',         label: '📅 Date Change' },
     { key: 'confirmed',            label: 'Confirmed' },
     { key: 'finalized',            label: '✅ Finalized' },
     { key: 'rejected',             label: '❌ Rejected' },
     { key: 'cancelled',            label: 'Cancelled' },
-    { key: 'all',                  label: 'Semua' },
+    { key: 'all',                  label: 'All' },
 ]
 
 const activeTab = ref(props.activeFilter ?? 'all')
@@ -307,8 +307,8 @@ const layoutLabels = {
         <!-- ── Page Header ─────────────────────────────────────── -->
         <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-black bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Manajemen Booking</h1>
-                <p class="text-sm text-slate-500 mt-1 font-medium">Kelola dan proses pengajuan peminjaman ruangan dengan mudah</p>
+                <h1 class="text-2xl font-black bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Booking Management</h1>
+                <p class="text-sm text-slate-500 mt-1 font-medium">Easily manage and process facility booking requests</p>
             </div>
         </div>
 
@@ -339,13 +339,13 @@ const layoutLabels = {
                     v-model="searchQuery"
                     @keyup.enter="doSearch"
                     type="text"
-                    placeholder="Cari nama acara, pemohon, divisi..."
+                    placeholder="Search event name, applicant, division..."
                     class="w-full pl-11 pr-4 py-2.5 text-sm border-0 ring-1 ring-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white shadow-sm transition-all placeholder:text-slate-400"
                 />
             </div>
             <button @click="doSearch"
                 class="px-5 py-2.5 text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-sm hover:shadow transition-all active:scale-95">
-                Cari
+                Search
             </button>
             <button v-if="searchQuery" @click="searchQuery = ''; doSearch()"
                 class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white ring-1 ring-slate-200 hover:bg-slate-50 rounded-xl transition-all active:scale-95 shadow-sm">
@@ -353,7 +353,7 @@ const layoutLabels = {
             </button>
             <div class="ml-auto flex items-center">
                 <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                    {{ bookings.total }} hasil ditemukan
+                    {{ bookings.total }} results found
                 </span>
             </div>
         </div>
@@ -364,13 +364,13 @@ const layoutLabels = {
                 <table class="min-w-full table-fixed divide-y divide-slate-100">
                     <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
                         <tr>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[22%]">Acara / Pemohon</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Ruangan</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Jadwal</th>
-                            <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Peserta</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Fasilitas</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[22%]">Event / Applicant</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Facility</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Schedule</th>
+                            <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Participants</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Facilities</th>
                             <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Status</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Aksi</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Action</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-slate-100">
@@ -380,7 +380,7 @@ const layoutLabels = {
                                     <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 mb-2">
                                         <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                     </div>
-                                    <span class="text-sm font-semibold text-slate-500">Tidak ada data booking</span>
+                                    <span class="text-sm font-semibold text-slate-500">No booking data</span>
                                 </div>
                             </td>
                         </tr>
@@ -393,7 +393,7 @@ const layoutLabels = {
                                 <!-- Alert Merah jika confirmed & sudah lewat batas H-14 -->
                                 <div v-if="b.status === 'confirmed' && isPastH14(b.tgl_mulai)" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-1 rounded-md mt-2 shadow-sm">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Lewat Batas ACC-2
+                                    Past ACC-2 Deadline
                                 </div>
                             </td>
                             <td class="px-5 py-4">
@@ -405,7 +405,7 @@ const layoutLabels = {
                             </td>
                             <td class="px-5 py-4 text-xs text-slate-700">
                                 <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block mb-1">{{ formatDate(b.tgl_mulai) }}</div>
-                                <div class="text-slate-400 text-[10px] ml-2 mb-1">s/d</div>
+                                <div class="text-slate-400 text-[10px] ml-2 mb-1">to</div>
                                 <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block">{{ formatDate(b.tgl_selesai) }}</div>
                                 <!-- Countdown -->
                                 <div v-if="b.days_to_start !== null && b.status === 'confirmed' && b.days_to_start >= 0"
@@ -415,19 +415,19 @@ const layoutLabels = {
                                 </div>
                                 <div v-if="b.is_overdue_acc2" class="text-red-600 font-bold mt-2 flex items-center gap-1.5 text-[11px] bg-red-50 px-2 py-1 rounded border border-red-100">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                    Tanggal lewat
+                                    Overdue Date
                                 </div>
                                 <!-- Usulan Ubah Tanggal -->
                                 <div v-if="b.has_pending_date_change" class="mt-2 text-orange-700 text-[11px] font-bold bg-orange-50 border border-orange-200 p-1.5 rounded-md shadow-sm">
-                                    📅 Usulan: {{ formatDate(b.proposed_tgl_mulai) }} – {{ formatDate(b.proposed_tgl_selesai) }}
+                                    📅 Proposal: {{ formatDate(b.proposed_tgl_mulai) }} – {{ formatDate(b.proposed_tgl_selesai) }}
                                 </div>
                             </td>
                             <td class="px-5 py-4 text-center">
                                 <div class="inline-flex flex-col items-center bg-blue-50/50 border border-blue-100 px-3 py-1.5 rounded-xl">
                                     <div class="text-lg font-black text-blue-700 leading-none">{{ b.jumlah_peserta }}</div>
-                                    <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Peserta</div>
+                                    <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Participants</div>
                                 </div>
-                                <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Panitia</div>
+                                <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Organizers</div>
                             </td>
                             <td class="px-5 py-4 text-xs text-slate-600 space-y-1.5">
                                 <div v-if="b.is_hybrid" class="flex items-center gap-2 bg-purple-50 text-purple-700 font-semibold px-2 py-1 rounded-md border border-purple-100 w-fit">
@@ -437,7 +437,7 @@ const layoutLabels = {
                                     <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
                                 </div>
                                 <div v-if="b.is_pena_mini_note" class="flex items-center gap-2 bg-teal-50 text-teal-700 font-semibold px-2 py-1 rounded-md border border-teal-100 w-fit">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0"></span>Pena & Mini Note
+                                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0"></span>Pen & Mini Note
                                 </div>
                                 <div v-if="!b.is_hybrid && !b.is_flipchart && !b.is_pena_mini_note" class="text-slate-300 font-medium">—</div>
                             </td>
@@ -453,30 +453,30 @@ const layoutLabels = {
                                     <button @click="openDetail(b)"
                                         class="group/btn flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 text-[11px] font-bold py-2 px-3 rounded-xl transition-all border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow">
                                         <svg class="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-blue-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        Lihat Detail
+                                        View Details
                                     </button>
                                     <!-- Approve/Reject (only for waiting) -->
                                     <div v-if="b.status === 'pending' || b.status === 'waiting_confirmation'" class="grid grid-cols-2 gap-2">
                                         <button @click="confirmApprove(b)"
                                             class="flex items-center justify-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-[11px] font-bold py-2 px-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-95">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                            Setuju
+                                            Approve
                                         </button>
                                         <button @click="confirmReject(b)"
                                             class="flex items-center justify-center gap-1 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-[11px] font-bold py-2 px-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-95">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                            Tolak
+                                            Reject
                                         </button>
                                     </div>
                                     <!-- Tahap 3: Perubahan Tanggal -->
                                     <template v-if="b.has_pending_date_change">
                                         <button @click="openApproveDate(b)"
                                                 class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] py-2 px-2 rounded-xl transition-all font-bold shadow-sm active:scale-95">
-                                            ✓ ACC Ubah Tanggal
+                                            ✓ Approve Date Change
                                         </button>
                                         <button @click="openRejectDate(b)"
                                                 class="bg-white hover:bg-orange-50 border border-orange-200 text-orange-600 text-[11px] py-2 px-2 rounded-xl transition-all font-bold shadow-sm active:scale-95">
-                                            ✕ Tolak Ubah
+                                            ✕ Reject Change
                                         </button>
                                     </template>
                                     <!-- Tahap 4: ACC Final / Final Confirm -->
@@ -484,14 +484,14 @@ const layoutLabels = {
                                         <button @click="openFinal(b)"
                                                 class="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white text-[11px] font-bold py-2 px-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-95">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            🏁 ACC Final
+                                            🏁 Final Approval
                                         </button>
                                     </template>
                                     <!-- Tahap 5: ACC Terlambat -->
                                     <template v-if="b.can_be_finalized && b.is_overdue_acc2">
                                         <button @click="openFinalLate(b)"
                                                 class="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-[11px] font-bold py-2 px-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-95">
-                                            ⚠️ ACC Terlambat
+                                            ⚠️ Late Approval
                                         </button>
                                     </template>
                                     <!-- Catatan penolakan -->
@@ -509,8 +509,8 @@ const layoutLabels = {
         <!-- Pagination Controls -->
         <div v-if="bookings.last_page > 1" class="flex items-center justify-between mt-4">
             <p class="text-xs text-gray-500">
-                Menampilkan <span class="font-semibold">{{ bookings.from }}</span>–<span class="font-semibold">{{ bookings.to }}</span>
-                dari <span class="font-semibold">{{ bookings.total }}</span> booking
+                Showing <span class="font-semibold">{{ bookings.from }}</span>–<span class="font-semibold">{{ bookings.to }}</span>
+                of <span class="font-semibold">{{ bookings.total }}</span> bookings
             </p>
             <div class="flex items-center gap-1">
                 <!-- Prev -->
@@ -580,7 +580,7 @@ const layoutLabels = {
                                 <div class="relative flex items-center justify-between">
                                     <div class="flex-1 min-w-0 pr-4">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">Detail Booking</span>
+                                            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">Booking Details</span>
                                             <span v-if="detailData"
                                                   class="px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-sm"
                                                   :class="STATUS_META[detailData.booking.status]?.class ?? 'bg-slate-100 text-slate-600'">
@@ -597,7 +597,7 @@ const layoutLabels = {
                                            :href="`/admin/bookings/${detailData.booking.id}/export-detail`"
                                            target="_blank"
                                            class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white hover:text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm"
-                                           title="Download Excel daftar peserta & panitia"
+                                           title="Download Excel list of participants & organizers"
                                         >
                                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             Export
@@ -654,9 +654,9 @@ const layoutLabels = {
                                 <!-- Sub-tabs -->
                                 <div class="flex-shrink-0 flex border-b border-slate-200 px-6 pt-4 gap-2 bg-white">
                                     <button v-for="tab in [
-                                        { key: 'info',    label: 'Informasi', count: null },
-                                        { key: 'peserta', label: 'Peserta',   count: detailData.total_peserta },
-                                        { key: 'panitia', label: 'Panitia',   count: detailData.total_panitia },
+                                        { key: 'info',    label: 'Information', count: null },
+                                        { key: 'peserta', label: 'Participants',   count: detailData.total_peserta },
+                                        { key: 'panitia', label: 'Organizers',   count: detailData.total_panitia },
                                         { key: 'log',     label: 'Log',       count: detailData.logs.length },
                                     ]" :key="tab.key"
                                         @click="detailTab = tab.key"
@@ -805,7 +805,7 @@ const layoutLabels = {
                                             </div>
                                             <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
                                                 <p class="text-2xl font-black text-gray-700">{{ detailData.booking.status === 'confirmed' ? '1/2' : (['finalized', 'final', 'completed'].includes(detailData.booking.status) ? '2/2' : '0/2') }}</p>
-                                                <p class="text-xs text-gray-500 mt-0.5">Tahap ACC</p>
+                                                <p class="text-xs text-gray-500 mt-0.5">Approval Stage</p>
                                             </div>
                                         </div>
                                     </div>
@@ -813,26 +813,26 @@ const layoutLabels = {
                                     <!-- ── TAB: DAFTAR PESERTA ── -->
                                     <div v-if="detailTab === 'peserta'">
                                         <div class="mb-4 flex items-center justify-between">
-                                            <h3 class="text-sm font-bold text-gray-800">Daftar Peserta <span class="text-gray-400 font-normal">({{ detailData.total_peserta }} orang)</span></h3>
+                                            <h3 class="text-sm font-bold text-gray-800">Participant List <span class="text-gray-400 font-normal">({{ detailData.total_peserta }} people)</span></h3>
                                             <!-- Gender Stats -->
                                             <div class="flex gap-3 text-xs">
                                                 <span class="text-blue-600 font-semibold">♂ L: {{ detailData.gender_stats?.L ?? 0 }}</span>
                                                 <span class="text-pink-600 font-semibold">♀ P: {{ detailData.gender_stats?.P ?? 0 }}</span>
                                             </div>
                                         </div>
-                                        <div v-if="detailData.peserta.length === 0" class="py-8 text-center text-gray-400 text-sm">Tidak ada data peserta.</div>
+                                        <div v-if="detailData.peserta.length === 0" class="py-8 text-center text-gray-400 text-sm">No participant data.</div>
                                         <div v-else class="bg-white rounded-xl border border-gray-100 overflow-hidden">
                                             <table class="min-w-full divide-y divide-gray-100">
                                                 <thead class="bg-blue-50/60 border-b border-blue-100/80">
                                                     <tr>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase w-8">No</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Nama Lengkap</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Full Name</th>
                                                         <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase">NRP</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Jabatan</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Position</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Site</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">No HP</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase">JK</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase w-12">Aksi</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Phone Number</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase">Gender</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase w-12">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-50">
@@ -842,7 +842,7 @@ const layoutLabels = {
                                                         <td class="px-3 py-2 text-xs text-center">
                                                             <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-1 bg-gray-50 border border-gray-250/30 px-2 py-0.5 rounded text-[11px] text-gray-400 font-mono">
                                                                 N/A
-                                                                <span class="bg-gray-200/60 text-gray-500 font-normal px-1 py-0.2 rounded-[4px] text-[8px] uppercase tracking-wider font-sans select-none scale-90">Eksternal</span>
+                                                                <span class="bg-gray-200/60 text-gray-500 font-normal px-1 py-0.2 rounded-[4px] text-[8px] uppercase tracking-wider font-sans select-none scale-90">External</span>
                                                             </span>
                                                             <span v-else class="inline-flex bg-blue-50 text-blue-750 text-[11px] font-extrabold font-mono px-2 py-0.5 rounded border border-blue-100">
                                                                 {{ p.nrp }}
@@ -873,21 +873,21 @@ const layoutLabels = {
                                     <!-- ── TAB: DAFTAR PANITIA ── -->
                                     <div v-if="detailTab === 'panitia'">
                                         <div class="mb-4">
-                                            <h3 class="text-sm font-bold text-gray-800">Daftar Panitia <span class="text-gray-400 font-normal">({{ detailData.total_panitia }} orang)</span></h3>
+                                            <h3 class="text-sm font-bold text-gray-800">Organizer List <span class="text-gray-400 font-normal">({{ detailData.total_panitia }} people)</span></h3>
                                         </div>
-                                        <div v-if="detailData.panitia.length === 0" class="py-8 text-center text-gray-400 text-sm">Tidak ada data panitia.</div>
+                                        <div v-if="detailData.panitia.length === 0" class="py-8 text-center text-gray-400 text-sm">No organizer data.</div>
                                         <div v-else class="bg-white rounded-xl border border-gray-100 overflow-hidden">
                                             <table class="min-w-full divide-y divide-gray-100">
                                                 <thead class="bg-blue-50/60 border-b border-blue-100/80">
                                                     <tr>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase w-8">No</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Nama Lengkap</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Full Name</th>
                                                         <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase">NRP</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Jabatan</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Position</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Site</th>
-                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">No HP</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase">JK</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase w-12">Aksi</th>
+                                                        <th class="px-3 py-2.5 text-left text-[10px] font-bold text-blue-900 uppercase">Phone Number</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase">Gender</th>
+                                                        <th class="px-3 py-2.5 text-center text-[10px] font-bold text-blue-900 uppercase w-12">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-50">
@@ -897,7 +897,7 @@ const layoutLabels = {
                                                         <td class="px-3 py-2 text-xs text-center">
                                                             <span v-if="!p.nrp || p.nrp.toUpperCase() === 'N/A'" class="inline-flex items-center gap-1 bg-gray-50 border border-gray-250/30 px-2 py-0.5 rounded text-[11px] text-gray-400 font-mono">
                                                                 N/A
-                                                                <span class="bg-gray-200/60 text-gray-500 font-normal px-1 py-0.2 rounded-[4px] text-[8px] uppercase tracking-wider font-sans select-none scale-90">Eksternal</span>
+                                                                <span class="bg-gray-200/60 text-gray-500 font-normal px-1 py-0.2 rounded-[4px] text-[8px] uppercase tracking-wider font-sans select-none scale-90">External</span>
                                                             </span>
                                                             <span v-else class="inline-flex bg-blue-50 text-blue-750 text-[11px] font-extrabold font-mono px-2 py-0.5 rounded border border-blue-100">
                                                                 {{ p.nrp }}
@@ -927,8 +927,8 @@ const layoutLabels = {
 
                                     <!-- ── TAB: LOG AKTIVITAS ── -->
                                     <div v-if="detailTab === 'log'">
-                                        <h3 class="text-sm font-bold text-gray-800 mb-4">Log Aktivitas</h3>
-                                        <div v-if="detailData.logs.length === 0" class="py-8 text-center text-gray-400 text-sm">Belum ada log aktivitas untuk booking ini.</div>
+                                        <h3 class="text-sm font-bold text-gray-800 mb-4">Activity Log</h3>
+                                        <div v-if="detailData.logs.length === 0" class="py-8 text-center text-gray-400 text-sm">No activity log for this booking yet.</div>
                                         <div v-else class="space-y-3">
                                             <div v-for="(log, i) in detailData.logs" :key="i"
                                                  class="flex gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
@@ -944,7 +944,7 @@ const layoutLabels = {
                                                 </div>
                                                 <div class="flex-1 min-w-0">
                                                     <p class="text-xs font-semibold text-gray-800">{{ log.message }}</p>
-                                                    <p class="text-[11px] text-gray-400 mt-1">oleh <span class="font-medium text-gray-600">{{ log.actor }}</span> · {{ log.created_at }}</p>
+                                                    <p class="text-[11px] text-gray-400 mt-1">by <span class="font-medium text-gray-600">{{ log.actor }}</span> · {{ log.created_at }}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -957,11 +957,11 @@ const layoutLabels = {
                                      class="flex-shrink-0 border-t border-gray-100 px-6 py-4 bg-gray-50 flex gap-3">
                                     <button @click="closeDetail(); confirmReject({ id: detailData.booking.id, nama_training: detailData.booking.nama_training })"
                                         class="flex-1 px-4 py-2.5 bg-red-100 hover:bg-red-200 border border-red-200 text-red-700 rounded-lg text-sm font-semibold transition">
-                                        ✕ Tolak Booking
+                                        ✕ Reject Booking
                                     </button>
                                     <button @click="closeDetail(); confirmApprove({ id: detailData.booking.id, nama_training: detailData.booking.nama_training, pemohon: detailData.booking.pemohon?.name, divisi: detailData.booking.pemohon?.divisi, ruangan: detailData.booking.ruangan?.nama_ruang ?? 'Ruang Gabungan', tgl_mulai: detailData.booking.tgl_mulai, tgl_selesai: detailData.booking.tgl_selesai })"
                                         class="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition shadow-sm">
-                                        ✓ Setujui Booking
+                                        ✓ Approve Booking
                                     </button>
                                 </div>
                                 <div v-if="detailData.booking.status === 'confirmed'"
@@ -970,14 +970,14 @@ const layoutLabels = {
                                     
                                     <div v-if="isPastH14(detailData.booking.tgl_mulai)" class="text-xs text-red-700 font-semibold flex items-center gap-1.5 mb-1 bg-white px-3 py-2 rounded-md border border-red-200">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                        Booking ini sudah melewati batas waktu ACC-2 (H-14). Silakan segera proses manual.
+                                        This booking is past the ACC-2 (H-14) deadline. Please process manually immediately.
                                     </div>
 
                                     <button @click="closeDetail(); confirmAcc2({ id: detailData.booking.id, nama_training: detailData.booking.nama_training })"
                                         class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-white rounded-lg text-sm font-semibold transition shadow-sm"
                                         :class="isPastH14(detailData.booking.tgl_mulai) ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        Beri Final Confirmation (ACC-2)
+                                        Give Final Confirmation (ACC-2)
                                     </button>
                                 </div>
 
@@ -1003,23 +1003,23 @@ const layoutLabels = {
                         <div class="px-6 py-4 border-b border-gray-200 bg-white">
                             <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                                Konfirmasi Persetujuan
+                                Approval Confirmation
                             </h2>
-                            <p class="text-[11px] text-gray-500 mt-1">Ruangan akan dikunci setelah booking disetujui.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">The facility will be locked once the booking is approved.</p>
                         </div>
                         <div class="px-6 py-4 space-y-3 bg-gray-50">
-                            <div><span class="text-xs text-gray-500 block">Nama Training</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.nama_training }}</span></div>
+                            <div><span class="text-xs text-gray-500 block">Training Name</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.nama_training }}</span></div>
                             <div class="grid grid-cols-2 gap-4">
-                                <div><span class="text-xs text-gray-500 block">Pemohon</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.pemohon }} ({{ selectedBooking?.divisi }})</span></div>
-                                <div><span class="text-xs text-gray-500 block">Ruangan</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.ruangan }}</span></div>
+                                <div><span class="text-xs text-gray-500 block">Applicant</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.pemohon }} ({{ selectedBooking?.divisi }})</span></div>
+                                <div><span class="text-xs text-gray-500 block">Facility</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.ruangan }}</span></div>
                             </div>
-                            <div><span class="text-xs text-gray-500 block">Jadwal</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.tgl_mulai }} – {{ selectedBooking?.tgl_selesai }}</span></div>
+                            <div><span class="text-xs text-gray-500 block">Schedule</span><span class="text-sm font-bold text-gray-800">{{ selectedBooking?.tgl_mulai }} – {{ selectedBooking?.tgl_selesai }}</span></div>
                         </div>
                         <div class="mt-6 flex justify-end gap-3 px-6 pb-6">
-                            <button @click="showApproveModal = false" :disabled="approveForm.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none disabled:opacity-50">Batal</button>
+                            <button @click="showApproveModal = false" :disabled="approveForm.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none disabled:opacity-50">Cancel</button>
                             <button @click="submitApprove" :disabled="approveForm.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
                                 <span v-if="approveForm.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                Setujui Booking
+                                Approve Booking
                             </button>
                         </div>
                     </div>
@@ -1044,19 +1044,19 @@ const layoutLabels = {
                                 <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Final Confirmation (ACC-2)
                             </h2>
-                            <p class="text-[11px] text-gray-500 mt-1">Konfirmasi akhir sebelum persiapan ruangan dimulai.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">Final confirmation before facility preparation begins.</p>
                         </div>
                         <div class="px-6 py-5 bg-gray-50 space-y-3">
                             <p class="text-xs text-gray-600 leading-relaxed">
-                                Anda akan memberikan Final Confirmation untuk acara:
+                                You are about to give Final Confirmation for the event:
                                 <strong class="text-gray-800 block mt-1 text-sm font-bold">"{{ selectedBooking?.nama_training }}"</strong>
                             </p>
                             <p class="text-xs text-blue-900 bg-blue-50 p-2.5 rounded border border-blue-100 font-medium">
-                                Pastikan persiapan ruangan dan logistik sudah siap sesuai kebutuhan.
+                                Ensure facility and logistics preparation are ready according to requirements.
                             </p>
                         </div>
                         <div class="px-6 pb-6 pt-4 flex justify-end gap-3 bg-white">
-                            <button @click="showAcc2Modal = false" :disabled="acc2Form.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none disabled:opacity-50">Batal</button>
+                            <button @click="showAcc2Modal = false" :disabled="acc2Form.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none disabled:opacity-50">Cancel</button>
                             <button @click="submitAcc2" :disabled="acc2Form.processing" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
                                 <span v-if="acc2Form.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                                 Final Confirm
@@ -1082,26 +1082,26 @@ const layoutLabels = {
                         <div class="px-6 py-4 border-b border-gray-200 bg-white">
                             <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                                Penolakan Booking
+                                Booking Rejection
                             </h2>
-                            <p class="text-[11px] text-gray-500 mt-1">Booking <strong>{{ selectedBooking?.nama_training }}</strong> akan dibatalkan.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">Booking <strong>{{ selectedBooking?.nama_training }}</strong> will be cancelled.</p>
                         </div>
                         <form @submit.prevent="submitReject" class="px-6 py-5">
-                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Rejection Reason <span class="text-red-500">*</span></label>
                             <textarea
                                 v-model="rejectForm.catatan_admin"
                                 required
                                 rows="3"
-                                placeholder="Contoh: Jadwal bentrok, ruangan sedang direnovasi..."
+                                placeholder="Example: Schedule conflict, facility under renovation..."
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                             ></textarea>
                             <p v-if="rejectForm.errors.catatan_admin" class="text-xs text-red-500 mt-1">{{ rejectForm.errors.catatan_admin }}</p>
 
                             <div class="mt-5 flex gap-3">
-                                <button type="button" @click="showRejectModal = false" class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer select-none transition">Batal</button>
+                                <button type="button" @click="showRejectModal = false" class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer select-none transition">Cancel</button>
                                 <button type="submit" :disabled="rejectForm.processing || !rejectForm.catatan_admin"
                                     class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-md text-sm font-bold cursor-pointer select-none transition shadow-sm">
-                                    {{ rejectForm.processing ? 'Menyimpan...' : '✕ Tolak Booking' }}
+                                    {{ rejectForm.processing ? 'Saving...' : '✕ Reject Booking' }}
                                 </button>
                             </div>
                         </form>
@@ -1125,22 +1125,22 @@ const layoutLabels = {
                         <div class="px-6 py-4 border-b border-gray-200 bg-white">
                             <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0Z" /></svg>
-                                Konfirmasi ACC Final
+                                Final Approval Confirmation
                             </h2>
-                            <p class="text-[11px] text-gray-500 mt-1">User tidak dapat mengubah booking setelah tahap ini.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">The user cannot change the booking after this stage.</p>
                         </div>
                         <div class="px-6 py-5 bg-gray-50 space-y-3">
                             <div class="text-sm text-gray-700 space-y-2 bg-white p-4 rounded-lg border border-gray-200">
                                 <div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Training</span> <strong class="text-gray-800 text-sm">{{ selectedBooking?.nama_training }}</strong></div>
-                                <div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Jadwal</span> <strong class="text-gray-800">{{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}</strong></div>
-                                <div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Kapasitas</span> <strong class="text-gray-800">{{ selectedBooking?.jumlah_peserta }}</strong> peserta, <strong class="text-gray-800">{{ selectedBooking?.jumlah_panitia }}</strong> panitia</div>
+                                <div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Schedule</span> <strong class="text-gray-800">{{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}</strong></div>
+                                <div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Capacity</span> <strong class="text-gray-800">{{ selectedBooking?.jumlah_peserta }}</strong> participants, <strong class="text-gray-800">{{ selectedBooking?.jumlah_panitia }}</strong> organizers</div>
                             </div>
                             <p class="text-[11px] text-blue-900 font-semibold bg-blue-50 p-2.5 rounded border border-blue-100 leading-relaxed">
-                                Setelah ACC Final, WhatsApp Notifikasi otomatis akan dikirim ke Frontdesk untuk persiapan fisik ruangan.
+                                After Final Approval, an automatic WhatsApp Notification will be sent to the Frontdesk for physical facility preparation.
                             </p>
                         </div>
                         <div class="px-6 pb-6 pt-4 flex gap-3 bg-white justify-end">
-                            <button @click="showFinalModal = false" :disabled="finalForm.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">Batal</button>
+                            <button @click="showFinalModal = false" :disabled="finalForm.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">Cancel</button>
                             <button @click="submitFinal" :disabled="finalForm.processing" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
                                 <span v-if="finalForm.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                                 ACC &amp; Finalize
@@ -1166,25 +1166,25 @@ const layoutLabels = {
                         <div class="px-6 py-4 border-b border-gray-200 bg-white">
                             <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                                ACC Terlambat (Backdate)
+                                Late Approval (Backdate)
                             </h2>
-                            <p class="text-[11px] text-gray-500 mt-1">Tanggal training sudah lewat. Mohon isi alasan.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">The training date has passed. Please provide a reason.</p>
                         </div>
                         <form @submit.prevent="submitFinalLate" class="px-6 py-5">
-                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Alasan ACC Terlambat <span class="text-red-500">*</span></label>
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Late Approval Reason <span class="text-red-500">*</span></label>
                             <textarea v-model="finalLateForm.catatan_acc_terlambat" required rows="3"
-                                      placeholder="Contoh: Training tetap berjalan, laporan menyusul..."
+                                      placeholder="Example: Training continues, report to follow..."
                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
                             <p v-if="finalLateForm.errors.catatan_acc_terlambat" class="text-xs text-red-500 mt-1">
                                 {{ finalLateForm.errors.catatan_acc_terlambat }}
                             </p>
                             <div class="flex gap-3 mt-5">
                                 <button type="button" @click="showFinalLateModal = false"
-                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition select-none">Batal</button>
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer transition select-none">Cancel</button>
                                 <button type="submit" :disabled="finalLateForm.processing || !finalLateForm.catatan_acc_terlambat"
                                         class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
                                     <span v-if="finalLateForm.processing" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block mr-1"></span>
-                                    {{ finalLateForm.processing ? 'Menyimpan...' : 'Konfirmasi ACC' }}
+                                    {{ finalLateForm.processing ? 'Saving...' : 'Confirm Approval' }}
                                 </button>
                             </div>
                         </form>
@@ -1208,21 +1208,21 @@ const layoutLabels = {
                         <div class="px-6 py-4 border-b border-gray-200 bg-white">
                             <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                Setujui Perubahan Tanggal
+                                Approve Date Change
                             </h2>
-                            <p class="text-[11px] text-gray-500 mt-1">Persetujuan untuk proposal tanggal baru dari user.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">Approval for the new date proposal from the user.</p>
                         </div>
                         <div class="px-6 py-5 bg-gray-50 space-y-3">
                             <div class="text-sm text-gray-700 space-y-3 bg-white p-4 rounded-lg border border-gray-200">
                                 <div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-0.5">Training</span> <strong class="text-gray-800 text-sm">{{ selectedBooking?.nama_training }}</strong></div>
                                 <div class="mt-2 border-t border-gray-150 pt-2">
-                                    <span class="text-[10px] text-gray-400 uppercase tracking-widest block mb-0.5">Tanggal Lama</span>
+                                    <span class="text-[10px] text-gray-400 uppercase tracking-widest block mb-0.5">Old Date</span>
                                     <div class="text-gray-400 line-through text-xs font-semibold">
                                         {{ formatDate(selectedBooking?.tgl_mulai) }} – {{ formatDate(selectedBooking?.tgl_selesai) }}
                                     </div>
                                 </div>
                                 <div class="mt-2 border-t border-gray-150 pt-2">
-                                    <span class="text-[10px] text-gray-400 uppercase tracking-widest block mb-0.5">Tanggal Baru</span>
+                                    <span class="text-[10px] text-gray-400 uppercase tracking-widest block mb-0.5">New Date</span>
                                     <div class="text-blue-700 font-bold text-sm">
                                         {{ formatDate(selectedBooking?.proposed_tgl_mulai) }} – {{ formatDate(selectedBooking?.proposed_tgl_selesai) }}
                                     </div>
@@ -1230,10 +1230,10 @@ const layoutLabels = {
                             </div>
                         </div>
                         <div class="px-6 pb-6 pt-4 flex gap-3 bg-white justify-end">
-                            <button @click="showApproveDateModal = false" :disabled="approveDateForm.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">Batal</button>
+                            <button @click="showApproveDateModal = false" :disabled="approveDateForm.processing" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer select-none">Cancel</button>
                             <button @click="submitApproveDate" :disabled="approveDateForm.processing" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none disabled:opacity-50">
                                 <span v-if="approveDateForm.processing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                Setujui Perubahan
+                                Approve Change
                             </button>
                         </div>
                     </div>
@@ -1256,21 +1256,21 @@ const layoutLabels = {
                         <div class="px-6 py-4 border-b border-gray-200 bg-white">
                             <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                Tolak Perubahan Tanggal
+                                Reject Date Change
                             </h2>
-                            <p class="text-[11px] text-gray-500 mt-1">Tanggal lama akan dipertahankan. Status tetap Confirmed.</p>
+                            <p class="text-[11px] text-gray-500 mt-1">The old date will be kept. Status remains Confirmed.</p>
                         </div>
                         <form @submit.prevent="submitRejectDate" class="px-6 py-5">
-                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Alasan Penolakan <span class="text-red-500">*</span></label>
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">Rejection Reason <span class="text-red-500">*</span></label>
                             <textarea v-model="rejectDateForm.catatan_admin" required rows="3"
-                                      placeholder="Contoh: Tanggal baru bentrok dengan jadwal VIP..."
+                                      placeholder="Example: New date conflicts with VIP schedule..."
                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
                             <div class="flex gap-3 mt-5">
                                 <button type="button" @click="showRejectDateModal = false"
-                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition select-none">Batal</button>
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-50 transition select-none">Cancel</button>
                                 <button type="submit" :disabled="rejectDateForm.processing || !rejectDateForm.catatan_admin"
                                         class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-md text-sm font-bold transition shadow-sm cursor-pointer select-none">
-                                    {{ rejectDateForm.processing ? 'Memproses...' : 'Tolak Perubahan' }}
+                                    {{ rejectDateForm.processing ? 'Processing...' : 'Reject Change' }}
                                 </button>
                             </div>
                         </form>
@@ -1294,9 +1294,9 @@ const layoutLabels = {
                             <div>
                                 <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-                                    Edit Data {{ editParticipantForm.tipe === 'panitia' ? 'Panitia' : 'Peserta' }}
+                                    Edit Data {{ editParticipantForm.tipe === 'panitia' ? 'Organizer' : 'Participant' }}
                                 </h2>
-                                <p class="text-[11px] text-gray-500 mt-1">Ubah manifest data personil secara langsung.</p>
+                                <p class="text-[11px] text-gray-500 mt-1">Modify personnel manifest data directly.</p>
                             </div>
                             <button @click="showEditParticipantModal = false" class="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-all cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1313,12 +1313,12 @@ const layoutLabels = {
                         <form @submit.prevent="submitEditParticipant" class="space-y-4">
                             <!-- Nama Lengkap -->
                             <div>
-                                <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
                                 <input
                                     v-model="editParticipantForm.nama"
                                     type="text"
                                     required
-                                    placeholder="Masukkan nama lengkap"
+                                    placeholder="Enter full name"
                                     class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                                 />
                                 <p v-if="editParticipantErrors.nama" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.nama[0] }}</p>
@@ -1331,7 +1331,7 @@ const layoutLabels = {
                                     v-model="editParticipantForm.nrp"
                                     type="text"
                                     required
-                                    placeholder="NRP (contoh: 10425, atau ketik 'N/A' jika eksternal)"
+                                    placeholder="NRP (e.g., 10425, or type 'N/A' if external)"
                                     class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                                 />
                                 <p v-if="editParticipantErrors.nrp" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.nrp[0] }}</p>
@@ -1340,11 +1340,11 @@ const layoutLabels = {
                             <div class="grid grid-cols-2 gap-4">
                                 <!-- Jabatan -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Jabatan</label>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Position</label>
                                     <input
                                         v-model="editParticipantForm.jabatan"
                                         type="text"
-                                        placeholder="Staff, Manager, dll."
+                                        placeholder="Staff, Manager, etc."
                                         class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                                     />
                                     <p v-if="editParticipantErrors.jabatan" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.jabatan[0] }}</p>
@@ -1356,7 +1356,7 @@ const layoutLabels = {
                                     <input
                                         v-model="editParticipantForm.site"
                                         type="text"
-                                        placeholder="Site kerja"
+                                        placeholder="Work site"
                                         class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                                     />
                                     <p v-if="editParticipantErrors.site" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.site[0] }}</p>
@@ -1366,7 +1366,7 @@ const layoutLabels = {
                             <div class="grid grid-cols-2 gap-4">
                                 <!-- No HP -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">No HP</label>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
                                     <input
                                         v-model="editParticipantForm.no_hp"
                                         type="text"
@@ -1378,14 +1378,14 @@ const layoutLabels = {
 
                                 <!-- Jenis Kelamin -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Jenis Kelamin <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Gender <span class="text-red-500">*</span></label>
                                     <select
                                         v-model="editParticipantForm.gender"
                                         required
                                         class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white font-sans transition"
                                     >
-                                        <option value="L">Laki-laki (L)</option>
-                                        <option value="P">Perempuan (P)</option>
+                                        <option value="L">Male (M)</option>
+                                        <option value="P">Female (F)</option>
                                     </select>
                                     <p v-if="editParticipantErrors.gender" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.gender[0] }}</p>
                                 </div>
@@ -1393,11 +1393,11 @@ const layoutLabels = {
 
                             <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
                                 <button type="button" @click="showEditParticipantModal = false" :disabled="editParticipantProcessing" class="px-4 py-2 text-xs font-bold text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-md transition cursor-pointer select-none disabled:opacity-50">
-                                    Batal
+                                    Cancel
                                 </button>
                                 <button type="submit" :disabled="editParticipantProcessing" class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm cursor-pointer select-none disabled:opacity-50">
                                     <span v-if="editParticipantProcessing" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                    Simpan Perubahan
+                                    Save Changes
                                 </button>
                             </div>
                         </form>
