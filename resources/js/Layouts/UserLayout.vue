@@ -51,6 +51,14 @@ const userNotifications = computed(() => page.props.userNotifications ?? [])
 
 function toggleNotification() {
     isNotificationDropdownOpen.value = !isNotificationDropdownOpen.value
+    
+    // Jika dropdown dibuka dan ada notifikasi, otomatis tandai semua terbaca
+    if (isNotificationDropdownOpen.value && userNotifications.value.length > 0) {
+        router.post('/api/notifications/read-all', {}, {
+            preserveScroll: true,
+            preserveState: true,
+        })
+    }
 }
 
 function markAsRead(notificationId) {

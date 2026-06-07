@@ -5,379 +5,292 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Booking — {{ $booking->nama_training }}</title>
     <meta name="description" content="Detail peserta dan informasi booking training {{ $booking->nama_training }}">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #f1f5f9;
-            color: #1e293b;
-            min-height: 100vh;
-        }
-
-        /* ── Header ─────────────────────────────── */
-        .header {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
-            color: white;
-            padding: 28px 20px 24px;
-            text-align: center;
-        }
-        .header-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
-            padding: 4px 14px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-        }
-        .header h1 {
-            font-size: clamp(18px, 4vw, 26px);
-            font-weight: 700;
-            line-height: 1.3;
-            margin-bottom: 4px;
-        }
-        .header p {
-            font-size: 13px;
-            opacity: 0.8;
-        }
-
-        /* ── Wrapper ─────────────────────────────── */
-        .wrapper {
-            max-width: 860px;
-            margin: 0 auto;
-            padding: 20px 16px 48px;
-        }
-
-        /* ── Info Card ───────────────────────────── */
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        .card-header {
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 14px 20px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .card-header .icon { font-size: 16px; }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-        }
-        @media (max-width: 500px) {
-            .info-grid { grid-template-columns: 1fr; }
-        }
-        .info-item {
-            padding: 14px 20px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .info-item:nth-child(even) { border-left: 1px solid #f1f5f9; }
-        .info-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-        .info-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        /* Status badge */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .badge-final { background: #dcfce7; color: #16a34a; }
-        .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-
-        /* Chips */
-        .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-        .chip {
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .chip-blue  { background: #dbeafe; color: #1d4ed8; }
-        .chip-amber { background: #fef3c7; color: #d97706; }
-
-        /* ── Table ───────────────────────────────── */
-        .table-wrap { overflow-x: auto; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        thead th {
-            background: #2563eb;
-            color: white;
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            padding: 11px 14px;
-            text-align: left;
-            white-space: nowrap;
-        }
-        thead th:first-child { border-radius: 0; }
-        tbody tr:nth-child(even) td { background: #f8fafc; }
-        tbody td {
-            padding: 11px 14px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #374151;
-            vertical-align: middle;
-        }
-        tbody tr:last-child td { border-bottom: none; }
-        tbody tr:hover td { background: #eff6ff; }
-
-        .tipe-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        .tipe-peserta { background: #dbeafe; color: #1d4ed8; }
-        .tipe-panitia { background: #fef3c7; color: #d97706; }
-
-        .no-data {
-            text-align: center;
-            padding: 32px;
-            color: #94a3b8;
-            font-style: italic;
-        }
-
-        /* Summary row */
-        .summary-row td {
-            background: #f1f5f9 !important;
-            font-weight: 700;
-            color: #1e293b;
-        }
-
-        /* ── Footer ──────────────────────────────── */
-        .footer {
-            text-align: center;
-            font-size: 12px;
-            color: #94a3b8;
-            margin-top: 28px;
-        }
-        .footer strong { color: #64748b; }
-        .download-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #16a34a, #15803d);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-bottom: 16px;
-            text-decoration: none;
-            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-        .download-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(22, 163, 74, 0.4);
-            color: white;
-        }
-        .download-btn:active { transform: translateY(0); }
-        @media print { .download-btn { display: none !important; } }
-    </style>
+    
+    <!-- Google Fonts Preconnect & Font family -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (via Vite) -->
+    @vite(['resources/css/app.css'])
 </head>
-<body>
+<body class="bg-slate-50 font-sans text-gray-800 antialiased min-h-screen flex flex-col selection:bg-blue-100 selection:text-blue-900">
 
-<div class="header">
-    <div class="header-badge">📋 Detail Booking Training</div>
-    <h1>{{ $booking->nama_training }}</h1>
-    <p>Enterprise Training Management System</p>
+<!-- Header -->
+<div class="bg-white border-b border-gray-200 py-10 shadow-sm relative overflow-hidden">
+    <!-- Subtle background gradient -->
+    <div class="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-transparent pointer-events-none"></div>
+    
+    <div class="max-w-6xl mx-auto px-6 text-center relative z-10">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-blue-100 text-blue-700 text-[10px] font-extrabold uppercase tracking-widest mb-4 shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Detail Booking Training
+        </div>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight leading-snug">{{ $booking->nama_training }}</h1>
+        <p class="text-sm font-semibold text-gray-500 mt-2">Enterprise Training Management System</p>
+    </div>
 </div>
 
-<div class="wrapper">
+<div class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 mt-8 mb-12">
 
-    <div style="text-align:center; margin-bottom: 20px;">
-        <a href="{{ $downloadUrl }}" class="download-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Unduh Excel Peserta & Panitia
-        </a>
-    </div>
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
+        
+        <!-- Main Content (Left) -->
+        <div class="w-full lg:w-2/3 space-y-6">
 
-    {{-- ── Info Utama ── --}}
-    <div class="card">
-        <div class="card-header">
-            <span class="icon">📌</span> Informasi Booking
-        </div>
-        <div class="info-grid">
-            <div class="info-item">
-                <div class="info-label">Ruangan</div>
-                <div class="info-value">{{ $booking->ruangan?->nama_ruang ?? 'Ruang Gabungan' }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Status</div>
-                <div class="info-value">
-                    <span class="badge badge-final"><span class="badge-dot"></span>Final (ACC)</span>
+            <!-- Informasi Booking -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-slate-50/80 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                    <h3 class="text-[13px] font-bold text-gray-800 uppercase tracking-wide">Informasi Booking</h3>
                 </div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Tanggal Mulai</div>
-                <div class="info-value">{{ \Carbon\Carbon::parse($booking->tgl_mulai)->translatedFormat('d F Y') }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Tanggal Selesai</div>
-                <div class="info-value">{{ \Carbon\Carbon::parse($booking->tgl_selesai)->translatedFormat('d F Y') }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">PIC</div>
-                <div class="info-value">{{ $booking->pic ?? '-' }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">No. HP PIC</div>
-                <div class="info-value">{{ $booking->no_hp_pic ?? '-' }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Pemohon</div>
-                <div class="info-value">{{ $booking->user?->name ?? '-' }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Divisi</div>
-                <div class="info-value">{{ $booking->user?->divisi ?? '-' }}</div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ── Tata Letak & Kebutuhan ── --}}
-    <div class="card">
-        <div class="card-header">
-            <span class="icon">🪑</span> Tata Letak & Kebutuhan Tambahan
-        </div>
-        <div class="info-grid">
-            <div class="info-item">
-                <div class="info-label">Layout Ruangan</div>
-                <div class="info-value">{{ ucfirst($booking->layout_preferensi) }}</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Kebutuhan Khusus</div>
-                <div class="info-value">
-                    <div class="chips">
-                        @if($booking->is_hybrid)
-                            <span class="chip chip-blue">🎥 Hybrid (Kamera & Mic)</span>
-                        @endif
-                        @if($booking->is_flipchart)
-                            <span class="chip chip-amber">📋 Papan Flipchart</span>
-                        @endif
-                        @if($booking->is_pena_mini_note)
-                            <span class="chip" style="background-color: #f0fdfa; color: #0f766e; border-color: #ccfbf1;">📝 Pena & Mini Note</span>
-                        @endif
-                        @if(!$booking->is_hybrid && !$booking->is_flipchart && !$booking->is_pena_mini_note)
-                            <span class="text-muted" style="font-size: 13px;">—</span>
-                        @endif
+                <div class="grid grid-cols-1 md:grid-cols-2">
+                    <div class="p-5 border-b md:border-b-0 md:border-r border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Ruangan</p>
+                        <p class="text-sm font-bold text-gray-900">{{ $booking->ruangan?->nama_ruang ?? 'Ruang Gabungan' }}</p>
+                    </div>
+                    <div class="p-5 border-b border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status</p>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold ring-1 ring-emerald-600/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Final (ACC)
+                        </div>
+                    </div>
+                    <div class="p-5 border-b md:border-b-0 md:border-r border-gray-100 bg-gray-50/50">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Mulai</p>
+                        <p class="text-sm font-bold text-gray-900">{{ \Carbon\Carbon::parse($booking->tgl_mulai)->translatedFormat('d M Y') }}</p>
+                    </div>
+                    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Selesai</p>
+                        <p class="text-sm font-bold text-gray-900">{{ \Carbon\Carbon::parse($booking->tgl_selesai)->translatedFormat('d M Y') }}</p>
+                    </div>
+                    <div class="p-5 border-b md:border-b-0 md:border-r border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">PIC (Penanggung Jawab)</p>
+                        <p class="text-sm font-bold text-gray-900">{{ $booking->pic ?? '-' }}</p>
+                    </div>
+                    <div class="p-5 border-b border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">No. HP PIC</p>
+                        <p class="text-sm font-bold text-blue-600 font-mono bg-blue-50 px-2 py-0.5 rounded border border-blue-100 inline-block">{{ $booking->no_hp_pic ?? '-' }}</p>
+                    </div>
+                    <div class="p-5 border-b md:border-b-0 md:border-r border-gray-100 bg-gray-50/50">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Pemohon</p>
+                        <p class="text-sm font-bold text-gray-900">{{ $booking->user?->name ?? '-' }}</p>
+                    </div>
+                    <div class="p-5 bg-gray-50/50">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Divisi</p>
+                        <p class="text-sm font-bold text-gray-900">{{ $booking->user?->divisi ?? '-' }}</p>
                     </div>
                 </div>
             </div>
-            <div class="info-item">
-                <div class="info-label">Total Peserta</div>
-                <div class="info-value">{{ $peserta->count() }} Orang</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">Total Panitia</div>
-                <div class="info-value">{{ $panitia->count() }} Orang</div>
-            </div>
-        </div>
-    </div>
 
-    {{-- ── Daftar Peserta ── --}}
-    <div class="card">
-        <div class="card-header">
-            <span class="icon">👥</span> Daftar Peserta & Panitia
-            <span style="margin-left:auto; font-size:12px; font-weight:500; color:#94a3b8;">
-                {{ $peserta->count() + $panitia->count() }} Total
-            </span>
+            <!-- Tata Letak & Kebutuhan Tambahan -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-slate-50/80 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    </span>
+                    <h3 class="text-[13px] font-bold text-gray-800 uppercase tracking-wide">Tata Letak & Kebutuhan</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2">
+                    <div class="p-5 border-b md:border-b-0 md:border-r border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Layout Ruangan</p>
+                        <p class="text-sm font-bold text-gray-900">{{ ucfirst($booking->layout_preferensi) }}</p>
+                    </div>
+                    <div class="p-5 border-b border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Kebutuhan Khusus</p>
+                        <div class="flex flex-wrap gap-2">
+                            @if($booking->is_hybrid)
+                                <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-100 uppercase tracking-wide">🎥 Hybrid</span>
+                            @endif
+                            @if($booking->is_flipchart)
+                                <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-100 uppercase tracking-wide">📋 Flipchart</span>
+                            @endif
+                            @if($booking->is_pena_mini_note)
+                                <span class="px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 text-[10px] font-bold border border-teal-100 uppercase tracking-wide">📝 Pena & Note</span>
+                            @endif
+                            @if(!$booking->is_hybrid && !$booking->is_flipchart && !$booking->is_pena_mini_note)
+                                <span class="text-sm text-gray-400 font-semibold">—</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="p-5 border-b md:border-b-0 md:border-r border-gray-100 bg-gray-50/50">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Peserta</p>
+                        <p class="text-sm font-bold text-gray-900">{{ $peserta->count() }} <span class="text-xs text-gray-500 font-medium">Orang</span></p>
+                    </div>
+                    <div class="p-5 bg-gray-50/50">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Panitia</p>
+                        <p class="text-sm font-bold text-gray-900">{{ $panitia->count() }} <span class="text-xs text-gray-500 font-medium">Orang</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daftar Peserta -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-slate-50/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        </span>
+                        <h3 class="text-[13px] font-bold text-gray-800 uppercase tracking-wide">Daftar Personil</h3>
+                    </div>
+                    <span class="text-[10px] font-bold text-gray-500 bg-white shadow-sm border border-gray-200 px-3 py-1 rounded-lg">
+                        {{ $peserta->count() + $panitia->count() }} TOTAL
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    @php
+                        $all = $peserta->map(fn($p) => ['tipe' => 'peserta', 'data' => $p])
+                            ->concat($panitia->map(fn($p) => ['tipe' => 'panitia', 'data' => $p]));
+                    @endphp
+                    @if($all->isEmpty())
+                        <div class="text-center py-12 bg-gray-50/30">
+                            <p class="text-sm font-semibold text-gray-400 italic">Belum ada data peserta yang ditambahkan.</p>
+                        </div>
+                    @else
+                        <table class="w-full text-left border-collapse min-w-[700px]">
+                            <thead>
+                                <tr class="bg-gray-50/80 border-b border-gray-200">
+                                    <th class="px-5 py-3.5 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider w-12">No</th>
+                                    <th class="px-5 py-3.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-24">Tipe</th>
+                                    <th class="px-5 py-3.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
+                                    <th class="px-5 py-3.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">NRP / NIK</th>
+                                    <th class="px-5 py-3.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Jabatan</th>
+                                    <th class="px-5 py-3.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Site</th>
+                                    <th class="px-5 py-3.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">No. HP</th>
+                                    <th class="px-5 py-3.5 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider w-16">JK</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach($all as $i => $item)
+                                    @php $p = $item['data']; @endphp
+                                    <tr class="hover:bg-blue-50/30 transition-colors">
+                                        <td class="px-5 py-3 text-center text-[11px] font-bold text-gray-400">{{ $i + 1 }}</td>
+                                        <td class="px-5 py-3">
+                                            @if($item['tipe'] === 'peserta')
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">Peserta</span>
+                                            @else
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100">Panitia</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-5 py-3 text-xs font-bold text-gray-800">{{ $p->nama ?: '-' }}</td>
+                                        <td class="px-5 py-3 text-[11px] font-mono font-medium text-gray-600">{{ $p->nrp ?: '-' }}</td>
+                                        <td class="px-5 py-3 text-xs font-medium text-gray-600">{{ $p->jabatan ?: '-' }}</td>
+                                        <td class="px-5 py-3 text-xs font-medium text-gray-600">{{ $p->site ?: '-' }}</td>
+                                        <td class="px-5 py-3 text-[11px] font-mono font-medium text-gray-600">{{ $p->no_hp ?: '-' }}</td>
+                                        <td class="px-5 py-3 text-center">
+                                            <span class="text-[11px] font-extrabold {{ $p->gender === 'L' ? 'text-blue-600' : 'text-pink-600' }}">
+                                                {{ $p->gender ?: '-' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                <tr class="bg-gray-50/80 border-t-2 border-gray-200">
+                                    <td colspan="2" class="px-5 py-4 text-center text-xs font-extrabold text-gray-700">TOTAL</td>
+                                    <td colspan="6" class="px-5 py-4 text-[13px] font-bold text-gray-800">
+                                        {{ $all->count() }} Orang 
+                                        <span class="text-[11px] text-gray-500 font-medium ml-1">({{ $peserta->count() }} Peserta + {{ $panitia->count() }} Panitia)</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            </div>
+
         </div>
-        <div class="table-wrap">
+
+        <!-- Sidebar (Right) -->
+        <div class="w-full lg:w-1/3 space-y-6 lg:sticky lg:top-6">
+            
+            <!-- Download Button -->
+            <a href="{{ $downloadUrl }}" class="group w-full relative flex items-center justify-center gap-2 px-6 py-4 font-bold text-white bg-emerald-600 rounded-2xl shadow-[0_8px_30px_rgba(5,150,105,0.2)] hover:bg-emerald-700 hover:shadow-[0_8px_30px_rgba(5,150,105,0.35)] hover:-translate-y-0.5 transition-all duration-300 overflow-hidden ring-1 ring-emerald-700/50">
+                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                <svg class="w-5 h-5 relative z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span class="relative z-10 text-[15px]">Download Excel</span>
+            </a>
+
+            <!-- Calendar Card -->
             @php
-                $all = $peserta->map(fn($p) => ['tipe' => 'peserta', 'data' => $p])
-                    ->concat($panitia->map(fn($p) => ['tipe' => 'panitia', 'data' => $p]));
+                $start = \Carbon\Carbon::parse($booking->tgl_mulai);
+                $end = \Carbon\Carbon::parse($booking->tgl_selesai);
+                
+                $month = $start->month;
+                $year = $start->year;
+                
+                $firstDayOfMonth = \Carbon\Carbon::create($year, $month, 1);
+                $daysInMonth = $firstDayOfMonth->daysInMonth;
+                $startDayOfWeek = $firstDayOfMonth->dayOfWeek; // 0 for Sunday
+                $monthName = $firstDayOfMonth->translatedFormat('F Y');
             @endphp
-            @if($all->isEmpty())
-                <div class="no-data">Belum ada data peserta yang ditambahkan.</div>
-            @else
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:40px">No</th>
-                            <th>Tipe</th>
-                            <th>Nama Lengkap</th>
-                            <th>NRP</th>
-                            <th>Jabatan</th>
-                            <th>Site</th>
-                            <th>No. HP</th>
-                            <th style="width:60px">Gender</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($all as $i => $item)
-                            @php $p = $item['data']; @endphp
-                            <tr>
-                                <td style="text-align:center; color:#94a3b8; font-weight:600;">{{ $i + 1 }}</td>
-                                <td>
-                                    <span class="tipe-badge {{ $item['tipe'] === 'peserta' ? 'tipe-peserta' : 'tipe-panitia' }}">
-                                        {{ ucfirst($item['tipe']) }}
-                                    </span>
-                                </td>
-                                <td style="font-weight:600;">{{ $p->nama ?: 'N/A' }}</td>
-                                <td style="font-family:monospace; font-size:12px;">{{ $p->nrp ?: 'N/A' }}</td>
-                                <td>{{ $p->jabatan ?: '-' }}</td>
-                                <td>{{ $p->site ?: '-' }}</td>
-                                <td>{{ $p->no_hp ?: '-' }}</td>
-                                <td style="text-align:center; font-weight:600;">{{ $p->gender ?: '-' }}</td>
-                            </tr>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-slate-50/80 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </span>
+                    <h3 class="text-[13px] font-bold text-gray-800 uppercase tracking-wide">Jadwal Training</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-center mb-5">
+                        <span class="text-[15px] font-extrabold text-gray-800 tracking-tight">{{ $monthName }}</span>
+                    </div>
+                    <div class="grid grid-cols-7 gap-y-3 gap-x-1 mb-2">
+                        <!-- Header hari -->
+                        @foreach(['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'] as $hari)
+                            <div class="text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ $hari }}</div>
                         @endforeach
-                        <tr class="summary-row">
-                            <td colspan="2" style="text-align:center;">TOTAL</td>
-                            <td colspan="6">{{ $all->count() }} Orang ({{ $peserta->count() }} Peserta + {{ $panitia->count() }} Panitia)</td>
-                        </tr>
-                    </tbody>
-                </table>
-            @endif
-        </div>
-    </div>
+                        
+                        <!-- Grid sel -->
+                        @for($i = 0; $i < $startDayOfWeek; $i++)
+                            <div></div>
+                        @endfor
+                        
+                        @for($day = 1; $day <= $daysInMonth; $day++)
+                            @php
+                                $currentDate = \Carbon\Carbon::create($year, $month, $day)->startOfDay();
+                                $isHighlighted = $currentDate->betweenIncluded($start->copy()->startOfDay(), $end->copy()->startOfDay());
+                            @endphp
+                            <div class="flex justify-center items-center">
+                                <div class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold transition-colors {{ $isHighlighted ? 'bg-blue-600 text-white shadow-[0_4px_12px_rgba(37,99,235,0.35)]' : 'text-gray-700 hover:bg-gray-100' }}">
+                                    {{ $day }}
+                                </div>
+                            </div>
+                        @endfor
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50/50 border-t border-gray-100">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-3 h-3 rounded bg-blue-600 shadow-sm shadow-blue-600/30"></div>
+                        <span class="text-xs font-bold text-gray-600 uppercase tracking-wide">Tanggal Pelaksanaan</span>
+                    </div>
+                </div>
+            </div>
 
-    <div class="footer">
-        <p>Halaman ini dibuat otomatis oleh sistem saat booking di-ACC Final.</p>
-        <p style="margin-top:4px;">Digenerate pada: <strong>{{ now()->translatedFormat('d F Y, H:i') }} WIB</strong></p>
+        </div>
     </div>
 </div>
+
+<!-- Footer -->
+<footer class="mt-auto border-t border-gray-200 bg-white py-4 px-4 md:px-6 w-full shrink-0">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+        <div class="text-[11px] text-gray-500 font-medium">
+            &copy; {{ date('Y') }} &nbsp; <span class="font-bold text-gray-800">PAMA BANJARBARU SUPPORT OFFICE (BBSO)</span>. All rights reserved.
+        </div>
+        <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+            <span class="hover:text-blue-600 cursor-pointer transition-colors">Bantuan</span>
+            <span class="text-gray-300">•</span>
+            <span class="hover:text-blue-600 cursor-pointer transition-colors">Kebijakan Privasi</span>
+            <span class="text-gray-300">•</span>
+            <span class="text-gray-500">v1.0.0</span>
+        </div>
+    </div>
+</footer>
 
 </body>
 </html>

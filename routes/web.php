@@ -37,7 +37,7 @@ Route::middleware(['auth', 'user'])->group(function () {
     Route::post('/api/booking/get-available-rooms', [BookingWizardController::class, 'getAvailableRooms'])->name('api.booking.get-available-rooms');
     Route::post('/api/booking/save-stage4', [BookingWizardController::class, 'saveStage4'])->name('api.booking.save-stage4');
     Route::post('/api/booking/submit', [BookingWizardController::class, 'submitBooking'])->name('api.booking.submit');
-    // Tandai notifikasi sebagai terbaca
+    // Tandai notifikasi sebagai terbaca (single)
     Route::post('/api/notifications/{notification}/read', function (\App\Models\BookingNotification $notification) {
         if ($notification->user_id !== auth()->id()) {
             abort(403);
@@ -45,6 +45,16 @@ Route::middleware(['auth', 'user'])->group(function () {
         $notification->update(['is_read' => true]);
         return back();
     })->name('api.notifications.read');
+
+    // Tandai semua notifikasi terbaca
+    Route::post('/api/notifications/read-all', function () {
+        if (auth()->check()) {
+            \App\Models\BookingNotification::where('user_id', auth()->id())
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
+        }
+        return back();
+    })->name('api.notifications.read-all');
     // Polling API untuk realtime check window status
     Route::get('/api/booking-window/status', function () {
         return response()->json([
