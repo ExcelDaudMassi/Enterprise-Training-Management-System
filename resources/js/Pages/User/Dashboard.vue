@@ -111,12 +111,23 @@ const isYearOpen = ref(false)
 const filterRef = ref(null)
 const yearRef = ref(null)
 
+const ganttMonthRef = ref(null)
+const ganttYearRef = ref(null)
+const isGanttMonthOpen = ref(false)
+const isGanttYearOpen = ref(false)
+
 function handleFilterClickOutside(e) {
     if (filterRef.value && !filterRef.value.contains(e.target)) {
         isFilterOpen.value = false
     }
     if (yearRef.value && !yearRef.value.contains(e.target)) {
         isYearOpen.value = false
+    }
+    if (ganttMonthRef.value && !ganttMonthRef.value.contains(e.target)) {
+        isGanttMonthOpen.value = false
+    }
+    if (ganttYearRef.value && !ganttYearRef.value.contains(e.target)) {
+        isGanttYearOpen.value = false
     }
 }
 
@@ -176,7 +187,8 @@ const setupMarquee = (el) => {
     }
 }
 
-const YEAR_OPTIONS = [2024, 2025, 2026, 2027, 2028]
+const currentY = new Date().getFullYear()
+const YEAR_OPTIONS = Array.from({ length: Math.max(2028, currentY + 2) - 2024 + 1 }, (_, i) => 2024 + i)
 
 watch(() => props.selectedYear, (newYear) => {
     filterYear.value = newYear
@@ -1004,12 +1016,81 @@ function getVisualStatus(b) {
                     <button @click="ganttMonthIdx = (ganttMonthIdx - 1 + 12) % 12; if(ganttMonthIdx === 11) ganttYear--" class="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500 cursor-pointer transition">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                     </button>
-                    <select v-model="ganttMonthIdx" class="h-9 pl-3 pr-8 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 bg-gray-50 hover:border-gray-300 cursor-pointer focus:ring-0">
-                        <option v-for="(m, i) in MONTH_NAMES" :key="i" :value="i">{{ m }}</option>
-                    </select>
-                    <select v-model="ganttYear" class="h-9 pl-3 pr-8 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 bg-gray-50 hover:border-gray-300 cursor-pointer focus:ring-0">
-                        <option v-for="y in YEAR_OPTIONS" :key="y" :value="y">{{ y }}</option>
-                    </select>
+                    <!-- Gantt Month Custom Dropdown -->
+                    <div ref="ganttMonthRef" class="relative min-w-[130px]">
+                        <div
+                            @click="isGanttMonthOpen = !isGanttMonthOpen"
+                            class="w-full h-9 pl-3 pr-8 bg-gray-50 border border-gray-200 rounded-lg text-xs font-extrabold flex items-center gap-2 cursor-pointer select-none transition"
+                            :class="isGanttMonthOpen ? 'ring-2 ring-blue-500 border-blue-400 bg-white' : 'hover:border-gray-300'"
+                        >
+                            <span class="text-gray-800 truncate">{{ MONTH_NAMES[ganttMonthIdx] }}</span>
+                            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none transition-transform" :class="isGanttMonthOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                        <Transition
+                            enter-active-class="transition-all duration-200 ease-out"
+                            enter-from-class="opacity-0 translate-y-1 scale-98"
+                            enter-to-class="opacity-100 translate-y-0 scale-100"
+                            leave-active-class="transition-all duration-150 ease-in"
+                            leave-from-class="opacity-100 translate-y-0 scale-100"
+                            leave-to-class="opacity-0 translate-y-1 scale-98"
+                        >
+                            <div
+                                v-if="isGanttMonthOpen"
+                                class="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 overflow-hidden"
+                            >
+                                <button
+                                    v-for="(m, i) in MONTH_NAMES"
+                                    :key="i"
+                                    @click="ganttMonthIdx = i; isGanttMonthOpen = false"
+                                    class="w-full flex items-center gap-3 px-3 py-2 text-xs transition text-left hover:bg-gray-50 cursor-pointer"
+                                    :class="ganttMonthIdx === i ? 'bg-blue-50 font-extrabold text-blue-700' : 'text-gray-700 font-semibold'"
+                                >
+                                    <span>{{ m }}</span>
+                                    <svg v-if="ganttMonthIdx === i" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                </button>
+                            </div>
+                        </Transition>
+                    </div>
+
+                    <!-- Gantt Year Custom Dropdown -->
+                    <div ref="ganttYearRef" class="relative min-w-[100px]">
+                        <div
+                            @click="isGanttYearOpen = !isGanttYearOpen"
+                            class="w-full h-9 pl-3 pr-8 bg-gray-50 border border-gray-200 rounded-lg text-xs font-extrabold flex items-center gap-2 cursor-pointer select-none transition"
+                            :class="isGanttYearOpen ? 'ring-2 ring-blue-500 border-blue-400 bg-white' : 'hover:border-gray-300'"
+                        >
+                            <span class="text-gray-800">{{ ganttYear }}</span>
+                            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none transition-transform" :class="isGanttYearOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                        <Transition
+                            enter-active-class="transition-all duration-200 ease-out"
+                            enter-from-class="opacity-0 translate-y-1 scale-98"
+                            enter-to-class="opacity-100 translate-y-0 scale-100"
+                            leave-active-class="transition-all duration-150 ease-in"
+                            leave-from-class="opacity-100 translate-y-0 scale-100"
+                            leave-to-class="opacity-0 translate-y-1 scale-98"
+                        >
+                            <div
+                                v-if="isGanttYearOpen"
+                                class="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 overflow-hidden"
+                            >
+                                <button
+                                    v-for="y in YEAR_OPTIONS"
+                                    :key="y"
+                                    @click="ganttYear = y; isGanttYearOpen = false"
+                                    class="w-full flex items-center gap-3 px-3 py-2 text-xs transition text-left hover:bg-gray-50 cursor-pointer"
+                                    :class="ganttYear === y ? 'bg-blue-50 font-extrabold text-blue-700' : 'text-gray-700 font-semibold'"
+                                >
+                                    <span>{{ y }}</span>
+                                    <svg v-if="ganttYear === y" class="w-3.5 h-3.5 ml-auto text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                </button>
+                            </div>
+                        </Transition>
+                    </div>
                     <button @click="ganttMonthIdx = (ganttMonthIdx + 1) % 12; if(ganttMonthIdx === 0) ganttYear++" class="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500 cursor-pointer transition">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>

@@ -12,68 +12,7 @@ const props = defineProps({
     activeFilter: { type: String, default: 'all' },
 })
 
-// Map filter dari dashboard ke tab yang relevan
-const filterToTab = {
-    'pending':              'pending',
-    'waiting_confirmation': 'pending',
-    'confirmed':            'confirmed',
-    'finalized':            'finalized',
-    'final':                'finalized',
-    'cancelled':            'cancelled',
-    'rejected':             'rejected',
-    'completed':            'completed',
-    'urgent':               'urgent',
-    'overdue':              'overdue',
-    'all':                  'all',
-}
-const activeTab = ref(filterToTab[props.activeFilter] ?? 'all')
-
-const tabs = [
-    { key: 'pending',              label: 'Pending' },
-    { key: 'confirmed',            label: 'Confirmed' },
-    { key: 'finalized',            label: 'Finalized' },
-    { key: 'rejected',             label: 'Rejected' },
-    { key: 'cancelled',            label: 'Cancelled' },
-    { key: 'completed',            label: 'Completed' },
-    { key: 'urgent',               label: '🚨 H-14' },
-    { key: 'overdue',              label: '⛔ Lewat Tenggat' },
-    { key: 'all',                  label: 'Semua' },
-]
-
-const statusMeta = {
-    pending:              { label: 'Pending',   class: 'bg-yellow-50 text-yellow-850 border border-yellow-200' },
-    confirmed:            { label: 'Confirmed', class: 'bg-indigo-50 text-indigo-850 border border-indigo-200' },
-    finalized:            { label: 'Finalized', class: 'bg-green-50 text-green-850 border border-green-200' },
-    rejected:             { label: 'Rejected',  class: 'bg-rose-50 text-rose-850 border border-rose-200' },
-    cancelled:            { label: 'Cancelled', class: 'bg-slate-50 text-slate-800 border border-slate-200' },
-    completed:            { label: 'Completed', class: 'bg-emerald-50 text-emerald-850 border border-emerald-250' },
-    
-    // Legacy support
-    waiting_confirmation: { label: 'Pending',   class: 'bg-yellow-50 text-yellow-850 border border-yellow-200' },
-    final:                { label: 'Finalized', class: 'bg-green-50 text-green-850 border border-green-200' },
-    plotting:             { label: 'Plotting',  class: 'bg-amber-50 text-amber-850 border border-amber-200' },
-}
-
-function tabCount(key) {
-    if (key === 'all') return props.bookings.length
-    if (key === activeTab.value && ['urgent', 'overdue'].includes(key)) return props.bookings.length
-    if (['urgent', 'overdue'].includes(key)) return '-'
-    return props.bookings.filter(b => {
-        if (key === 'pending') return b.status === 'pending' || b.status === 'waiting_confirmation'
-        if (key === 'finalized') return b.status === 'finalized' || b.status === 'final'
-        return b.status === key
-    }).length
-}
-
-const filteredBookings = computed(() => {
-    if (activeTab.value === 'all') return props.bookings
-    if (activeTab.value === 'urgent' || activeTab.value === 'overdue') return props.bookings
-    return props.bookings.filter(b => {
-        if (activeTab.value === 'pending') return b.status === 'pending' || b.status === 'waiting_confirmation'
-        if (activeTab.value === 'finalized') return b.status === 'finalized' || b.status === 'final'
-        return b.status === activeTab.value
-    })
-})
+const filteredBookings = computed(() => props.bookings)
 
 function formatTanggal(tgl) {
     if (!tgl) return '-'
@@ -191,7 +130,7 @@ const layoutLabels = {
 
 // ── Export Excel ─────────────────────────────────────────────────
 function exportExcel() {
-    window.open(`/admin/bookings/export?filter=${activeTab.value}`, '_blank')
+    window.open(`/admin/bookings/export?filter=all`, '_blank')
 }
 
 // ── Real-time WebSockets ──────────────────────────────────────────
@@ -225,36 +164,12 @@ onUnmounted(() => {
             <button
                 @click="exportExcel"
                 class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-bold rounded-xl shadow-sm transition-all active:scale-95"
-                title="Unduh rekap sesuai tab aktif sebagai file Excel"
+                title="Unduh semua rekap sebagai file Excel"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                Unduh Rekap ({{ tabs.find(t => t.key === activeTab)?.label }})
-            </button>
-        </div>
-
-        <!-- Active filter banner -->
-        <div v-if="activeFilter !== 'all'" class="mb-5 flex items-center gap-2 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700 font-bold shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
-            Filter aktif dari Dashboard: <strong class="ml-1">{{ tabs.find(t => t.key === activeFilter)?.label ?? activeFilter }}</strong>
-        </div>
-
-        <!-- Tabs -->
-        <div class="flex flex-wrap items-center gap-1.5 mb-5 bg-slate-100/80 backdrop-blur p-1.5 rounded-xl w-fit shadow-inner">
-            <button
-                v-for="tab in tabs" :key="tab.key"
-                @click="activeTab = tab.key"
-                class="px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 flex items-center gap-1.5"
-                :class="activeTab === tab.key
-                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200/50 scale-100'
-                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 hover:scale-95'"
-            >
-                {{ tab.label }}
-                <span class="text-[10px] px-1.5 py-0.5 rounded-md"
-                      :class="activeTab === tab.key ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500'">
-                    {{ tabCount(tab.key) }}
-                </span>
+                Unduh Rekap Semua
             </button>
         </div>
 
@@ -267,7 +182,6 @@ onUnmounted(() => {
                             <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[22%]">Acara / Pemohon</th>
                             <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Ruangan</th>
                             <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Jadwal</th>
-                            <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Peserta</th>
                             <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Fasilitas</th>
                             <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Status</th>
                             <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Aksi</th>
@@ -275,7 +189,7 @@ onUnmounted(() => {
                     </thead>
                     <tbody class="bg-white divide-y divide-slate-100">
                         <tr v-if="filteredBookings.length === 0">
-                            <td colspan="7" class="px-6 py-16 text-center">
+                            <td colspan="6" class="px-6 py-16 text-center">
                                 <div class="flex flex-col items-center justify-center gap-3">
                                     <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 mb-2">
                                         <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -307,13 +221,6 @@ onUnmounted(() => {
                                 <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block mb-1">{{ formatDate(b.tgl_mulai) }}</div>
                                 <div class="text-slate-400 text-[10px] ml-2 mb-1">s/d</div>
                                 <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block">{{ formatDate(b.tgl_selesai) }}</div>
-                            </td>
-                            <td class="px-5 py-4 text-center">
-                                <div class="inline-flex flex-col items-center bg-blue-50/50 border border-blue-100 px-3 py-1.5 rounded-xl">
-                                    <div class="text-lg font-black text-blue-700 leading-none">{{ b.jumlah_peserta }}</div>
-                                    <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Peserta</div>
-                                </div>
-                                <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Panitia</div>
                             </td>
                             <td class="px-5 py-4 text-xs text-slate-600 space-y-1.5">
                                 <div v-if="b.is_hybrid" class="flex items-center gap-2 bg-purple-50 text-purple-700 font-semibold px-2 py-1 rounded-md border border-purple-100 w-fit">
