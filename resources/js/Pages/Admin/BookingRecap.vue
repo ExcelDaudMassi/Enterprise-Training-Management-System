@@ -14,6 +14,18 @@ const props = defineProps({
 
 const filteredBookings = computed(() => props.bookings)
 
+const statusMeta = {
+    pending:              { label: 'Pending',   class: 'bg-yellow-50 text-yellow-850 border border-yellow-200' },
+    confirmed:            { label: 'Confirmed', class: 'bg-indigo-50 text-indigo-850 border border-indigo-200' },
+    finalized:            { label: 'Finalized', class: 'bg-green-50 text-green-850 border border-green-200' },
+    rejected:             { label: 'Rejected',  class: 'bg-rose-50 text-rose-850 border border-rose-200' },
+    cancelled:            { label: 'Cancelled', class: 'bg-slate-50 text-slate-800 border border-slate-200' },
+    completed:            { label: 'Completed', class: 'bg-emerald-50 text-emerald-850 border border-emerald-250' },
+    
+    // Legacy support
+    waiting_confirmation: { label: 'Pending',   class: 'bg-yellow-50 text-yellow-850 border border-yellow-200' },
+    final:                { label: 'Finalized', class: 'bg-green-50 text-green-850 border border-green-200' },
+}
 function formatTanggal(tgl) {
     if (!tgl) return '-'
     return new Date(tgl).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
