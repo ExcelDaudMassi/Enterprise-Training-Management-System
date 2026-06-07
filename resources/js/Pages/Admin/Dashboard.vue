@@ -1409,7 +1409,7 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'nu
                                             <div v-for="d in selectedMonthDays" :key="d.dayNum" class="border-r border-gray-200/60 last:border-r-0 h-full" :class="d.isWeekend ? 'bg-red-50/10' : ''"></div>
                                         </div>
                                         
-                                        <TransitionGroup name="gantt-bar" tag="div" class="contents">
+                                        <TransitionGroup name="gantt-bar" tag="div" class="contents" appear>
                                         <div v-for="b in room.bookings" :key="b.id" @click="openDetailModal(b)" @mouseenter="openDetailTooltip(b, $event)" @mousemove="updateTooltipPos($event)" @mouseleave="closeDetailTooltip" class="absolute px-2.5 flex items-center border shadow-3xs hover:shadow-2xs transition-all cursor-pointer group select-none transform-origin-left" :style="getGanttBarStyle(b, room)">
                                             <div class="flex items-center gap-1.5 min-w-0 w-full overflow-hidden" style="container-type: inline-size;">
                                                 <!-- Text Marquee -->

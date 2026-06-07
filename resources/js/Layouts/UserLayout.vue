@@ -446,7 +446,7 @@ provide('collapseDetailMenu', () => {
             </header>
 
             <!-- Page Slot & Footer -->
-            <main class="flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] flex flex-col bg-slate-50/30">
+            <main scroll-region class="flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] flex flex-col bg-slate-50/30">
                 <div class="flex-1 p-4 md:p-6">
                     <slot />
                 </div>

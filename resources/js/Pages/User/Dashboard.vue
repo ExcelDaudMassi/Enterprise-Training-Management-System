@@ -1198,7 +1198,7 @@ function getVisualStatus(b) {
                                         </div>
                                         
                                         <!-- Bookings in this room -->
-                                        <TransitionGroup name="gantt-bar" tag="div" class="contents">
+                                        <TransitionGroup name="gantt-bar" tag="div" class="contents" appear>
                                             <div
                                                 v-for="b in room.bookings"
                                                 :key="b.id"
