@@ -7,6 +7,7 @@ import axios from 'axios'
 defineOptions({ layout: AdminLayout })
 
 const mode = ref('manual')
+const days = ref(14)
 const isSaving = ref(false)
 const isLoading = ref(true)
 const successMessage = ref('')
@@ -14,8 +15,9 @@ const errorMessage = ref('')
 
 onMounted(async () => {
     try {
-        const response = await axios.get('/admin/api/settings/h14-mode')
-        mode.value = response.data.h14_mode
+        const response = await axios.get('/admin/api/settings/preparation-alert')
+        mode.value = response.data.preparation_alert_mode
+        days.value = response.data.preparation_alert_days
     } catch (error) {
         console.error('Failed to fetch settings:', error)
         errorMessage.value = 'Failed to load settings.'
@@ -30,8 +32,9 @@ const saveSettings = async () => {
     errorMessage.value = ''
     
     try {
-        const response = await axios.post('/admin/api/settings/h14-mode', {
-            h14_mode: mode.value
+        const response = await axios.post('/admin/api/settings/preparation-alert', {
+            preparation_alert_mode: mode.value,
+            preparation_alert_days: days.value
         })
         successMessage.value = response.data.message
     } catch (error) {
@@ -64,8 +67,8 @@ const saveSettings = async () => {
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="px-6 py-5 border-b border-gray-100 bg-gray-50">
-                <h2 class="text-lg font-semibold text-gray-800">H-14 Processing Mode</h2>
-                <p class="text-sm text-gray-500 mt-1">Choose how the system handles bookings that have passed the H-14 deadline from the start date but have not yet been finalized.</p>
+                <h2 class="text-lg font-semibold text-gray-800">Preparation Alert Processing</h2>
+                <p class="text-sm text-gray-500 mt-1">Configure the deadline threshold and choose how the system handles bookings that have reached the preparation alert threshold but have not yet been finalized.</p>
             </div>
 
             <div class="p-6">
@@ -73,9 +76,16 @@ const saveSettings = async () => {
                     <span class="text-gray-400 animate-pulse">Loading settings...</span>
                 </div>
                 
-                <form v-else @submit.prevent="saveSettings" class="space-y-6">
+                <form v-else @submit.prevent="saveSettings" class="space-y-8">
                     
                     <div class="space-y-4">
+                        <h3 class="text-md font-medium text-gray-900">Preparation Alert Threshold (Days)</h3>
+                        <p class="text-sm text-gray-500">Number of days before the event starts to trigger the preparation alert (e.g., 14 for 14 days before).</p>
+                        <input type="number" v-model="days" min="1" max="365" class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-md font-medium text-gray-900">Automation Mode</h3>
                         <!-- Option: Manual -->
                         <label class="flex items-start gap-3 p-4 border rounded-xl cursor-pointer transition-colors"
                                :class="mode === 'manual' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 hover:bg-gray-50'">
@@ -99,7 +109,7 @@ const saveSettings = async () => {
                                     Auto Approve
                                     <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-700 rounded">Recommended</span>
                                 </span>
-                                <span class="block text-xs text-gray-500 mt-1">Bookings that have reached the H-14 deadline will automatically be changed to <b>Finalized (ACC 2)</b>. This ensures the Field Team still receives preparation instructions.</span>
+                                <span class="block text-xs text-gray-500 mt-1">Bookings that have reached the preparation deadline will automatically be changed to <b>Finalized (ACC 2)</b>. This ensures the Field Team still receives preparation instructions.</span>
                             </div>
                         </label>
 
@@ -114,7 +124,7 @@ const saveSettings = async () => {
                                     Auto Cancel
                                     <span class="px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-700 rounded">Strict</span>
                                 </span>
-                                <span class="block text-xs text-gray-500 mt-1">Bookings that have reached the H-14 deadline but have no follow-up will be automatically <b>Cancelled</b>. This prevents rooms from being left hanging (reduces fictitious bookings).</span>
+                                <span class="block text-xs text-gray-500 mt-1">Bookings that have reached the preparation deadline but have no follow-up will be automatically <b>Cancelled</b>. This prevents rooms from being left hanging (reduces fictitious bookings).</span>
                             </div>
                         </label>
                     </div>

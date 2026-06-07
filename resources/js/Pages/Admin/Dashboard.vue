@@ -43,7 +43,7 @@ function getRoomColor(ruanganId) {
 // ============================================================
 const STATUS_COLORS = {
     plotting: {
-        bg: '#ef4444',      // Red 500 (H - 14)
+        bg: '#ef4444',      // Red 500 (Preparation Alert)
         light: '#fee2e2',   // Red 50
         text: '#b91c1c',    // Red 700
         border: '#fca5a5',  // Red 300
@@ -685,7 +685,7 @@ const STATUS_STYLE = {
 
 function statusLabel(status) {
     const map = {
-        plotting:             'H - 14',
+        plotting:             'Preparation Alert',
         pending:              'Pending',
         confirmed:            'Confirmed',
         finalized:            'Finalized',

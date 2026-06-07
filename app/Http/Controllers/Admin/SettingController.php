@@ -12,27 +12,36 @@ class SettingController extends Controller
         return inertia('Admin/Settings');
     }
 
-    public function getH14Mode()
+    public function getPreparationAlertSettings()
     {
-        $setting = \App\Models\Setting::where('key', 'h14_mode')->first();
+        $mode = \App\Models\Setting::where('key', 'preparation_alert_mode')->first();
+        $days = \App\Models\Setting::where('key', 'preparation_alert_days')->first();
+
         return response()->json([
-            'h14_mode' => $setting ? $setting->value : 'manual',
+            'preparation_alert_mode' => $mode ? $mode->value : 'manual',
+            'preparation_alert_days' => $days ? (int) $days->value : 14,
         ]);
     }
 
-    public function updateH14Mode(Request $request)
+    public function updatePreparationAlertSettings(Request $request)
     {
         $request->validate([
-            'h14_mode' => 'required|in:manual,auto_acc,auto_cancel',
+            'preparation_alert_mode' => 'required|in:manual,auto_acc,auto_cancel',
+            'preparation_alert_days' => 'required|integer|min:1|max:365',
         ]);
 
         \App\Models\Setting::updateOrCreate(
-            ['key' => 'h14_mode'],
-            ['value' => $request->h14_mode]
+            ['key' => 'preparation_alert_mode'],
+            ['value' => $request->preparation_alert_mode]
+        );
+
+        \App\Models\Setting::updateOrCreate(
+            ['key' => 'preparation_alert_days'],
+            ['value' => $request->preparation_alert_days]
         );
 
         return response()->json([
-            'message' => 'Pengaturan Mode H-14 berhasil disimpan.',
+            'message' => 'Pengaturan Preparation Alert berhasil disimpan.',
         ]);
     }
 }

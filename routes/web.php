@@ -119,8 +119,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // ─── Settings ──────────────────────────────────────────────
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-    Route::get('/api/settings/h14-mode', [SettingController::class, 'getH14Mode'])->name('api.settings.h14-mode.get');
-    Route::post('/api/settings/h14-mode', [SettingController::class, 'updateH14Mode'])->name('api.settings.h14-mode.update');
+    Route::get('/api/settings/preparation-alert', [SettingController::class, 'getPreparationAlertSettings'])->name('api.settings.preparation-alert.get');
+    Route::post('/api/settings/preparation-alert', [SettingController::class, 'updatePreparationAlertSettings'])->name('api.settings.preparation-alert.update');
 });
 
 // Default: redirect root ke halaman login

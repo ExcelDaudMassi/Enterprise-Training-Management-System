@@ -149,14 +149,16 @@ class Booking extends Model
     }
 
     /**
-     * Scope: Booking yang mendekati H-14 (confirmed, tgl_mulai dalam 0-14 hari).
+     * Scope: Booking yang mendekati batas persiapan (confirmed, tgl_mulai dalam 0-X hari).
      */
-    public function scopeUrgentH14($query)
+    public function scopeUrgentPreparation($query)
     {
         $today = Carbon::today();
+        $days = \App\Models\Setting::where('key', 'preparation_alert_days')->value('value') ?? 14;
+        
         return $query->where('status', self::STATUS_CONFIRMED)
                      ->where('tgl_mulai', '>=', $today)
-                     ->where('tgl_mulai', '<=', $today->copy()->addDays(14));
+                     ->where('tgl_mulai', '<=', $today->copy()->addDays((int) $days));
     }
 
     /**

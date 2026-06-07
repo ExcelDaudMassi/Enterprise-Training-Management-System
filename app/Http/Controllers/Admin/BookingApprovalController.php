@@ -27,7 +27,7 @@ class BookingApprovalController extends Controller
      *   confirmed             — sudah di-ACC Tahap 1
      *   cancelled             — ditolak/dibatalkan
      *   final                 — sudah ACC Tahap 2
-     *   h14                   — Tahap 4: confirmed & tgl_mulai dalam 14 hari
+     *   preparation_alert     — Tahap 4: confirmed & tgl_mulai dalam X hari
      *   overdue               — Tahap 5: confirmed & tgl_mulai sudah lewat
      *   date_changes          — Memiliki usulan perubahan tanggal (pending)
      *   all                   — semua
@@ -47,10 +47,8 @@ class BookingApprovalController extends Controller
             'final', 'finalized'   => $query->where('status', Booking::STATUS_FINALIZED),
             'completed'            => $query->where('status', Booking::STATUS_COMPLETED),
 
-            // H-14: confirmed, mulai dalam 0-14 hari ke depan
-            'h14', 'urgent' => $query->where('status', Booking::STATUS_CONFIRMED)
-                               ->where('tgl_mulai', '>=', $today)
-                               ->where('tgl_mulai', '<=', $today->copy()->addDays(14)),
+            // Preparation Alert: confirmed, mulai dalam 0-X hari ke depan
+            'preparation_alert', 'urgent' => $query->urgentPreparation(),
 
             // Overdue ACC Tahap 2: confirmed tapi tanggal mulai sudah lewat
             'overdue' => $query->where('status', Booking::STATUS_CONFIRMED)
@@ -72,7 +70,7 @@ class BookingApprovalController extends Controller
         }
 
         // Pengurutan: antrian tunggu → diurutkan dari TERLAMA; yang lain → TERBARU
-        if (in_array($filter, ['waiting_confirmation', 'pending', 'h14', 'overdue', 'date_changes'])) {
+        if (in_array($filter, ['waiting_confirmation', 'pending', 'preparation_alert', 'overdue', 'date_changes'])) {
             $query->orderBy('tgl_mulai', 'asc');
         } else {
             $query->orderBy('created_at', 'desc');
@@ -107,9 +105,7 @@ class BookingApprovalController extends Controller
             'cancelled'            => $query->where('status', Booking::STATUS_CANCELLED),
             'rejected'             => $query->where('status', Booking::STATUS_REJECTED),
             'completed'            => $query->where('status', Booking::STATUS_COMPLETED),
-            'urgent'               => $query->where('status', Booking::STATUS_PENDING)
-                                            ->where('tgl_mulai', '<=', $today->copy()->addDays(14))
-                                            ->where('tgl_mulai', '>=', $today),
+            'urgent'               => $query->urgentPreparation()->where('status', Booking::STATUS_PENDING),
             'overdue'              => $query->where('status', Booking::STATUS_PENDING)
                                             ->where('tgl_mulai', '<', $today),
             default                => null,
@@ -287,9 +283,7 @@ class BookingApprovalController extends Controller
             'cancelled'            => $query->where('status', Booking::STATUS_CANCELLED),
             'rejected'             => $query->where('status', Booking::STATUS_REJECTED),
             'completed'            => $query->where('status', Booking::STATUS_COMPLETED),
-            'urgent'               => $query->where('status', Booking::STATUS_PENDING)
-                                             ->where('tgl_mulai', '<=', $today->copy()->addDays(14))
-                                             ->where('tgl_mulai', '>=', $today),
+            'urgent'               => $query->urgentPreparation()->where('status', Booking::STATUS_PENDING),
             'overdue'              => $query->where('status', Booking::STATUS_PENDING)
                                              ->where('tgl_mulai', '<', $today),
             default                => null,
@@ -870,6 +864,7 @@ class BookingApprovalController extends Controller
     {
         $today       = Carbon::today();
         $daysToStart = $b->tgl_mulai ? $today->diffInDays($b->tgl_mulai, false) : null;
+        $prepDays    = \App\Models\Setting::where('key', 'preparation_alert_days')->value('value') ?? 14;
 
         return [
             'id'                      => $b->id,
@@ -902,6 +897,7 @@ class BookingApprovalController extends Controller
             'fase'                    => $b->fase,
             // Helpers UI
             'days_to_start'           => $daysToStart,
+            'preparation_alert_days'  => (int) $prepDays,
             'is_overdue_acc2'         => $b->isConfirmed() && $b->tgl_mulai?->isPast(),
             'can_be_finalized'        => $b->canBeFinalized(),
             'has_pending_date_change' => $b->hasPendingDateChange(),

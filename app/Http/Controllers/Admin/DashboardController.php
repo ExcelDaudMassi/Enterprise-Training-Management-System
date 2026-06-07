@@ -17,7 +17,8 @@ class DashboardController extends Controller
     {
         $today     = Carbon::today();
         $now       = Carbon::now();
-        $h14Cutoff = $today->copy()->addDays(14);
+        $days      = \App\Models\Setting::where('key', 'preparation_alert_days')->value('value') ?? 14;
+        $prepCutoff = $today->copy()->addDays((int) $days);
 
         // ── Tahun filter (dipakai untuk stats cards & donut chart) ─────
         $activeWindowForYear = \App\Models\BookingWindow::active()->latest('id')->first();
@@ -25,16 +26,16 @@ class DashboardController extends Controller
         $yearStart = Carbon::create($year, 1, 1)->startOfDay();
         $yearEnd   = Carbon::create($year, 12, 31)->endOfDay();
 
-        // H-14 cutoff kontekstual:
-        // – Untuk tahun berjalan: 14 hari dari hari ini
+        // Preparation Alert cutoff kontekstual:
+        // – Untuk tahun berjalan: X hari dari hari ini
         // – Untuk tahun lain (masa lalu / depan): seluruh tahun tersebut
         $currentYear = $today->year;
         if ($year === $currentYear) {
-            $h14YearStart = $today->copy();
-            $h14YearEnd   = $h14Cutoff->copy();
+            $prepYearStart = $today->copy();
+            $prepYearEnd   = $prepCutoff->copy();
         } else {
-            $h14YearStart = $yearStart->copy();
-            $h14YearEnd   = $yearEnd->copy();
+            $prepYearStart = $yearStart->copy();
+            $prepYearEnd   = $yearEnd->copy();
         }
 
         // ── 4 Stats Cards (berdasarkan tahun yang dipilih) ─────────────
@@ -110,10 +111,10 @@ class DashboardController extends Controller
                 'filter'        => 'pending',
             ]);
 
-        // b) Urgent H-14: confirmed, mulai dalam 14 hari (butuh ACC Final)
+        // b) Urgent Preparation Alert: confirmed, mulai dalam X hari (butuh ACC Final)
         $urgentBookings = Booking::with('user')
             ->where('status', Booking::STATUS_CONFIRMED)
-            ->where('tgl_mulai', '<=', $h14Cutoff)
+            ->where('tgl_mulai', '<=', $prepCutoff)
             ->where('tgl_mulai', '>=', $today)
             ->orderBy('tgl_mulai', 'asc')
             ->take(5)
@@ -121,17 +122,17 @@ class DashboardController extends Controller
             ->map(fn($b) => [
                 'type'          => 'urgent',
                 'booking_id'    => $b->id,
-                'label'         => "H-14 Perlu ACC Final: {$b->nama_training}",
+                'label'         => "H-{$days} Perlu ACC Final: {$b->nama_training}",
                 'sub'           => "Mulai " . $b->tgl_mulai?->format('d M Y'),
                 'created_at'    => $b->created_at->diffForHumans(),
-                'filter'        => 'h14',
+                'filter'        => 'preparation_alert',
             ]);
 
         // c) Overdue ACC Tahap 2: confirmed, tgl_mulai sudah lewat, belum final
-        // d) Perlu Final Confirmation (ACC-2) (confirmed, tgl_mulai dalam 14 hari)
+        // d) Perlu Final Confirmation (ACC-2) (confirmed, tgl_mulai dalam X hari)
         $needAcc2Bookings = Booking::with('user')
             ->where('status', Booking::STATUS_CONFIRMED)
-            ->where('tgl_mulai', '<=', $h14Cutoff)
+            ->where('tgl_mulai', '<=', $prepCutoff)
             ->where('tgl_mulai', '>=', $today)
             ->orderBy('tgl_mulai', 'asc')
             ->take(5)

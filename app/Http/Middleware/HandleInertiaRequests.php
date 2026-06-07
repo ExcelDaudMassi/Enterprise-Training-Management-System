@@ -60,7 +60,8 @@ class HandleInertiaRequests extends Middleware
                 }
                 
                 $today     = \Illuminate\Support\Carbon::today();
-                $h14Cutoff = $today->copy()->addDays(14);
+                $days      = \App\Models\Setting::where('key', 'preparation_alert_days')->value('value') ?? 14;
+                $prepCutoff = $today->copy()->addDays((int) $days);
 
                 // a) Booking baru
                 $newBookings = \App\Models\Booking::with('user')
@@ -77,10 +78,10 @@ class HandleInertiaRequests extends Middleware
                         'filter'        => 'pending',
                     ]);
 
-                // b) Urgent H-14
+                // b) Urgent Preparation Alert
                 $urgentBookings = \App\Models\Booking::with('user')
                     ->where('status', \App\Models\Booking::STATUS_CONFIRMED)
-                    ->where('tgl_mulai', '<=', $h14Cutoff)
+                    ->where('tgl_mulai', '<=', $prepCutoff)
                     ->where('tgl_mulai', '>=', $today)
                     ->orderBy('tgl_mulai', 'asc')
                     ->take(5)
@@ -88,10 +89,10 @@ class HandleInertiaRequests extends Middleware
                     ->map(fn($b) => [
                         'type'          => 'urgent',
                         'booking_id'    => $b->id,
-                        'label'         => "Urgent H-14: {$b->nama_training}",
-                        'sub'           => "Mulai " . $b->tgl_mulai?->format('d M Y'),
+                        'label'         => "Preparation Alert: {$b->nama_training}",
+                        'sub'           => "Mulai " . $b->tgl_mulai?->format('d M Y') . " ({$days} Hari)",
                         'created_at'    => $b->created_at->diffForHumans(),
-                        'filter'        => 'urgent',
+                        'filter'        => 'preparation_alert',
                     ]);
 
                 // c) Overdue

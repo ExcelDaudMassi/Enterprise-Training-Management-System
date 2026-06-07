@@ -147,3 +147,23 @@ Tambahkan baris ini ke **crontab** server:
 - Branch saat ini: `feature/ux-improvement` (terbaru, dicabangkan dari `develop`)
 - Alur kerja branch: `fitur/perbaikan` → merge ke `develop` → merge ke `main`
 - Selalu stay di `main` untuk production
+
+
+
+
+NEXT TODO
+
+1. Integrasi Notifikasi WhatsApp (Fonnte API) 🟢 (Prioritas Tertinggi dari TODO)
+Saat ini, di catatan.md bagian TODO, fitur untuk mengirim notifikasi otomatis ke Grup WhatsApp Tim Housekeeping & Security saat jadwal di-ACC Final masih berstatus belum dikerjakan ([ ] Ditunda sementara - belum fokus ke sini). Padahal alur datanya (FonnteService, sistem Queue, dan Signed URL) sudah disiapkan di arsitektur (sesuai dokumen proyek).
+
+2. Integrasi Google Calendar / Outlook Calendar 📅
+Sistem saat ini baru memiliki kalender internal (FullCalendar di Vue). Belum ada fitur untuk mengirimkan undangan resmi berbentuk .ics atau integrasi API langsung ke Google/Outlook Calendar milik peserta (sehingga jadwal otomatis masuk ke kalender HP peserta).
+
+3. Single Sign-On (SSO) 🔐
+Autentikasi saat ini masih bersifat mandiri (user harus mengingat password tersendiri). Dokumen menyebutkan rencana untuk menerapkan autentikasi SSO (mungkin via Active Directory, LDAP, atau Google Workspace) agar pegawai bisa langsung login dengan akun perusahaan.
+
+4. Dashboard Analytics Lanjutan 📊
+Saat ini Dashboard Admin baru menampilkan metrik dasar (angka pending, angka disetujui, urgent H-14, ruang terpakai). Rencana ke depannya adalah membuat analitik tingkat lanjut (seperti grafik okupansi ruangan bulanan, ruangan yang paling sering dibooking, dll) untuk laporan manajemen.
+
+5. Optimalisasi H-14 Dashboard ⚠️
+Ada catatan teknis kecil di analisis gap (Fase 2): "Perhitungan H-14 di dashboard masih bersifat on-the-fly, bukan disimpan oleh cron job". Ini berpotensi membuat loading dashboard admin sedikit lebih lambat jika data booking sudah mencapai ribuan, karena harus menghitung jarak hari secara langsung setiap kali halaman dimuat.

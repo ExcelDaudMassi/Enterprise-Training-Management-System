@@ -16,7 +16,7 @@ const props = defineProps({
 // ─── Tabs ─────────────────────────────────────────────────────
 const tabs = [
     { key: 'pending',              label: 'Pending' },
-    { key: 'h14',                  label: '🚨 H-14 (Final Approval)' },
+    { key: 'preparation_alert',    label: '🚨 Preparation Alert (Final Approval)' },
     { key: 'overdue',              label: '⛔ Overdue' },
     { key: 'date_changes',         label: '📅 Date Change' },
     { key: 'confirmed',            label: 'Confirmed' },
@@ -57,7 +57,7 @@ const STATUS_META = {
     plotting:             { label: 'Plotting',  class: 'bg-amber-50 text-amber-850 border border-amber-200' },
 }
 
-function isPastH14(tglMulai) {
+function isPastPreparationAlert(tglMulai, thresholdDays = 14) {
     if (!tglMulai) return false
     const start = new Date(tglMulai)
     // reset waktu start ke 00:00:00
@@ -65,7 +65,7 @@ function isPastH14(tglMulai) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const diffDays = (start - today) / (1000 * 60 * 60 * 24)
-    return diffDays <= 14 && diffDays >= 0
+    return diffDays <= thresholdDays && diffDays >= 0
 }
 
 onMounted(() => {
@@ -390,8 +390,8 @@ const layoutLabels = {
                                 <div class="text-xs text-slate-500 mt-1 flex items-center gap-1"><span class="font-semibold text-slate-700">{{ b.pemohon }}</span> &bull; {{ b.divisi }}</div>
                                 <div class="text-xs text-slate-400 mt-0.5">PIC: <span class="font-medium">{{ b.pic }}</span></div>
                                 <div class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{{ b.created_at }}</div>
-                                <!-- Alert Merah jika confirmed & sudah lewat batas H-14 -->
-                                <div v-if="b.status === 'confirmed' && isPastH14(b.tgl_mulai)" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-1 rounded-md mt-2 shadow-sm">
+                                <!-- Alert Merah jika confirmed & sudah lewat batas persiapan -->
+                                <div v-if="b.status === 'confirmed' && isPastPreparationAlert(b.tgl_mulai, b.preparation_alert_days || 14)" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-1 rounded-md mt-2 shadow-sm">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     Past ACC-2 Deadline
                                 </div>
@@ -410,7 +410,7 @@ const layoutLabels = {
                                 <!-- Countdown -->
                                 <div v-if="b.days_to_start !== null && b.status === 'confirmed' && b.days_to_start >= 0"
                                      class="mt-2 font-bold text-[11px] w-fit shadow-sm"
-                                     :class="b.days_to_start <= 14 ? 'text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md' : 'text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md'">
+                                     :class="b.days_to_start <= (b.preparation_alert_days || 14) ? 'text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md' : 'text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md'">
                                     H-{{ b.days_to_start }}
                                 </div>
                                 <div v-if="b.is_overdue_acc2" class="text-red-600 font-bold mt-2 flex items-center gap-1.5 text-[11px] bg-red-50 px-2 py-1 rounded border border-red-100">
