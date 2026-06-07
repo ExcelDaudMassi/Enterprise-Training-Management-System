@@ -131,6 +131,26 @@ server {
         fastcgi_hide_header X-Powered-By;
     }
 
+    # Laravel Reverb WebSocket Proxy
+    location /app {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header Scheme $scheme;
+        proxy_set_header SERVER_PORT $server_port;
+        proxy_set_header REMOTE_ADDR $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+    }
+
+    location /apps {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_read_timeout 60;
+        proxy_connect_timeout 60;
+    }
+
     location ~ /\.(?!well-known).* {
         deny all;
     }
@@ -193,7 +213,41 @@ Karena pengiriman WhatsApp melalui Fonnte diproses asinkronus via antrean databa
 
 ---
 
-## ⚡ 5. Optimasi Performa Produksi (Caching)
+## 📡 5. Konfigurasi Server WebSocket (Laravel Reverb)
+
+Aplikasi ini menggunakan Laravel Reverb untuk fitur *real-time* (WebSocket). Reverb berjalan sebagai proses daemon terpisah di port 8080. Nginx bertindak sebagai *reverse proxy* (konfigurasinya sudah ditambahkan di Langkah 2.8).
+
+Sama seperti Queue Worker, kita menggunakan Supervisor agar Reverb berjalan terus 24/7 di latar belakang.
+
+1. Buat file konfigurasi Supervisor untuk Reverb:
+   ```bash
+   sudo nano /etc/supervisor/conf.d/booking-reverb.conf
+   ```
+2. Rekatkan konfigurasi berikut:
+   ```ini
+   [program:booking-reverb]
+   process_name=%(program_name)s_%(process_num)02d
+   command=php /var/www/booking/artisan reverb:start
+   autostart=true
+   autorestart=true
+   stopasgroup=true
+   killasgroup=true
+   user=www-data
+   numprocs=1
+   redirect_stderr=true
+   stdout_logfile=/var/www/booking/storage/logs/reverb.log
+   stopwaitsecs=3600
+   ```
+3. Muat ulang dan jalankan daemon Reverb:
+   ```bash
+   sudo supervisorctl reread
+   sudo supervisorctl update
+   sudo supervisorctl start booking-reverb:*
+   ```
+
+---
+
+## ⚡ 6. Optimasi Performa Produksi (Caching)
 
 Setelah semua instalasi selesai, jalankan perintah caching berikut di server produksi untuk mempercepat eksekusi PHP:
 ```bash
@@ -206,7 +260,7 @@ php artisan event:cache
 
 ---
 
-## 🧪 6. Pengujian Integrasi WhatsApp (Fonnte)
+## 🧪 7. Pengujian Integrasi WhatsApp (Fonnte)
 
 Untuk memastikan integrasi WhatsApp dengan Fonnte berjalan dengan baik di server Anda, Anda dapat memicu tes pengiriman manual melalui Artisan Command bawaan:
 ```bash

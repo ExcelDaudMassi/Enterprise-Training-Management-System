@@ -78,59 +78,6 @@ function closeDetail() {
     detailData.value = null
 }
 
-// ── Edit Participant ──────────────────────────────────────────────
-const showEditParticipantModal = ref(false)
-const editParticipantProcessing = ref(false)
-const editParticipantErrors = ref({})
-const editParticipantForm = ref({
-    id: null,
-    nama: '',
-    nrp: '',
-    jabatan: '',
-    site: '',
-    no_hp: '',
-    gender: 'L',
-    tipe: 'peserta'
-})
-
-function openEditParticipantModal(p) {
-    editParticipantErrors.value = {}
-    editParticipantForm.value = {
-        id: p.id,
-        nama: p.nama || '',
-        nrp: p.nrp || '',
-        jabatan: p.jabatan || '',
-        site: p.site || '',
-        no_hp: p.no_hp || '',
-        gender: p.gender || 'L',
-        tipe: p.tipe || 'peserta'
-    }
-    showEditParticipantModal.value = true
-}
-
-async function submitEditParticipant() {
-    editParticipantProcessing.value = true
-    editParticipantErrors.value = {}
-
-    try {
-        const res = await axios.put(`/admin/participants/${editParticipantForm.value.id}`, editParticipantForm.value)
-        if (res.data.success) {
-            // Update detail data dynamically
-            detailData.value = res.data
-            showEditParticipantModal.value = false
-        }
-    } catch (e) {
-        if (e.response && e.response.status === 422) {
-            editParticipantErrors.value = e.response.data.errors || { general: e.response.data.message }
-        } else if (e.response && e.response.data && e.response.data.message) {
-            editParticipantErrors.value = { general: e.response.data.message }
-        } else {
-            editParticipantErrors.value = { general: 'Gagal memperbarui data peserta. Silakan coba lagi.' }
-        }
-    } finally {
-        editParticipantProcessing.value = false
-    }
-}
 
 const layoutLabels = {
     classroom: 'Classroom',
@@ -604,7 +551,6 @@ onUnmounted(() => {
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
                                                         <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">JK</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase w-12">Aksi</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-50">
@@ -629,13 +575,6 @@ onUnmounted(() => {
                                                                 {{ p.gender || '-' }}
                                                             </span>
                                                         </td>
-                                                        <td class="px-3 py-2 text-center">
-                                                            <button @click="openEditParticipantModal(p)" class="p-1 text-gray-450 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Edit Data">
-                                                                <svg class="w-3.5 h-3.5 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                                                                </svg>
-                                                            </button>
-                                                        </td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -659,7 +598,6 @@ onUnmounted(() => {
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Site</th>
                                                         <th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">No HP</th>
                                                         <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase">JK</th>
-                                                        <th class="px-3 py-2.5 text-center text-[10px] font-semibold text-gray-500 uppercase w-12">Aksi</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-50">
@@ -683,13 +621,6 @@ onUnmounted(() => {
                                                                   :class="p.gender === 'L' ? 'text-blue-600' : 'text-pink-600'">
                                                                 {{ p.gender || '-' }}
                                                             </span>
-                                                        </td>
-                                                        <td class="px-3 py-2 text-center">
-                                                            <button @click="openEditParticipantModal(p)" class="p-1 text-gray-450 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Edit Data">
-                                                                <svg class="w-3.5 h-3.5 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                                                                </svg>
-                                                            </button>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -736,146 +667,7 @@ onUnmounted(() => {
             </Transition>
         </Teleport>
 
-        <!-- ── Modal: Edit Peserta/Panitia oleh Admin ──────────────────────────── -->
-        <Teleport to="body">
-            <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0 scale-95"
-                enter-to-class="opacity-100 scale-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100 scale-100"
-                leave-to-class="opacity-0 scale-95"
-            >
-                <div v-if="showEditParticipantModal" class="fixed inset-0 bg-white/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
-                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200" @click.stop>
-                        <div class="px-6 py-4 border-b border-gray-200 bg-white flex justify-between items-center">
-                            <div>
-                                <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-                                    Edit Data {{ editParticipantForm.tipe === 'panitia' ? 'Panitia' : 'Peserta' }}
-                                </h2>
-                                <p class="text-[11px] text-gray-500 mt-1">Ubah manifest data personil secara langsung.</p>
-                            </div>
-                            <button @click="showEditParticipantModal = false" class="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-all cursor-pointer">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-                        </div>
-                        <div class="px-6 py-5">
-                            <!-- Error Banner (General) -->
-                            <div v-if="editParticipantErrors.general" class="mb-4 bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg p-2.5 flex items-start gap-2">
-                                <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                <span>{{ editParticipantErrors.general }}</span>
-                            </div>
 
-                            <form @submit.prevent="submitEditParticipant" class="space-y-4">
-                                <!-- Nama Lengkap -->
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
-                                    <input
-                                        v-model="editParticipantForm.nama"
-                                        type="text"
-                                        required
-                                        placeholder="Contoh: Budi Santoso"
-                                        class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                    />
-                                    <p v-if="editParticipantErrors.nama" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.nama[0] }}</p>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <!-- NRP -->
-                                    <div>
-                                        <label class="block text-xs font-semibold text-gray-700 mb-1">NRP / NIK</label>
-                                        <input
-                                            v-model="editParticipantForm.nrp"
-                                            type="text"
-                                            placeholder="Contoh: 12345678"
-                                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        />
-                                        <p v-if="editParticipantErrors.nrp" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.nrp[0] }}</p>
-                                    </div>
-
-                                    <!-- Jabatan -->
-                                    <div>
-                                        <label class="block text-xs font-semibold text-gray-700 mb-1">Jabatan</label>
-                                        <input
-                                            v-model="editParticipantForm.jabatan"
-                                            type="text"
-                                            placeholder="Contoh: Operator"
-                                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        />
-                                        <p v-if="editParticipantErrors.jabatan" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.jabatan[0] }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <!-- Departemen / Divisi -->
-                                    <div>
-                                        <label class="block text-xs font-semibold text-gray-700 mb-1">Departemen / Perusahaan</label>
-                                        <input
-                                            v-model="editParticipantForm.departemen"
-                                            type="text"
-                                            placeholder="Contoh: HC"
-                                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        />
-                                        <p v-if="editParticipantErrors.departemen" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.departemen[0] }}</p>
-                                    </div>
-
-                                    <!-- Site / Lokasi Kerja -->
-                                    <div>
-                                        <label class="block text-xs font-semibold text-gray-700 mb-1">Site / Lokasi</label>
-                                        <input
-                                            v-model="editParticipantForm.site"
-                                            type="text"
-                                            placeholder="Contoh: ADRO"
-                                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        />
-                                        <p v-if="editParticipantErrors.site" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.site[0] }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <!-- No HP -->
-                                    <div>
-                                        <label class="block text-xs font-semibold text-gray-700 mb-1">No HP</label>
-                                        <input
-                                            v-model="editParticipantForm.no_hp"
-                                            type="text"
-                                            placeholder="081234567..."
-                                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        />
-                                        <p v-if="editParticipantErrors.no_hp" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.no_hp[0] }}</p>
-                                    </div>
-
-                                    <!-- Jenis Kelamin -->
-                                    <div>
-                                        <label class="block text-xs font-semibold text-gray-700 mb-1">Jenis Kelamin <span class="text-red-500">*</span></label>
-                                        <select
-                                            v-model="editParticipantForm.gender"
-                                            required
-                                            class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white font-sans"
-                                        >
-                                            <option value="L">Laki-laki (L)</option>
-                                            <option value="P">Perempuan (P)</option>
-                                        </select>
-                                        <p v-if="editParticipantErrors.gender" class="text-[11px] text-red-500 mt-1">{{ editParticipantErrors.gender[0] }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
-                                    <button type="button" @click="showEditParticipantModal = false" :disabled="editParticipantProcessing" class="px-4 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50">
-                                        Batal
-                                    </button>
-                                    <button type="submit" :disabled="editParticipantProcessing" class="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm disabled:opacity-50">
-                                        <span v-if="editParticipantProcessing" class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                        Simpan Perubahan
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
 
 
 </template>
