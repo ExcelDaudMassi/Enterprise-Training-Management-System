@@ -239,13 +239,11 @@ onUnmounted(() => {
                 <table class="min-w-full table-fixed divide-y divide-slate-100">
                     <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
                         <tr>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[22%]">Acara / PIC</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[13%]">Ruangan</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[15%]">Jadwal</th>
-                            <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Peserta</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[11%]">Fasilitas</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[17%]">Status</th>
-                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Aksi</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[29%]">Acara / PIC</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[18%]">Ruangan</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[20%]">Jadwal</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[20%]">Status</th>
+                            <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[13%]">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-slate-100">
@@ -283,28 +281,6 @@ onUnmounted(() => {
                                 <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block">{{ formatDate(b.tgl_selesai) }}</div>
                             </td>
 
-                            <!-- Peserta -->
-                            <td class="px-5 py-4 text-center">
-                                <div class="inline-flex flex-col items-center bg-blue-50/50 border border-blue-100 px-3 py-1.5 rounded-xl">
-                                    <div class="text-lg font-black text-blue-700 leading-none">{{ b.jumlah_peserta }}</div>
-                                    <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Peserta</div>
-                                </div>
-                                <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Panitia</div>
-                            </td>
-
-                            <!-- Fasilitas -->
-                            <td class="px-5 py-4 text-xs text-slate-600 space-y-1.5">
-                                <div v-if="b.is_hybrid" class="flex items-center gap-2 bg-purple-50 text-purple-700 font-semibold px-2 py-1 rounded-md border border-purple-100 w-fit">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0 animate-pulse"></span>Hybrid
-                                </div>
-                                <div v-if="b.is_flipchart" class="flex items-center gap-2 bg-orange-50 text-orange-700 font-semibold px-2 py-1 rounded-md border border-orange-100 w-fit">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
-                                </div>
-                                <div v-if="b.is_pena_mini_note" class="flex items-center gap-2 bg-teal-50 text-teal-700 font-semibold px-2 py-1 rounded-md border border-teal-100 w-fit">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0"></span>Pena & Mini Note
-                                </div>
-                                <div v-if="!b.is_hybrid && !b.is_flipchart && !b.is_pena_mini_note" class="text-slate-300 font-medium">—</div>
-                            </td>
 
                             <!-- Status -->
                             <td class="px-5 py-4">

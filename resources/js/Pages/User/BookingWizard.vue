@@ -1408,7 +1408,7 @@ const getLayoutDesc = (layout) => {
                 <div v-else class="bg-white rounded-md border border-gray-100 shadow-sm p-6">
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         <div v-for="(monthName, monthIdx) in MONTH_NAMES" :key="monthIdx"
-                            class="group/month relative border border-gray-100 rounded-lg p-2 bg-white transition-all duration-300 ease-in-out hover:scale-130 hover:shadow-2xl hover:z-[60] hover:border-blue-200"
+                            class="group/month relative border border-gray-100 rounded-lg p-2 bg-white transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-2xl hover:z-[60] hover:border-blue-200"
                             :class="getMonthOriginClass(monthIdx)">
                             <div class="text-xs font-bold text-center text-gray-700 mb-1 pb-1 border-b border-gray-100">
                                 {{ monthName }} {{ activeYear }}

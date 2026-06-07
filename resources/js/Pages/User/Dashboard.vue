@@ -943,7 +943,7 @@ function getVisualStatus(b) {
                 <div 
                     v-for="(monthName, monthIdx) in MONTH_NAMES" 
                     :key="monthIdx" 
-                    class="group/month relative rounded-lg p-3 bg-gray-50/20 border border-gray-100/50 transition-all duration-300 ease-in-out hover:scale-140 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
+                    class="group/month relative rounded-lg p-3 bg-gray-50/20 border border-gray-100/50 transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
                     :class="getMonthOriginClass(monthIdx)"
                 >
 

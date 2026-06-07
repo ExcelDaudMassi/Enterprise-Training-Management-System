@@ -282,9 +282,9 @@ function getDateHighlightClass(year, month, day) {
     const totalRooms = props.ruanganList?.length || 0
     
     if (totalRooms > 0 && bookedRoomIds.size >= totalRooms) {
-        return 'bg-red-100 text-red-800 font-extrabold'
+        return 'bg-red-50 text-red-800 font-semibold border border-red-200'
     } else {
-        return 'bg-amber-100 text-amber-800 font-extrabold'
+        return 'bg-amber-50 text-amber-800 font-semibold border border-amber-200'
     }
 }
 
@@ -645,8 +645,8 @@ function formatIndoDateTime(dateTimeStr) {
     if (!dateTimeStr) return '-'
     const d = new Date(dateTimeStr)
     const dateStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-    const timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-    return `${dateStr} pukul ${timeStr} WIB`
+    const timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })
+    return `${dateStr} pukul ${timeStr}`
 }
 
 const filteredPeserta = computed(() => {
@@ -1160,9 +1160,10 @@ const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'nu
                 <div 
                     v-for="(monthName, monthIdx) in MONTH_NAMES" 
                     :key="monthIdx" 
-                    class="group/month relative rounded-lg p-3 bg-gray-50/20 border border-gray-100/50 transition-all duration-300 ease-in-out hover:scale-140 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
+                    class="group/month relative rounded-lg p-3 bg-gray-50/20 border border-gray-100/50 transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-2xl hover:bg-white hover:z-[60] hover:border-blue-200"
                     :class="getMonthOriginClass(monthIdx)"
                 >
+                    
                     <!-- Nama Bulan -->
                     <div @click="openModal(selectedYear, monthIdx)" class="text-xs font-black text-center text-gray-800 mb-2 border-b border-gray-100 pb-1.5 cursor-pointer hover:text-blue-600 transition">{{ monthName }}</div>
 
