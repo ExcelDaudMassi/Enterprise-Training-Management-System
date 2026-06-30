@@ -282,10 +282,67 @@
                 </div>
                 <div class="p-6">
                     <div class="mb-5">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tata Letak (Layout)</p>
-                        <p class="text-[15px] font-extrabold text-gray-900">{{ ucfirst($booking->layout_preferensi) }}</p>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Visualisasi Tata Letak (Layout)</p>
+                        
+                        <!-- Visualisasi SVG Dinamis -->
+                        <div class="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl mb-3 flex items-center justify-center p-4">
+                            @php
+                                $layout = strtolower($booking->layout_preferensi);
+                            @endphp
+
+                            @if($layout == 'classroom')
+                                <svg viewBox="0 0 200 120" class="w-full h-full text-blue-600" stroke="currentColor" fill="none" stroke-width="2">
+                                    <rect x="70" y="10" width="60" height="15" rx="3" class="fill-indigo-100 stroke-indigo-400"/>
+                                    @for($y=45; $y<=105; $y+=30)
+                                        @for($x=20; $x<=140; $x+=60)
+                                            <rect x="{{$x}}" y="{{$y}}" width="40" height="15" rx="2" class="fill-blue-50 stroke-blue-400"/>
+                                            <circle cx="{{$x+10}}" cy="{{$y+22}}" r="3" class="fill-gray-300 stroke-none"/>
+                                            <circle cx="{{$x+30}}" cy="{{$y+22}}" r="3" class="fill-gray-300 stroke-none"/>
+                                        @endfor
+                                    @endfor
+                                </svg>
+                            @elseif($layout == 'theater' || $layout == 'theatre')
+                                <svg viewBox="0 0 200 120" class="w-full h-full text-blue-600" stroke="currentColor" fill="none" stroke-width="2">
+                                    <path d="M40 20 Q100 35 160 20" class="stroke-indigo-400" stroke-width="6" stroke-linecap="round"/>
+                                    @for($y=55; $y<=110; $y+=18)
+                                        @for($x=30; $x<=170; $x+=20)
+                                            <rect x="{{$x-6}}" y="{{$y-5}}" width="12" height="10" rx="3" class="fill-blue-100 stroke-blue-500" stroke-width="1.5"/>
+                                        @endfor
+                                    @endfor
+                                </svg>
+                            @elseif($layout == 'u-shape')
+                                <svg viewBox="0 0 200 120" class="w-full h-full text-blue-600" stroke="currentColor" fill="none" stroke-width="2">
+                                    <rect x="70" y="5" width="60" height="10" rx="2" class="fill-indigo-100 stroke-indigo-400"/>
+                                    <path d="M40 110 L40 40 L160 40 L160 110" class="stroke-blue-200 fill-none" stroke-width="16" stroke-linejoin="round"/>
+                                    <path d="M40 110 L40 40 L160 40 L160 110" class="stroke-blue-400 fill-none" stroke-width="2" stroke-linejoin="round"/>
+                                    @for($y=55; $y<=105; $y+=20)
+                                        <circle cx="20" cy="{{$y}}" r="5" class="fill-blue-500 stroke-none" />
+                                        <circle cx="180" cy="{{$y}}" r="5" class="fill-blue-500 stroke-none" />
+                                    @endfor
+                                    @for($x=60; $x<=140; $x+=20)
+                                        <circle cx="{{$x}}" cy="20" r="5" class="fill-blue-500 stroke-none" />
+                                    @endfor
+                                </svg>
+                            @elseif($layout == 'boardroom')
+                                <svg viewBox="0 0 200 120" class="w-full h-full text-blue-600" stroke="currentColor" fill="none" stroke-width="2">
+                                    <rect x="40" y="40" width="120" height="40" rx="8" class="fill-blue-50 stroke-blue-400" stroke-width="3"/>
+                                    @for($x=55; $x<=145; $x+=25)
+                                        <circle cx="{{$x}}" cy="25" r="5" class="fill-blue-500 stroke-none"/>
+                                        <circle cx="{{$x}}" cy="95" r="5" class="fill-blue-500 stroke-none"/>
+                                    @endfor
+                                    <circle cx="20" cy="60" r="5" class="fill-indigo-500 stroke-none"/>
+                                    <circle cx="180" cy="60" r="5" class="fill-indigo-500 stroke-none"/>
+                                </svg>
+                            @else
+                                <div class="text-center text-gray-400">
+                                    <svg class="w-8 h-8 mx-auto mb-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                    <p class="text-[10px] font-bold uppercase tracking-wide">{{ $layout }}</p>
+                                </div>
+                            @endif
+                        </div>
+                        <p class="text-center text-[15px] font-extrabold text-gray-900">{{ ucfirst($booking->layout_preferensi) }} Layout</p>
                     </div>
-                    <div>
+                    <div class="pt-2 border-t border-gray-100">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Permintaan Tambahan</p>
                         <div class="flex flex-col gap-2.5">
                             @if($booking->is_hybrid)
