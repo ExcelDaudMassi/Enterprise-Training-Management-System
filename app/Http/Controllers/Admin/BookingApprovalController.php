@@ -912,39 +912,36 @@ class BookingApprovalController extends Controller
         $frontdeskPhone = config('services.fonnte.frontdesk_target');
         if (empty($frontdeskPhone)) return;
 
-        // Jalankan di background setelah response dikirim ke browser agar UI tidak loading lama
-        app()->terminating(function () use ($booking, $frontdeskPhone) {
-            $booking->loadMissing(['ruangan', 'participants']);
-            $ruangName = $booking->displayRoomName();
-            $tglMulai = \Carbon\Carbon::parse($booking->tgl_mulai)->translatedFormat('d M Y');
-            $tglSelesai = \Carbon\Carbon::parse($booking->tgl_selesai)->translatedFormat('d M Y');
-            $tglStr = $tglMulai === $tglSelesai ? $tglMulai : "{$tglMulai} s/d {$tglSelesai}";
-            $jmlPeserta = $booking->participants->where('tipe', 'peserta')->count();
-            $layout = ucfirst($booking->layout_preferensi);
-            
-            $kebutuhan = collect([
-                $booking->is_hybrid ? 'Hybrid (Kamera & Mic)' : null,
-                $booking->is_flipchart ? 'Papan Flipchart' : null,
-                $booking->is_pena_mini_note ? 'Pena & Mini Note' : null
-            ])->filter()->implode(', ');
-            if (empty($kebutuhan)) {
-                $kebutuhan = '-';
-            }
+        $booking->loadMissing(['ruangan', 'participants']);
+        $ruangName = $booking->displayRoomName();
+        $tglMulai = \Carbon\Carbon::parse($booking->tgl_mulai)->translatedFormat('d M Y');
+        $tglSelesai = \Carbon\Carbon::parse($booking->tgl_selesai)->translatedFormat('d M Y');
+        $tglStr = $tglMulai === $tglSelesai ? $tglMulai : "{$tglMulai} s/d {$tglSelesai}";
+        $jmlPeserta = $booking->participants->where('tipe', 'peserta')->count();
+        $layout = ucfirst($booking->layout_preferensi);
+        
+        $kebutuhan = collect([
+            $booking->is_hybrid ? 'Hybrid (Kamera & Mic)' : null,
+            $booking->is_flipchart ? 'Papan Flipchart' : null,
+            $booking->is_pena_mini_note ? 'Pena & Mini Note' : null
+        ])->filter()->implode(', ');
+        if (empty($kebutuhan)) {
+            $kebutuhan = '-';
+        }
 
-            // Buat signed URL yang berlaku 7 hari (tanpa perlu login)
-            $shareUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-                'booking.share',
-                now()->addDays(7),
-                ['booking' => $booking->id]
-            );
+        // Buat signed URL yang berlaku 7 hari (tanpa perlu login)
+        $shareUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'booking.share',
+            now()->addDays(7),
+            ['booking' => $booking->id]
+        );
 
-            // Persingkat URL dengan TinyURL agar bisa langsung diklik di WhatsApp
-            $shortUrl = $this->shortenUrl($shareUrl);
+        // Persingkat URL dengan TinyURL agar bisa langsung diklik di WhatsApp
+        $shortUrl = $this->shortenUrl($shareUrl);
 
-            $msg = "*INFORMASI TRAINING BARU (FINAL)*\n\nHalo Frontdesk,\nTerdapat jadwal training baru yang telah di-ACC Final dan perlu disiapkan:\n\n*Nama Training:* {$booking->nama_training}\n*Ruangan:* {$ruangName}\n*Tanggal:* {$tglStr}\n*PIC:* {$booking->pic}\n*Peserta:* {$jmlPeserta} Orang\n*Tata Letak:* {$layout}\n*Tambahan:* {$kebutuhan}\n\n📋 *Lihat Detail Peserta & Panitia:*\n{$shortUrl}\n\n_(Link berlaku 7 hari)_\n\nMohon segera dipersiapkan sesuai kebutuhan. Terima kasih!";
+        $msg = "*INFORMASI TRAINING BARU (FINAL)*\n\nHalo Frontdesk,\nTerdapat jadwal training baru yang telah di-ACC Final dan perlu disiapkan:\n\n*Nama Training:* {$booking->nama_training}\n*Ruangan:* {$ruangName}\n*Tanggal:* {$tglStr}\n*PIC:* {$booking->pic}\n*Peserta:* {$jmlPeserta} Orang\n*Tata Letak:* {$layout}\n*Tambahan:* {$kebutuhan}\n\n📋 *Lihat Detail Peserta & Panitia:*\n{$shortUrl}\n\n_(Link berlaku 7 hari)_\n\nMohon segera dipersiapkan sesuai kebutuhan. Terima kasih!";
 
-            \App\Jobs\SendWhatsAppNotification::dispatch_sync($frontdeskPhone, $msg);
-        });
+        \App\Jobs\SendWhatsAppNotification::dispatch_sync($frontdeskPhone, $msg);
     }
 
     /**
