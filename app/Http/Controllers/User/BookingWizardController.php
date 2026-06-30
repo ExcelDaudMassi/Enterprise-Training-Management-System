@@ -601,8 +601,8 @@ class BookingWizardController extends Controller
             $isCombined = $roomId === 'combined_2_3';
 
             if ($isCombined) {
-                $ruang2 = Ruangan::where('nama_ruang', 'Ruang 2')->lockForUpdate()->first();
-                $ruang3 = Ruangan::where('nama_ruang', 'Ruang 3')->lockForUpdate()->first();
+                $ruang2 = Ruangan::where('nama_ruang', 'Ruang 2')->first();
+                $ruang3 = Ruangan::where('nama_ruang', 'Ruang 3')->first();
                 
                 if ($this->hasConflict($ruang2->id, $validated['tgl_mulai'], $validated['tgl_selesai']) || 
                     $this->hasConflict($ruang3->id, $validated['tgl_mulai'], $validated['tgl_selesai'])) {
@@ -610,7 +610,7 @@ class BookingWizardController extends Controller
                 }
                 $primaryRoomId = $ruang2->id; 
             } else {
-                $ruang = Ruangan::where('id', $roomId)->lockForUpdate()->first();
+                $ruang = Ruangan::where('id', $roomId)->first();
                 if (!$ruang || $this->hasConflict($ruang->id, $validated['tgl_mulai'], $validated['tgl_selesai'])) {
                     throw new \Exception('Maaf, ruangan baru saja dipesan oleh divisi lain beberapa detik yang lalu.');
                 }
@@ -692,12 +692,12 @@ class BookingWizardController extends Controller
                 'booking_id' => $booking->id,
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             \Log::error('[Booking] Submit GAGAL: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
             ], 422);
         }
     }
