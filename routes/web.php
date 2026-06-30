@@ -149,3 +149,11 @@ Route::get('/test-broadcast', function () {
         return response()->json(['status' => 'FAILED', 'error' => $e->getMessage(), 'class' => get_class($e)]);
     }
 });
+
+Route::get('/s/{key}', function ($key) {
+    $url = \Illuminate\Support\Facades\Cache::get('short_url_' . $key);
+    if (!$url) {
+        abort(404, 'Link sudah kedaluwarsa (lebih dari 7 hari) atau tidak ditemukan.');
+    }
+    return redirect($url);
+});

@@ -953,7 +953,9 @@ class BookingApprovalController extends Controller
      */
     private function shortenUrl(string $longUrl): string
     {
-        // Langsung kembalikan URL asli agar tidak ada delay pengiriman pesan WA
-        return $longUrl;
+        // Gunakan pemendek URL lokal berbasis Cache agar instan & aman
+        $key = \Illuminate\Support\Str::random(6);
+        \Illuminate\Support\Facades\Cache::put('short_url_' . $key, $longUrl, now()->addDays(7));
+        return url('/s/' . $key);
     }
 }
