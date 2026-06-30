@@ -388,12 +388,16 @@ async function handleExcelUpload(event) {
                 'Content-Type': 'multipart/form-data'
             }
         })
-        
         if (res.data.success) {
-            participants.value        = res.data.peserta
+            participants.value        = res.data.peserta || []
+            if (res.data.is_dual_sheet) {
+                panitiaList.value     = res.data.panitia || []
+                excelSuccessMessage.value = `✓ Format Dual-Sheet: ${res.data.total_peserta} peserta & ${res.data.total_panitia} panitia dari ${file.name}`
+            } else {
+                excelSuccessMessage.value = `✓ Berhasil memuat ${res.data.total_peserta} peserta dari ${file.name}`
+            }
             uploadedFileName.value    = file.name
             isManualInput.value       = false
-            excelSuccessMessage.value = `✓ Berhasil memuat ${res.data.total_peserta} peserta dari ${file.name}`
         }
     } catch (err) {
         // Ambil error custom dari backend: error.response.data.error
@@ -430,6 +434,9 @@ function removeParticipant(index) {
 
 function resetExcel() {
     participants.value        = [
+        { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
+    ]
+    panitiaList.value         = [
         { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
     ]
     uploadedFileName.value    = 'Input Manual'

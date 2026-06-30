@@ -46,9 +46,35 @@ const showCancelModal = ref(false)
 const cancelLoading = ref(false)
 const cancelError = ref('')
 
+// Participant Modal — two tabs: 'add' | 'excel'
 const showParticipantModal = ref(false)
+const participantModalTab = ref('add')       // default to form tab
 const participantLoading = ref(false)
 const participantError = ref('')
+const participantSuccess = ref('')
+
+// Form state for single-add tab
+const addForm = ref({
+    tipe:    'peserta',
+    nama:    '',
+    nrp:     '',
+    jabatan: '',
+    site:    '',
+    no_hp:   '',
+    gender:  '',
+})
+
+function resetAddForm() {
+    addForm.value = { tipe: 'peserta', nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: '' }
+}
+
+function openParticipantModal(tab = 'add') {
+    participantModalTab.value = tab
+    participantError.value = ''
+    participantSuccess.value = ''
+    resetAddForm()
+    showParticipantModal.value = true
+}
 
 const showDateModal = ref(false)
 const dateLoading = ref(false)
@@ -95,23 +121,99 @@ async function submitCancel() {
     }
 }
 
-async function handleParticipantUpload(e) {
-    const file = e.target.files[0]
-    if (!file) return
+// ── Add single participant (APPEND — tidak menghapus yang lama) ──
+async function addSingleParticipant() {
+    if (!addForm.value.nama.trim()) {
+        participantError.value = 'Nama peserta wajib diisi.'
+        return
+    }
     participantLoading.value = true
     participantError.value = ''
+    participantSuccess.value = ''
     try {
-        const fd = new FormData()
-        fd.append('file_peserta', file)
-        await window.axios.post(`/api/booking/${props.booking.id}/update-participants`, fd)
-        showParticipantModal.value = false
+        const payload = {
+            tipe:    addForm.value.tipe,
+            nama:    addForm.value.nama.trim(),
+            nrp:     addForm.value.nrp.trim() || null,
+            jabatan: addForm.value.jabatan.trim() || null,
+            site:    addForm.value.site.trim() || null,
+            no_hp:   addForm.value.no_hp.trim() || null,
+            gender:  addForm.value.gender || null,
+        }
+        await window.axios.post(`/api/booking/${props.booking.id}/add-participant`, payload)
+        participantSuccess.value = `${payload.tipe === 'peserta' ? 'Peserta' : 'Panitia'} "${payload.nama}" berhasil ditambahkan!`
+        resetAddForm()
+        // Reload hanya data booking (participants) tanpa full page reload
         router.reload({ only: ['booking'], preserveState: true, preserveScroll: true })
     } catch (err) {
-        participantError.value = err.response?.data?.message ?? 'Failed to upload participant file.'
+        const errors = err.response?.data?.errors
+        if (errors) {
+            participantError.value = Object.values(errors).flat().join(' ')
+        } else {
+            participantError.value = err.response?.data?.message ?? 'Gagal menambahkan peserta.'
+        }
     } finally {
         participantLoading.value = false
     }
 }
+
+// ── Upload Excel Phase 1: Preview & deteksi duplikat ──
+const excelPreviewData  = ref(null)   // data dari endpoint preview
+const selectedExcelFile = ref(null)   // file object disimpan untuk fase konfirmasi
+
+async function handleExcelSelected(e) {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Reset state
+    e.target.value = ''
+    selectedExcelFile.value = file
+    excelPreviewData.value = null
+    participantLoading.value = true
+    participantError.value = ''
+    participantSuccess.value = ''
+
+    try {
+        const fd = new FormData()
+        fd.append('file_peserta', file)
+        const res = await window.axios.post(
+            `/api/booking/${props.booking.id}/preview-excel-participants`, fd
+        )
+        excelPreviewData.value = res.data
+    } catch (err) {
+        participantError.value = err.response?.data?.message ?? 'Gagal membaca file Excel.'
+        selectedExcelFile.value = null
+    } finally {
+        participantLoading.value = false
+    }
+}
+
+// ── Upload Excel Phase 2: Konfirmasi → eksekusi replace ──
+async function confirmExcelReplace() {
+    if (!selectedExcelFile.value) return
+    participantLoading.value = true
+    participantError.value = ''
+    try {
+        const fd = new FormData()
+        fd.append('file_peserta', selectedExcelFile.value)
+        await window.axios.post(`/api/booking/${props.booking.id}/update-participants`, fd)
+        excelPreviewData.value = null
+        selectedExcelFile.value = null
+        showParticipantModal.value = false
+        router.reload({ only: ['booking'], preserveState: true, preserveScroll: true })
+    } catch (err) {
+        participantError.value = err.response?.data?.message ?? 'Gagal mengupload file Excel.'
+    } finally {
+        participantLoading.value = false
+    }
+}
+
+function cancelExcelPreview() {
+    excelPreviewData.value = null
+    selectedExcelFile.value = null
+    participantError.value = ''
+}
+
 
 function getInitials(name) {
     if (!name) return 'BK'
@@ -332,9 +434,17 @@ function getAvatarBg(id) {
                                     </div>
                                     <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wide">Participant List</h3>
                                 </div>
-                                <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full select-none">
-                                    {{ booking.participants?.filter(p => p.tipe === 'peserta').length ?? 0 }} Participants
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <button v-if="booking.can_update_participants"
+                                            @click="openParticipantModal('add')"
+                                            class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded transition select-none cursor-pointer">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                        Add
+                                    </button>
+                                    <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full select-none">
+                                        {{ booking.participants?.filter(p => p.tipe === 'peserta').length ?? 0 }} Participants
+                                    </span>
+                                </div>
                             </div>
 
                             <div v-if="!booking.participants?.filter(p => p.tipe === 'peserta').length" 
@@ -374,9 +484,17 @@ function getAvatarBg(id) {
                                     </div>
                                     <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wide">Organizer List</h3>
                                 </div>
-                                <span class="bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-0.5 rounded-full select-none">
-                                    {{ booking.participants?.filter(p => p.tipe === 'panitia').length ?? 0 }} Organizer
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <button v-if="booking.can_update_participants"
+                                            @click="() => { openParticipantModal('add'); addForm.tipe = 'panitia' }"
+                                            class="inline-flex items-center gap-1 text-[10px] font-bold text-violet-600 hover:text-violet-700 border border-violet-200 hover:border-violet-300 bg-violet-50 hover:bg-violet-100 px-2 py-0.5 rounded transition select-none cursor-pointer">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                        Add
+                                    </button>
+                                    <span class="bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-0.5 rounded-full select-none">
+                                        {{ booking.participants?.filter(p => p.tipe === 'panitia').length ?? 0 }} Organizer
+                                    </span>
+                                </div>
                             </div>
 
                             <div v-if="!booking.participants?.filter(p => p.tipe === 'panitia').length" 
@@ -438,12 +556,12 @@ function getAvatarBg(id) {
 
                         <!-- Update Participants -->
                         <button v-if="booking.can_update_participants" 
-                                @click="showParticipantModal = true" 
-                                class="w-full inline-flex items-center justify-center gap-2 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 py-2.5 px-4 rounded-md text-xs font-bold transition shadow-sm active:scale-[0.98] select-none cursor-pointer">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                                @click="openParticipantModal('add')" 
+                                class="w-full inline-flex items-center justify-center gap-2 border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 py-2.5 px-4 rounded-md text-xs font-bold transition shadow-sm active:scale-[0.98] select-none cursor-pointer">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg>
-                            Update Participant File
+                            Tambah / Update Peserta
                         </button>
 
                         <!-- Cancel Booking -->
@@ -563,7 +681,7 @@ function getAvatarBg(id) {
         </Transition>
     </Teleport>
 
-        <!-- ── MODAL: Update File Excel Peserta ── -->
+        <!-- ── MODAL: Update / Tambah Peserta (2 Tab) ── -->
     <Teleport to="body">
         <Transition 
             enter-active-class="transition-all ease-out duration-300" 
@@ -573,41 +691,277 @@ function getAvatarBg(id) {
             leave-from-class="opacity-100 scale-100 translate-y-0" 
             leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
             <div v-if="showParticipantModal" class="fixed inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-xl border border-gray-250 shadow-xl w-full max-w-md p-6">
-                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-blue-50 border border-blue-100 rounded-full mb-4">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                        </svg>
+                <div class="bg-white rounded-xl border border-gray-200 shadow-2xl w-full max-w-lg">
+
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+                        <div>
+                            <h2 class="text-base font-bold text-gray-900">Kelola Peserta</h2>
+                            <p class="text-[11px] text-gray-400 mt-0.5">{{ booking.nama_training }}</p>
+                        </div>
+                        <button @click="showParticipantModal = false" :disabled="participantLoading"
+                                class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                        </button>
                     </div>
-                    <h2 class="text-lg font-bold text-center text-gray-900 mb-2">Update Participant Data</h2>
-                    <p class="text-xs text-center text-gray-500 mb-4">
-                        Re-upload the participant manifest Excel file (.xlsx) for this event booking.
-                    </p>
-                    
-                    <div class="border-2 border-dashed border-gray-250 bg-gray-50/50 hover:bg-gray-50 p-6 text-center rounded-md transition mb-4 cursor-pointer relative">
-                        <input type="file" accept=".xlsx"
-                               @change="handleParticipantUpload"
-                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                        <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 13.5l3 3m0 0l3-3m-3 3v-6m1.06-4.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
-                        </svg>
-                        <p class="text-xs font-bold text-gray-600">Select XLSX Excel File</p>
-                        <p class="text-[9px] text-gray-400 mt-1">Maximum Size: 2MB</p>
+
+                    <!-- Tab Switcher -->
+                    <div class="flex border-b border-gray-100 px-6">
+                        <button @click="participantModalTab = 'add'; participantError = ''; participantSuccess = ''; cancelExcelPreview()"
+                                class="py-2.5 px-4 text-xs font-bold border-b-2 transition-colors -mb-px cursor-pointer"
+                                :class="participantModalTab === 'add' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                Tambah Peserta
+                            </span>
+                        </button>
+                        <button @click="participantModalTab = 'excel'; participantError = ''; participantSuccess = ''; cancelExcelPreview()"
+                                class="py-2.5 px-4 text-xs font-bold border-b-2 transition-colors -mb-px cursor-pointer"
+                                :class="participantModalTab === 'excel' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                                Upload Excel
+                            </span>
+                        </button>
                     </div>
-                    
-                    <div v-if="participantLoading" class="flex items-center justify-center gap-2 text-xs text-blue-600 mb-3 font-semibold">
-                        <span class="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
-                        Uploading manifest file...
+
+                    <!-- Tab Content -->
+                    <div class="p-6">
+
+                        <!-- ── TAB: Tambah Peserta (Form Manual) ── -->
+                        <div v-if="participantModalTab === 'add'" class="space-y-3">
+
+                            <!-- Tipe Toggle -->
+                            <div class="flex rounded-md border border-gray-200 overflow-hidden">
+                                <button @click="addForm.tipe = 'peserta'"
+                                        class="flex-1 py-2 text-xs font-bold transition cursor-pointer"
+                                        :class="addForm.tipe === 'peserta' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'">
+                                    Peserta
+                                </button>
+                                <button @click="addForm.tipe = 'panitia'"
+                                        class="flex-1 py-2 text-xs font-bold transition cursor-pointer"
+                                        :class="addForm.tipe === 'panitia' ? 'bg-violet-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'">
+                                    Panitia
+                                </button>
+                            </div>
+
+                            <!-- Nama (required) -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                                    Nama <span class="text-red-500">*</span>
+                                </label>
+                                <input v-model="addForm.nama" type="text" placeholder="Nama lengkap"
+                                       class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
+                            </div>
+
+                            <!-- Grid: NRP + Gender -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">NRP</label>
+                                    <input v-model="addForm.nrp" type="text" placeholder="Kosong = N/A"
+                                           class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Gender</label>
+                                    <select v-model="addForm.gender"
+                                            class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition bg-white">
+                                        <option value="">— Pilih —</option>
+                                        <option value="L">Laki-laki (L)</option>
+                                        <option value="P">Perempuan (P)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Grid: Jabatan + Site -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Jabatan</label>
+                                    <input v-model="addForm.jabatan" type="text" placeholder="Jabatan / posisi"
+                                           class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Site</label>
+                                    <input v-model="addForm.site" type="text" placeholder="Lokasi / site"
+                                           class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
+                                </div>
+                            </div>
+
+                            <!-- No HP -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">No. HP</label>
+                                <input v-model="addForm.no_hp" type="text" placeholder="Nomor HP (opsional)"
+                                       class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
+                            </div>
+
+                            <!-- Loading -->
+                            <div v-if="participantLoading" class="flex items-center justify-center gap-2 text-xs text-blue-600 py-1 font-semibold">
+                                <span class="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
+                                Menyimpan data...
+                            </div>
+
+                            <!-- Error -->
+                            <div v-if="participantError" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md p-3 font-semibold">
+                                {{ participantError }}
+                            </div>
+
+                            <!-- Success (persistent until next action) -->
+                            <div v-if="participantSuccess" class="text-xs text-green-700 bg-green-50 border border-green-200 rounded-md p-3 font-semibold flex items-center gap-2">
+                                <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ participantSuccess }}
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex gap-2 pt-1">
+                                <button @click="showParticipantModal = false" :disabled="participantLoading"
+                                        class="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-md text-xs font-bold hover:bg-gray-50 transition cursor-pointer select-none">
+                                    Tutup
+                                </button>
+                                <button @click="addSingleParticipant" :disabled="participantLoading || !addForm.nama.trim()"
+                                        class="flex-1 py-2.5 rounded-md text-xs font-bold text-white transition shadow-sm cursor-pointer select-none disabled:opacity-50"
+                                        :class="addForm.tipe === 'peserta' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-violet-600 hover:bg-violet-700'">
+                                    {{ participantLoading ? 'Menyimpan...' : `+ Tambah ${addForm.tipe === 'peserta' ? 'Peserta' : 'Panitia'}` }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ── TAB: Upload Excel (Replace All) ── -->
+                        <div v-if="participantModalTab === 'excel'" class="space-y-4">
+
+                            <!-- Phase 1: Pilih File (tampil selama belum ada preview) -->
+                            <template v-if="!excelPreviewData">
+                                <div class="p-3 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-800 font-semibold flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                                    <span>Upload Excel akan <strong>mengganti semua</strong> data peserta &amp; panitia yang ada. Sistem akan memeriksa duplikat sebelum mengganti.</span>
+                                </div>
+
+                                <div class="border-2 border-dashed border-gray-200 bg-gray-50/50 hover:bg-gray-50 p-6 text-center rounded-md transition cursor-pointer relative"
+                                     :class="participantLoading ? 'opacity-60 pointer-events-none' : ''">
+                                    <input type="file" accept=".xlsx"
+                                           @change="handleExcelSelected"
+                                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                    <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13.5l3 3m0 0l3-3m-3 3v-6m1.06-4.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                                    </svg>
+                                    <p class="text-xs font-bold text-gray-600">{{ participantLoading ? 'Membaca file...' : 'Klik untuk pilih file XLSX' }}</p>
+                                    <p class="text-[9px] text-gray-400 mt-1">Maksimum 2MB · Format: .xlsx</p>
+                                </div>
+
+                                <!-- Loading spinner saat baca file -->
+                                <div v-if="participantLoading" class="flex items-center justify-center gap-2 text-xs text-blue-600 font-semibold">
+                                    <span class="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
+                                    Membaca & memverifikasi file...
+                                </div>
+                            </template>
+
+                            <!-- Phase 2: Konfirmasi Preview (tampil setelah preview berhasil) -->
+                            <template v-if="excelPreviewData">
+
+                                <!-- Badge format -->
+                                <div class="flex items-center gap-2 justify-center">
+                                    <span v-if="excelPreviewData.is_dual_sheet"
+                                          class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg>
+                                        Format Dual Sheet (Peserta + Panitia)
+                                    </span>
+                                    <span v-else class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                                        Format Single Sheet (Peserta saja)
+                                    </span>
+                                </div>
+
+                                <!-- Stats Row -->
+                                <div v-if="excelPreviewData.is_dual_sheet" class="grid grid-cols-4 gap-2">
+                                    <div class="bg-blue-50 border border-blue-100 rounded-md p-2.5 text-center">
+                                        <p class="text-base font-bold text-blue-700">{{ excelPreviewData.total_excel }}</p>
+                                        <p class="text-[9px] text-blue-500 font-semibold mt-0.5">Total</p>
+                                    </div>
+                                    <div class="bg-sky-50 border border-sky-100 rounded-md p-2.5 text-center">
+                                        <p class="text-base font-bold text-sky-700">{{ excelPreviewData.total_peserta }}</p>
+                                        <p class="text-[9px] text-sky-500 font-semibold mt-0.5">Peserta</p>
+                                    </div>
+                                    <div class="bg-violet-50 border border-violet-100 rounded-md p-2.5 text-center">
+                                        <p class="text-base font-bold text-violet-700">{{ excelPreviewData.total_panitia }}</p>
+                                        <p class="text-[9px] text-violet-500 font-semibold mt-0.5">Panitia</p>
+                                    </div>
+                                    <div class="rounded-md p-2.5 text-center"
+                                         :class="excelPreviewData.total_duplikat > 0 ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'">
+                                        <p class="text-base font-bold" :class="excelPreviewData.total_duplikat > 0 ? 'text-orange-700' : 'text-green-700'">{{ excelPreviewData.total_duplikat }}</p>
+                                        <p class="text-[9px] font-semibold mt-0.5" :class="excelPreviewData.total_duplikat > 0 ? 'text-orange-500' : 'text-green-500'">Duplikat</p>
+                                    </div>
+                                </div>
+                                <div v-else class="grid grid-cols-3 gap-2">
+                                    <div class="bg-blue-50 border border-blue-100 rounded-md p-3 text-center">
+                                        <p class="text-lg font-bold text-blue-700">{{ excelPreviewData.total_excel }}</p>
+                                        <p class="text-[10px] text-blue-500 font-semibold mt-0.5">Dari Excel</p>
+                                    </div>
+                                    <div class="bg-gray-50 border border-gray-200 rounded-md p-3 text-center">
+                                        <p class="text-lg font-bold text-gray-700">{{ excelPreviewData.total_existing }}</p>
+                                        <p class="text-[10px] text-gray-500 font-semibold mt-0.5">Existing</p>
+                                    </div>
+                                    <div class="rounded-md p-3 text-center"
+                                         :class="excelPreviewData.total_duplikat > 0 ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'">
+                                        <p class="text-lg font-bold" :class="excelPreviewData.total_duplikat > 0 ? 'text-orange-700' : 'text-green-700'">{{ excelPreviewData.total_duplikat }}</p>
+                                        <p class="text-[10px] font-semibold mt-0.5" :class="excelPreviewData.total_duplikat > 0 ? 'text-orange-500' : 'text-green-500'">Duplikat</p>
+                                    </div>
+                                </div>
+
+
+                                <!-- Alert: Ada duplikat -->
+                                <div v-if="excelPreviewData.total_duplikat > 0" class="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                                    <p class="text-xs font-bold text-orange-800 flex items-center gap-1.5 mb-2">
+                                        <svg class="w-4 h-4 text-orange-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                                        {{ excelPreviewData.total_duplikat }} peserta di Excel sudah terdaftar sebelumnya:
+                                    </p>
+                                    <ul class="space-y-1 max-h-28 overflow-y-auto">
+                                        <li v-for="dup in excelPreviewData.duplikat" :key="dup.nrp + dup.nama"
+                                            class="text-[11px] text-orange-700 bg-white/70 border border-orange-100 rounded px-2 py-1 flex items-center justify-between gap-2">
+                                            <span class="font-bold truncate">{{ dup.nama }}</span>
+                                            <span class="text-orange-500 text-[10px] shrink-0">{{ dup.alasan }}</span>
+                                        </li>
+                                    </ul>
+                                    <p class="text-[10px] text-orange-600 mt-2">Jika Anda lanjutkan, semua data lama (termasuk peserta di atas) akan <strong>diganti</strong> dengan data dari Excel.</p>
+                                </div>
+
+                                <!-- Alert: Tidak ada duplikat -->
+                                <div v-else class="p-3 bg-green-50 border border-green-200 rounded-md text-xs text-green-800 font-semibold flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                    Tidak ada data duplikat ditemukan. Aman untuk diganti.
+                                </div>
+
+                                <!-- Nama file -->
+                                <p class="text-[11px] text-gray-500 text-center truncate">
+                                    📄 {{ selectedExcelFile?.name }}
+                                </p>
+                            </template>
+
+                            <!-- Error -->
+                            <div v-if="participantError" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md p-3 font-semibold">
+                                {{ participantError }}
+                            </div>
+
+                            <!-- Tombol aksi -->
+                            <div class="flex gap-2">
+                                <button @click="excelPreviewData ? cancelExcelPreview() : (showParticipantModal = false)"
+                                        :disabled="participantLoading"
+                                        class="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-md text-xs font-bold hover:bg-gray-50 transition cursor-pointer select-none disabled:opacity-50">
+                                    {{ excelPreviewData ? 'Ganti File' : 'Batal' }}
+                                </button>
+                                <button v-if="excelPreviewData"
+                                        @click="confirmExcelReplace"
+                                        :disabled="participantLoading"
+                                        class="flex-1 py-2.5 rounded-md text-xs font-bold text-white transition shadow-sm cursor-pointer select-none disabled:opacity-50"
+                                        :class="excelPreviewData.total_duplikat > 0 ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'">
+                                    <span v-if="participantLoading" class="flex items-center justify-center gap-1.5">
+                                        <span class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                        Mengganti...
+                                    </span>
+                                    <span v-else>
+                                        {{ excelPreviewData.total_duplikat > 0 ? '⚠ Ya, Tetap Ganti Semua' : '✓ Ganti Semua Data' }}
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
-                    
-                    <div v-if="participantError" class="mb-3 text-xs text-red-650 bg-red-50 border border-red-150 rounded-sm p-3 font-semibold">
-                        {{ participantError }}
-                    </div>
-                    
-                    <button @click="showParticipantModal = false" :disabled="participantLoading"
-                            class="w-full py-2 bg-white border border-gray-300 text-gray-700 rounded-md text-xs font-bold hover:bg-gray-50 transition select-none cursor-pointer">
-                        Cancel
-                    </button>
                 </div>
             </div>
         </Transition>

@@ -73,95 +73,198 @@ class BookingWizardController extends Controller
             ], 422);
         }
 
+        $sheetNames  = $spreadsheet->getSheetNames();
+        $normalNames = array_map(fn($n) => mb_strtolower(trim($n)), $sheetNames);
+
+        $hasPesertaSheet = in_array('peserta', $normalNames);
+        $hasPanitiaSheet = in_array('panitia', $normalNames);
+        $isDualSheet     = $hasPesertaSheet && $hasPanitiaSheet;
+
         $dataPeserta   = [];
-        $jumlahPeserta = 0;
+        $dataPanitia   = [];
         $trackedNrps   = []; // Tracker duplikasi NRP di memori
 
-        // 3. Perulangan per baris dimulai dari baris ke-5 (karena baris 1-4 adalah header & info)
-        for ($row = 5; $row <= $highestRow; $row++) {
-            // 4. Baca per kolom menggunakan koordinat huruf (A, B, C, D, E, F) dan pastikan di-cast menjadi string
-            $nama         = trim((string) $sheet->getCell("A" . $row)->getValue());
-            $nrp          = trim((string) $sheet->getCell("B" . $row)->getValue());
-            $jabatan      = trim((string) $sheet->getCell("C" . $row)->getValue());
-            $site         = trim((string) $sheet->getCell("D" . $row)->getValue());
-            $noHp         = trim((string) $sheet->getCell("E" . $row)->getValue());
-            $jenisKelamin = trim((string) $sheet->getCell("F" . $row)->getValue());
-
-            // Abaikan jika barisnya benar-benar kosong
-            if (empty($nama) && empty($nrp) && empty($jabatan) && empty($site) && empty($noHp) && empty($jenisKelamin)) {
-                continue;
-            }
-
-            // 5. Validasi data Wajib (Kolom A, B, C, D)
-            if (empty($nama)) {
-                return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Nama Lengkap (A) wajib diisi!",
-                ], 422);
-            }
-            if (empty($nrp)) {
-                return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom NRP (B) wajib diisi, ketik 'N/A' jika tidak ada!",
-                ], 422);
-            }
-            if (empty($jabatan)) {
-                return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jabatan (C) wajib diisi!",
-                ], 422);
-            }
-            if (empty($site)) {
-                return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Site (D) wajib diisi!",
-                ], 422);
-            }
-            
-            // Validasi Nomor HP (Kolom E) - Wajib berisi angka
-            if (empty($noHp) || !preg_match('/^[0-9+]+$/', $noHp)) {
-                return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom No. HP (E) wajib diisi dan minimal berisi angka!",
-                ], 422);
-            }
-
-            // Validasi Jenis Kelamin (Kolom F)
-            $jk = strtoupper(trim($jenisKelamin));
-            if ($jk !== 'L' && $jk !== 'P') {
-                return response()->json([
-                    'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jenis Kelamin (F) harus berisi L atau P!",
-                ], 422);
-            }
-
-            // Validasi duplikasi NRP (Jika NRP bukan "N/A")
-            if (strtoupper($nrp) !== 'N/A') {
-                if (in_array($nrp, $trackedNrps)) {
-                    return response()->json([
-                        'error' => "Pemberitahuan: Baris ke-{$row} Gagal. NRP '{$nrp}' terdeteksi ganda dalam file Excel!",
-                    ], 422);
-                }
-                $trackedNrps[] = $nrp;
-            }
-
-            $dataPeserta[] = [
-                'nama'    => $nama,
-                'nrp'     => $nrp,
-                'jabatan' => $jabatan,
-                'site'    => $site,
-                'no_hp'   => $noHp,
-                'gender'  => $jk,
+        if ($isDualSheet) {
+            $sheetMap = [
+                'peserta' => 'peserta',
+                'panitia' => 'panitia',
             ];
 
-            $jumlahPeserta++;
+            foreach ($sheetMap as $sheetNameLower => $tipe) {
+                $idx = array_search($sheetNameLower, $normalNames);
+                if ($idx === false) continue;
+
+                $sheet      = $spreadsheet->getSheet($idx);
+                $highestRow = $sheet->getHighestRow();
+
+                for ($row = 5; $row <= $highestRow; $row++) {
+                    $nama         = trim((string) $sheet->getCell("A" . $row)->getValue());
+                    $nrp          = trim((string) $sheet->getCell("B" . $row)->getValue());
+                    $jabatan      = trim((string) $sheet->getCell("C" . $row)->getValue());
+                    $site         = trim((string) $sheet->getCell("D" . $row)->getValue());
+                    $noHp         = trim((string) $sheet->getCell("E" . $row)->getValue());
+                    $jenisKelamin = trim((string) $sheet->getCell("F" . $row)->getValue());
+
+                    // Abaikan jika barisnya benar-benar kosong
+                    if (empty($nama) && empty($nrp) && empty($jabatan) && empty($site) && empty($noHp) && empty($jenisKelamin)) {
+                        continue;
+                    }
+
+                    // 5. Validasi data Wajib
+                    if (empty($nama)) {
+                        return response()->json([
+                            'error' => "Pemberitahuan: Sheet {$tipe} Baris ke-{$row} Gagal. Kolom Nama Lengkap (A) wajib diisi!",
+                        ], 422);
+                    }
+                    if (empty($nrp)) {
+                        return response()->json([
+                            'error' => "Pemberitahuan: Sheet {$tipe} Baris ke-{$row} Gagal. Kolom NRP (B) wajib diisi, ketik 'N/A' jika tidak ada!",
+                        ], 422);
+                    }
+                    if (empty($jabatan)) {
+                        return response()->json([
+                            'error' => "Pemberitahuan: Sheet {$tipe} Baris ke-{$row} Gagal. Kolom Jabatan (C) wajib diisi!",
+                        ], 422);
+                    }
+                    if (empty($site)) {
+                        return response()->json([
+                            'error' => "Pemberitahuan: Sheet {$tipe} Baris ke-{$row} Gagal. Kolom Site (D) wajib diisi!",
+                        ], 422);
+                    }
+                    
+                    // Validasi Nomor HP
+                    if (empty($noHp) || !preg_match('/^[0-9+]+$/', $noHp)) {
+                        return response()->json([
+                            'error' => "Pemberitahuan: Sheet {$tipe} Baris ke-{$row} Gagal. Kolom No. HP (E) wajib diisi dan minimal berisi angka!",
+                        ], 422);
+                    }
+
+                    // Validasi Jenis Kelamin
+                    $jk = strtoupper(trim($jenisKelamin));
+                    if ($jk !== 'L' && $jk !== 'P') {
+                        return response()->json([
+                            'error' => "Pemberitahuan: Sheet {$tipe} Baris ke-{$row} Gagal. Kolom Jenis Kelamin (F) harus berisi L atau P!",
+                        ], 422);
+                    }
+
+                    // Validasi duplikasi NRP
+                    if (strtoupper($nrp) !== 'N/A') {
+                        $nrpUpper = strtoupper($nrp);
+                        if (in_array($nrpUpper, $trackedNrps)) {
+                            return response()->json([
+                                'error' => "Pemberitahuan: Sheet {$tipe} Baris ke-{$row} Gagal. NRP '{$nrp}' terdeteksi ganda dalam file Excel!",
+                            ], 422);
+                        }
+                        $trackedNrps[] = $nrpUpper;
+                    }
+
+                    $rowArray = [
+                        'nama'    => $nama,
+                        'nrp'     => $nrp,
+                        'jabatan' => $jabatan,
+                        'site'    => $site,
+                        'no_hp'   => $noHp,
+                        'gender'  => $jk,
+                    ];
+
+                    if ($tipe === 'peserta') {
+                        $dataPeserta[] = $rowArray;
+                    } else {
+                        $dataPanitia[] = $rowArray;
+                    }
+                }
+            }
+        } else {
+            // Backward compatibility: format lama (satu sheet, semua dianggap peserta)
+            $sheet      = $spreadsheet->getActiveSheet();
+            $highestRow = $sheet->getHighestRow();
+
+            for ($row = 5; $row <= $highestRow; $row++) {
+                $nama         = trim((string) $sheet->getCell("A" . $row)->getValue());
+                $nrp          = trim((string) $sheet->getCell("B" . $row)->getValue());
+                $jabatan      = trim((string) $sheet->getCell("C" . $row)->getValue());
+                $site         = trim((string) $sheet->getCell("D" . $row)->getValue());
+                $noHp         = trim((string) $sheet->getCell("E" . $row)->getValue());
+                $jenisKelamin = trim((string) $sheet->getCell("F" . $row)->getValue());
+
+                // Abaikan jika barisnya benar-benar kosong
+                if (empty($nama) && empty($nrp) && empty($jabatan) && empty($site) && empty($noHp) && empty($jenisKelamin)) {
+                    continue;
+                }
+
+                // Validasi data Wajib
+                if (empty($nama)) {
+                    return response()->json([
+                        'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Nama Lengkap (A) wajib diisi!",
+                    ], 422);
+                }
+                if (empty($nrp)) {
+                    return response()->json([
+                        'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom NRP (B) wajib diisi, ketik 'N/A' jika tidak ada!",
+                    ], 422);
+                }
+                if (empty($jabatan)) {
+                    return response()->json([
+                        'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jabatan (C) wajib diisi!",
+                    ], 422);
+                }
+                if (empty($site)) {
+                    return response()->json([
+                        'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Site (D) wajib diisi!",
+                    ], 422);
+                }
+                
+                // Validasi Nomor HP
+                if (empty($noHp) || !preg_match('/^[0-9+]+$/', $noHp)) {
+                    return response()->json([
+                        'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom No. HP (E) wajib diisi dan minimal berisi angka!",
+                    ], 422);
+                }
+
+                // Validasi Jenis Kelamin
+                $jk = strtoupper(trim($jenisKelamin));
+                if ($jk !== 'L' && $jk !== 'P') {
+                    return response()->json([
+                        'error' => "Pemberitahuan: Baris ke-{$row} Gagal. Kolom Jenis Kelamin (F) harus berisi L atau P!",
+                    ], 422);
+                }
+
+                // Validasi duplikasi NRP
+                if (strtoupper($nrp) !== 'N/A') {
+                    $nrpUpper = strtoupper($nrp);
+                    if (in_array($nrpUpper, $trackedNrps)) {
+                        return response()->json([
+                            'error' => "Pemberitahuan: Baris ke-{$row} Gagal. NRP '{$nrp}' terdeteksi ganda dalam file Excel!",
+                        ], 422);
+                    }
+                    $trackedNrps[] = $nrpUpper;
+                }
+
+                $dataPeserta[] = [
+                    'nama'    => $nama,
+                    'nrp'     => $nrp,
+                    'jabatan' => $jabatan,
+                    'site'    => $site,
+                    'no_hp'   => $noHp,
+                    'gender'  => $jk,
+                ];
+            }
         }
 
-        if ($jumlahPeserta === 0) {
+        if (count($dataPeserta) === 0 && count($dataPanitia) === 0) {
             return response()->json([
-                'error' => 'Pemberitahuan: File Excel tidak berisi data peserta yang valid pada baris 5 dst.',
+                'error' => 'Pemberitahuan: File Excel tidak berisi data peserta atau panitia yang valid pada baris 5 dst.',
             ], 422);
         }
 
         // 6. Kembalikan hasil kalkulasi bersih ke Frontend
         return response()->json([
             'success'       => true,
-            'total_peserta' => $jumlahPeserta,
+            'is_dual_sheet' => $isDualSheet,
+            'total_peserta' => count($dataPeserta),
             'peserta'       => $dataPeserta,
+            'total_panitia' => count($dataPanitia),
+            'panitia'       => $dataPanitia,
         ]);
     }
 

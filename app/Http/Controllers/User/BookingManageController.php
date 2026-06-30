@@ -171,43 +171,20 @@ class BookingManageController extends Controller
             ]);
 
             try {
-                $spreadsheet = IOFactory::load($request->file('file_peserta')->getRealPath());
-                $sheet       = $spreadsheet->getActiveSheet();
-                $highestRow  = $sheet->getHighestRow();
+                $parsed = $this->parseExcelFile($request->file('file_peserta')->getRealPath());
 
-                $pesertaBaru = [];
-                $trackedNrps = [];
-                for ($row = 5; $row <= $highestRow; $row++) {
-                    $nama    = trim((string) $sheet->getCell("A{$row}")->getValue());
-                    $nrp     = trim((string) $sheet->getCell("B{$row}")->getValue());
-                    $jabatan = trim((string) $sheet->getCell("C{$row}")->getValue());
-                    $site    = trim((string) $sheet->getCell("D{$row}")->getValue());
-                    $noHp    = trim((string) $sheet->getCell("E{$row}")->getValue());
-                    $jk      = strtoupper(trim((string) $sheet->getCell("F{$row}")->getValue()));
-
-                    if (empty($nama)) continue;
-
-                    // Validasi duplikasi NRP (Jika NRP bukan "N/A")
-                    if (!empty($nrp) && strtoupper($nrp) !== 'N/A') {
-                        if (in_array($nrp, $trackedNrps)) {
-                            return response()->json([
-                                'success' => false,
-                                'message' => "Gagal: Baris ke-{$row}. NRP '{$nrp}' terdeteksi ganda dalam file Excel!",
-                            ], 422);
-                        }
-                        $trackedNrps[] = $nrp;
-                    }
-
-                    $pesertaBaru[] = [
-                        'nama'    => $nama,
-                        'nrp'     => $nrp ?: 'N/A',
-                        'jabatan' => $jabatan,
-                        'site'    => $site,
-                        'no_hp'   => $noHp,
-                        'gender'  => in_array($jk, ['L', 'P']) ? $jk : null,
-                    ];
+                if (!$parsed['success']) {
+                    return response()->json(['success' => false, 'message' => $parsed['message']], 422);
                 }
-                $validated['peserta'] = $pesertaBaru;
+
+                // Format baru: data sudah diberi 'tipe' oleh parseExcelFile
+                // Format lama (single sheet): semua tanpa 'tipe', anggap peserta
+                $validated['peserta'] = collect($parsed['data'])
+                    ->filter(fn($r) => ($r['tipe'] ?? 'peserta') === 'peserta')
+                    ->values()->all();
+                $validated['panitia'] = collect($parsed['data'])
+                    ->filter(fn($r) => ($r['tipe'] ?? 'peserta') === 'panitia')
+                    ->values()->all();
             } catch (\Exception $e) {
                 return response()->json(['success' => false, 'message' => 'Gagal membaca file Excel: ' . $e->getMessage()], 422);
             }
@@ -287,6 +264,169 @@ class BookingManageController extends Controller
     }
 
     // ============================================================
+    // PREVIEW EXCEL PARTICIPANTS — Parse Excel & deteksi duplikat
+    // terhadap data existing, TANPA menyimpan apapun ke database.
+    // ============================================================
+    public function previewExcelParticipants(Request $request, Booking $booking)
+    {
+        if ($booking->user_id !== Auth::id()) {
+            return response()->json(['success' => false, 'message' => 'Tidak diizinkan.'], 403);
+        }
+
+        if (!$booking->canUpdateParticipants()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data peserta tidak dapat diperbarui. Booking sudah berstatus: ' . $booking->status,
+            ], 422);
+        }
+
+        $request->validate([
+            'file_peserta' => 'required|file|max:2048|mimes:xlsx',
+        ]);
+
+        try {
+            $parsed = $this->parseExcelFile($request->file('file_peserta')->getRealPath());
+
+            if (!$parsed['success']) {
+                return response()->json(['success' => false, 'message' => $parsed['message']], 422);
+            }
+
+            $excelRows = $parsed['data']; // [{tipe, nama, nrp, jabatan, site, no_hp, gender}, ...]
+
+            // Ambil peserta existing dari DB
+            $existing = $booking->participants()->get(['nama', 'nrp', 'tipe']);
+
+            // Buat index untuk pencocokan cepat
+            $existingNrps  = $existing->pluck('nrp')
+                ->map(fn($n) => strtoupper(trim($n)))
+                ->filter(fn($n) => $n && $n !== 'N/A')
+                ->values()->all();
+            $existingNames = $existing->pluck('nama')
+                ->map(fn($n) => mb_strtolower(trim($n)))
+                ->values()->all();
+
+            // Tandai baris Excel yang duplikat dengan existing
+            $duplikat = [];
+            foreach ($excelRows as $row) {
+                $nrpUpper  = strtoupper(trim($row['nrp'] ?? ''));
+                $namaLower = mb_strtolower(trim($row['nama'] ?? ''));
+
+                $isDuplicate = false;
+                $alasan      = '';
+
+                if ($nrpUpper && $nrpUpper !== 'N/A' && in_array($nrpUpper, $existingNrps)) {
+                    $isDuplicate = true;
+                    $alasan      = "NRP {$row['nrp']} sudah terdaftar";
+                } elseif ($namaLower && in_array($namaLower, $existingNames)) {
+                    $isDuplicate = true;
+                    $alasan      = "Nama '{$row['nama']}' sudah terdaftar";
+                }
+
+                if ($isDuplicate) {
+                    $duplikat[] = [
+                        'nama'   => $row['nama'],
+                        'nrp'    => $row['nrp'],
+                        'tipe'   => $row['tipe'] ?? 'peserta',
+                        'alasan' => $alasan,
+                    ];
+                }
+            }
+
+            $totalPeserta = collect($excelRows)->where('tipe', 'peserta')->count();
+            $totalPanitia = collect($excelRows)->where('tipe', 'panitia')->count();
+
+            return response()->json([
+                'success'          => true,
+                'total_excel'      => count($excelRows),
+                'total_peserta'    => $totalPeserta,
+                'total_panitia'    => $totalPanitia,
+                'total_existing'   => $existing->count(),
+                'duplikat'         => $duplikat,
+                'total_duplikat'   => count($duplikat),
+                'is_dual_sheet'    => $parsed['is_dual_sheet'] ?? false,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal membaca file Excel: ' . $e->getMessage()], 422);
+        }
+    }
+
+    // ============================================================
+    // ADD SINGLE PARTICIPANT — User menambah satu peserta/panitia
+    // (APPEND — tidak menghapus peserta yang sudah ada)
+    // ============================================================
+    public function addParticipant(Request $request, Booking $booking)
+    {
+        if ($booking->user_id !== Auth::id()) {
+            return response()->json(['success' => false, 'message' => 'Tidak diizinkan.'], 403);
+        }
+
+        if (!$booking->canUpdateParticipants()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data peserta tidak dapat diperbarui. Booking sudah berstatus: ' . $booking->status,
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'tipe'    => 'required|in:peserta,panitia',
+            'nama'    => 'required|string|max:255',
+            'nrp'     => 'nullable|string|max:100',
+            'jabatan' => 'nullable|string|max:255',
+            'site'    => 'nullable|string|max:255',
+            'no_hp'   => 'nullable|string|max:50',
+            'gender'  => 'nullable|in:L,P',
+        ], [
+            'nama.required' => 'Nama peserta wajib diisi.',
+            'tipe.required' => 'Tipe (peserta/panitia) wajib dipilih.',
+            'tipe.in'       => 'Tipe harus salah satu dari: peserta, panitia.',
+            'gender.in'     => 'Gender harus L atau P.',
+        ]);
+
+        $participant = BookingParticipant::create([
+            'booking_id' => $booking->id,
+            'tipe'       => $validated['tipe'],
+            'nama'       => $validated['nama'],
+            'nrp'        => $validated['nrp'] ?? 'N/A',
+            'jabatan'    => $validated['jabatan'] ?? null,
+            'site'       => $validated['site'] ?? null,
+            'no_hp'      => $validated['no_hp'] ?? null,
+            'gender'     => $validated['gender'] ?? null,
+        ]);
+
+        $booking->load('participants');
+
+        \App\Models\BookingLog::create([
+            'booking_id' => $booking->id,
+            'user_id'    => Auth::id(),
+            'action'     => 'User Added Participant',
+            'message'    => "User menambahkan {$validated['tipe']}: {$validated['nama']}.",
+        ]);
+
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            \App\Models\BookingNotification::create([
+                'user_id'    => $admin->id,
+                'booking_id' => $booking->id,
+                'tipe'       => 'info',
+                'title'      => 'Tambah Peserta Baru',
+                'message'    => "User menambah {$validated['tipe']} baru ({$validated['nama']}) untuk booking: {$booking->nama_training}",
+                'is_read'    => false,
+            ]);
+        }
+
+        broadcast(new \App\Events\BookingStatusUpdated($booking));
+
+        return response()->json([
+            'success'         => true,
+            'message'         => ucfirst($validated['tipe']) . ' berhasil ditambahkan.',
+            'participant'     => $participant,
+            'jumlah_peserta'  => $booking->participants->where('tipe', 'peserta')->count(),
+            'jumlah_panitia'  => $booking->participants->where('tipe', 'panitia')->count(),
+        ]);
+    }
+
+    // ============================================================
     // PRIVATE HELPERS
     // ============================================================
 
@@ -324,6 +464,129 @@ class BookingManageController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Parse file Excel peserta menjadi array data.
+     *
+     * Format baru (dual-sheet): Sheet bernama 'Peserta' dan 'Panitia'.
+     *   → Setiap baris diberi field 'tipe' = 'peserta' atau 'panitia'.
+     *
+     * Format lama (single-sheet): Sheet aktif apapun, semua baris = peserta.
+     *   → is_dual_sheet = false, setiap baris tanpa field 'tipe'.
+     *
+     * Kolom (mulai baris 5):
+     *   A = Nama, B = NRP, C = Jabatan, D = Site, E = No HP, F = Gender (L/P)
+     *
+     * @param  string  $filePath  Path absolut ke file xlsx
+     * @return array{success: bool, is_dual_sheet: bool, data?: array, message?: string}
+     */
+    private function parseExcelFile(string $filePath): array
+    {
+        $spreadsheet  = IOFactory::load($filePath);
+        $sheetNames   = $spreadsheet->getSheetNames();
+        $normalNames  = array_map(fn($n) => mb_strtolower(trim($n)), $sheetNames);
+
+        // Deteksi format baru: ada sheet 'peserta' DAN 'panitia'
+        $hasPesertaSheet = in_array('peserta', $normalNames);
+        $hasPanitiaSheet = in_array('panitia', $normalNames);
+        $isDualSheet     = $hasPesertaSheet && $hasPanitiaSheet;
+
+        $result      = [];
+        $trackedNrps = [];   // global NRP tracker (lintas sheet)
+
+        if ($isDualSheet) {
+            // ── Format baru: baca 2 sheet ──────────────────────────
+            $sheetMap = [
+                'peserta' => 'peserta',
+                'panitia' => 'panitia',
+            ];
+
+            foreach ($sheetMap as $sheetNameLower => $tipe) {
+                // Cari index sheet yang cocok (case-insensitive)
+                $idx = array_search($sheetNameLower, $normalNames);
+                if ($idx === false) continue;
+
+                $sheet      = $spreadsheet->getSheet($idx);
+                $highestRow = $sheet->getHighestRow();
+
+                for ($row = 5; $row <= $highestRow; $row++) {
+                    $nama    = trim((string) $sheet->getCell("A{$row}")->getValue());
+                    $nrp     = trim((string) $sheet->getCell("B{$row}")->getValue());
+                    $jabatan = trim((string) $sheet->getCell("C{$row}")->getValue());
+                    $site    = trim((string) $sheet->getCell("D{$row}")->getValue());
+                    $noHp    = trim((string) $sheet->getCell("E{$row}")->getValue());
+                    $jk      = strtoupper(trim((string) $sheet->getCell("F{$row}")->getValue()));
+
+                    if (empty($nama)) continue;
+
+                    // Cek NRP ganda global
+                    if (!empty($nrp) && strtoupper($nrp) !== 'N/A') {
+                        $nrpUpper = strtoupper($nrp);
+                        if (in_array($nrpUpper, $trackedNrps)) {
+                            return [
+                                'success'      => false,
+                                'is_dual_sheet' => true,
+                                'message'      => "Gagal: Sheet '{$tipe}' baris {$row}. NRP '{$nrp}' sudah digunakan di sheet lain atau baris sebelumnya!",
+                            ];
+                        }
+                        $trackedNrps[] = $nrpUpper;
+                    }
+
+                    $result[] = [
+                        'tipe'    => $tipe,
+                        'nama'    => $nama,
+                        'nrp'     => $nrp ?: 'N/A',
+                        'jabatan' => $jabatan ?: null,
+                        'site'    => $site ?: null,
+                        'no_hp'   => $noHp ?: null,
+                        'gender'  => in_array($jk, ['L', 'P']) ? $jk : null,
+                    ];
+                }
+            }
+        } else {
+            // ── Format lama: single sheet (backward compat) ─────────
+            $sheet      = $spreadsheet->getActiveSheet();
+            $highestRow = $sheet->getHighestRow();
+
+            for ($row = 5; $row <= $highestRow; $row++) {
+                $nama    = trim((string) $sheet->getCell("A{$row}")->getValue());
+                $nrp     = trim((string) $sheet->getCell("B{$row}")->getValue());
+                $jabatan = trim((string) $sheet->getCell("C{$row}")->getValue());
+                $site    = trim((string) $sheet->getCell("D{$row}")->getValue());
+                $noHp    = trim((string) $sheet->getCell("E{$row}")->getValue());
+                $jk      = strtoupper(trim((string) $sheet->getCell("F{$row}")->getValue()));
+
+                if (empty($nama)) continue;
+
+                if (!empty($nrp) && strtoupper($nrp) !== 'N/A') {
+                    if (in_array($nrp, $trackedNrps)) {
+                        return [
+                            'success'       => false,
+                            'is_dual_sheet' => false,
+                            'message'       => "Gagal: Baris ke-{$row}. NRP '{$nrp}' terdeteksi ganda dalam file Excel!",
+                        ];
+                    }
+                    $trackedNrps[] = $nrp;
+                }
+
+                $result[] = [
+                    'tipe'    => 'peserta',   // default: semua peserta pada format lama
+                    'nama'    => $nama,
+                    'nrp'     => $nrp ?: 'N/A',
+                    'jabatan' => $jabatan ?: null,
+                    'site'    => $site ?: null,
+                    'no_hp'   => $noHp ?: null,
+                    'gender'  => in_array($jk, ['L', 'P']) ? $jk : null,
+                ];
+            }
+        }
+
+        return [
+            'success'       => true,
+            'is_dual_sheet' => $isDualSheet,
+            'data'          => $result,
+        ];
     }
 }
 
