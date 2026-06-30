@@ -951,17 +951,16 @@ class BookingApprovalController extends Controller
     private function shortenUrl(string $longUrl): string
     {
         try {
-            // Menggunakan is.gd karena jauh lebih cepat dari TinyURL (hanya ~0.5 detik)
-            // dan domainnya (.gd) otomatis berwarna biru / bisa diklik di WhatsApp.
-            $response = \Illuminate\Support\Facades\Http::timeout(2)->get('https://is.gd/create.php?format=simple&url=' . urlencode($longUrl));
+            // TinyURL adalah satu-satunya layanan gratis yang mengizinkan IP Address
+            // dan tidak diblokir oleh provider internet Indonesia.
+            $response = \Illuminate\Support\Facades\Http::timeout(3)->get('https://tinyurl.com/api-create.php?url=' . urlencode($longUrl));
             if ($response->successful()) {
                 return trim($response->body());
             }
         } catch (\Exception $e) {
-            // Fallback jika API is.gd bermasalah
+            // Fallback
         }
 
-        // Fallback ke Cache lokal jika semua gagal
         $key = \Illuminate\Support\Str::random(6);
         \Illuminate\Support\Facades\Cache::put('short_url_' . $key, $longUrl, now()->addDays(7));
         return url('/s/' . $key);
