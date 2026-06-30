@@ -950,20 +950,11 @@ class BookingApprovalController extends Controller
      */
     private function shortenUrl(string $longUrl): string
     {
-        // 1. Simpan URL di cache lokal agar prosesnya instan (0 detik)
+        // Gunakan pemendek URL lokal berbasis Cache agar instan (0 detik loading) 
+        // dan link bisa diakses oleh semua provider internet (tidak diblokir seperti nip.io)
         $key = \Illuminate\Support\Str::random(6);
         \Illuminate\Support\Facades\Cache::put('short_url_' . $key, $longUrl, now()->addDays(7));
         
-        $url = url('/s/' . $key);
-
-        // 2. Trik khusus WhatsApp: Jika URL masih berupa IP Address (misal 203.x.x.x),
-        // tambahkan .nip.io di belakang IP-nya agar WhatsApp mengenalinya sebagai "Domain" 
-        // sehingga link otomatis berwarna biru tanpa menggunakan TinyURL yang lambat.
-        $parsedUrl = parse_url($url);
-        if (isset($parsedUrl['host']) && filter_var($parsedUrl['host'], FILTER_VALIDATE_IP)) {
-            $url = str_replace($parsedUrl['host'], $parsedUrl['host'] . '.nip.io', $url);
-        }
-
-        return $url;
+        return url('/s/' . $key);
     }
 }
