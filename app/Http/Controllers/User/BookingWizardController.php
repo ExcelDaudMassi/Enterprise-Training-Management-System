@@ -30,13 +30,13 @@ class BookingWizardController extends Controller
 
     public function downloadTemplate()
     {
-        $filePath = base_path('template_peserta_nrp_kosong.xlsx');
+        $filePath = base_path('Template_Peserta_Panitia.xlsx');
 
         if (!file_exists($filePath)) {
             abort(404, 'File template fisik tidak ditemukan di sistem.');
         }
 
-        return response()->download($filePath, 'template_peserta_nrp_kosong.xlsx', [
+        return response()->download($filePath, 'Template_Peserta_Panitia.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
