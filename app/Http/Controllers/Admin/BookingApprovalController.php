@@ -941,7 +941,7 @@ class BookingApprovalController extends Controller
 
         $msg = "*INFORMASI TRAINING BARU (FINAL)*\n\nHalo Frontdesk,\nTerdapat jadwal training baru yang telah di-ACC Final dan perlu disiapkan:\n\n*Nama Training:* {$booking->nama_training}\n*Ruangan:* {$ruangName}\n*Tanggal:* {$tglStr}\n*PIC:* {$booking->pic}\n*Peserta:* {$jmlPeserta} Orang\n*Tata Letak:* {$layout}\n*Tambahan:* {$kebutuhan}\n\n📋 *Lihat Detail Peserta & Panitia:*\n{$shortUrl}\n\n_(Link berlaku 7 hari)_\n\nMohon segera dipersiapkan sesuai kebutuhan. Terima kasih!";
 
-        \App\Jobs\SendWhatsAppNotification::dispatch_sync($frontdeskPhone, $msg);
+        \App\Jobs\SendWhatsAppNotification::dispatchSync($frontdeskPhone, $msg);
     }
 
     /**
