@@ -19,7 +19,7 @@ const participants        = ref([
     { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
 ])
 const isManualInput       = ref(true)
-const uploadedFileName    = ref('Manual Input')
+const uploadedFileName    = ref('Input Manual')
 const isUploadingExcel    = ref(false)
 const excelSuccessMessage = ref('')
 const eligibleRooms        = ref([])
