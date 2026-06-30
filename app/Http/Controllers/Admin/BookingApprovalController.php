@@ -950,11 +950,20 @@ class BookingApprovalController extends Controller
      */
     private function shortenUrl(string $longUrl): string
     {
-        // Gunakan pemendek URL lokal berbasis Cache agar instan (0 detik loading) 
-        // dan link bisa diakses oleh semua provider internet (tidak diblokir seperti nip.io)
+        try {
+            // Menggunakan is.gd karena jauh lebih cepat dari TinyURL (hanya ~0.5 detik)
+            // dan domainnya (.gd) otomatis berwarna biru / bisa diklik di WhatsApp.
+            $response = \Illuminate\Support\Facades\Http::timeout(2)->get('https://is.gd/create.php?format=simple&url=' . urlencode($longUrl));
+            if ($response->successful()) {
+                return trim($response->body());
+            }
+        } catch (\Exception $e) {
+            // Fallback jika API is.gd bermasalah
+        }
+
+        // Fallback ke Cache lokal jika semua gagal
         $key = \Illuminate\Support\Str::random(6);
         \Illuminate\Support\Facades\Cache::put('short_url_' . $key, $longUrl, now()->addDays(7));
-        
         return url('/s/' . $key);
     }
 }
