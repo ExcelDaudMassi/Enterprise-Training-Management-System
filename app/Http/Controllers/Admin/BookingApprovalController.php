@@ -950,9 +950,15 @@ class BookingApprovalController extends Controller
      */
     private function shortenUrl(string $longUrl): string
     {
-        // Gunakan pemendek URL lokal berbasis Cache agar instan & aman
-        $key = \Illuminate\Support\Str::random(6);
-        \Illuminate\Support\Facades\Cache::put('short_url_' . $key, $longUrl, now()->addDays(7));
-        return url('/s/' . $key);
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(3)->get('https://tinyurl.com/api-create.php?url=' . urlencode($longUrl));
+            if ($response->successful()) {
+                return trim($response->body());
+            }
+        } catch (\Exception $e) {
+            // Silently fallback if TinyURL API is down
+        }
+
+        return $longUrl;
     }
 }
