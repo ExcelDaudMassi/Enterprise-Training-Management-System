@@ -950,17 +950,8 @@ class BookingApprovalController extends Controller
      */
     private function shortenUrl(string $longUrl): string
     {
-        try {
-            // TinyURL adalah satu-satunya layanan gratis yang mengizinkan IP Address
-            // dan tidak diblokir oleh provider internet Indonesia.
-            $response = \Illuminate\Support\Facades\Http::timeout(3)->get('https://tinyurl.com/api-create.php?url=' . urlencode($longUrl));
-            if ($response->successful()) {
-                return trim($response->body());
-            }
-        } catch (\Exception $e) {
-            // Fallback
-        }
-
+        // Karena sekarang menggunakan domain asli, tidak perlu TinyURL lagi!
+        // Link akan instan (0 detik) dan otomatis bisa diklik di WhatsApp.
         $key = \Illuminate\Support\Str::random(6);
         \Illuminate\Support\Facades\Cache::put('short_url_' . $key, $longUrl, now()->addDays(7));
         return url('/s/' . $key);
