@@ -271,6 +271,45 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Quick Layout Card (Below Calendar) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-slate-50/80 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    </span>
+                    <h3 class="text-[13px] font-bold text-gray-800 uppercase tracking-wide">Layout & Fasilitas</h3>
+                </div>
+                <div class="p-6">
+                    <div class="mb-5">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tata Letak (Layout)</p>
+                        <p class="text-[15px] font-extrabold text-gray-900">{{ ucfirst($booking->layout_preferensi) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Permintaan Tambahan</p>
+                        <div class="flex flex-col gap-2.5">
+                            @if($booking->is_hybrid)
+                                <div class="flex items-center gap-2.5 text-sm font-semibold text-gray-700">
+                                    <span class="flex items-center justify-center w-5 h-5 rounded bg-blue-100 text-blue-600 text-xs">🎥</span> Kamera & Mic (Hybrid)
+                                </div>
+                            @endif
+                            @if($booking->is_flipchart)
+                                <div class="flex items-center gap-2.5 text-sm font-semibold text-gray-700">
+                                    <span class="flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 text-xs">📋</span> Flipchart / Papan Tulis
+                                </div>
+                            @endif
+                            @if($booking->is_pena_mini_note)
+                                <div class="flex items-center gap-2.5 text-sm font-semibold text-gray-700">
+                                    <span class="flex items-center justify-center w-5 h-5 rounded bg-teal-100 text-teal-600 text-xs">📝</span> Pena & Mini Note
+                                </div>
+                            @endif
+                            @if(!$booking->is_hybrid && !$booking->is_flipchart && !$booking->is_pena_mini_note)
+                                <div class="text-[13px] font-medium text-gray-400 italic">Tidak ada tambahan khusus</div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </div>
     </div>
