@@ -304,7 +304,7 @@ class BookingApprovalController extends Controller
         ];
 
         // ── Header Utama ──
-        $sheet->setCellValue('A1', 'REKAP DATA BOOKING RUANGAN - ENTERPRISE TRAINING MANAGEMENT SYSTEM');
+        $sheet->setCellValue('A1', 'REKAP DATA BOOKING RUANGAN - APLIKASI BOOKING RUANGAN');
         $sheet->mergeCells('A1:L1');
         $sheet->getStyle('A1')->applyFromArray([
             'font'      => ['bold' => true, 'size' => 13, 'color' => ['argb' => 'FFFFFFFF']],

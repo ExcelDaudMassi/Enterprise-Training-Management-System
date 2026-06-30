@@ -27,7 +27,7 @@
             Training Booking Detail
         </div>
         <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight leading-snug">{{ $booking->nama_training }}</h1>
-        <p class="text-sm font-semibold text-gray-500 mt-2">Enterprise Training Management System</p>
+        <p class="text-sm font-semibold text-gray-500 mt-2">Aplikasi Booking Ruangan</p>
     </div>
 </div>
 

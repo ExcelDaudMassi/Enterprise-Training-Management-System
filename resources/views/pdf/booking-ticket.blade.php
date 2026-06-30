@@ -17,7 +17,7 @@
 <body>
     <div class="header">
         <h1>TIKET / BUKTI BOOKING RUANGAN</h1>
-        <p>Enterprise Training Management System</p>
+        <p>Aplikasi Booking Ruangan</p>
     </div>
 
     <h3>A. Informasi Acara</h3>
