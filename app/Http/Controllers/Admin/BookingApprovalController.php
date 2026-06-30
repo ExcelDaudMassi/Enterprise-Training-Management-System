@@ -953,20 +953,7 @@ class BookingApprovalController extends Controller
      */
     private function shortenUrl(string $longUrl): string
     {
-        try {
-            $response = \Illuminate\Support\Facades\Http::timeout(2)
-                ->get('https://tinyurl.com/api-create.php', ['url' => $longUrl]);
-
-            if ($response->successful() && str_starts_with(trim($response->body()), 'https://')) {
-                return trim($response->body());
-            }
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('TinyURL shortening failed, using original URL.', [
-                'error' => $e->getMessage(),
-            ]);
-        }
-
-        // Fallback: kembalikan URL asli jika TinyURL gagal
+        // Langsung kembalikan URL asli agar tidak ada delay pengiriman pesan WA
         return $longUrl;
     }
 }
