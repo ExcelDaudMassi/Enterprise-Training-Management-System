@@ -159,6 +159,16 @@ onUnmounted(() => {
                         </tr>
                         <tr v-for="b in filteredBookings" :key="b.id" class="hover:bg-slate-50/50 transition-all duration-300 align-top group">
                             <td class="px-5 py-4">
+                                <div class="flex items-center gap-2 flex-wrap mb-1">
+                                    <span v-if="b.tipe_booking === 'early'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        Early
+                                    </span>
+                                    <span v-else class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 uppercase tracking-wider">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        Reguler
+                                    </span>
+                                </div>
                                 <div class="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-2">{{ b.nama_training }}</div>
                                 <div class="text-xs text-slate-500 mt-1 flex items-center gap-1"><span class="font-semibold text-slate-700">{{ b.pemohon }}</span> &bull; {{ b.divisi }}</div>
                                 <div class="text-xs text-slate-400 mt-0.5">PIC: <span class="font-medium">{{ b.pic }}</span></div>
@@ -539,7 +549,13 @@ onUnmounted(() => {
                                                 <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-pink-400"></span>P: {{ detailData.gender_stats.P }}</span>
                                             </div>
                                         </div>
-                                        <div v-if="detailData.peserta.length === 0" class="py-8 text-center text-gray-400 text-sm">No participant data.</div>
+                                        <div v-if="detailData.peserta.length === 0" class="py-8 text-center text-gray-400 text-sm">
+                                            <span v-if="detailData.booking.tipe_booking === 'early'" class="flex flex-col items-center gap-2">
+                                                <svg class="w-8 h-8 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                Menunggu User menyusulkan data Peserta
+                                            </span>
+                                            <span v-else>No participant data.</span>
+                                        </div>
                                         <div v-else class="bg-white rounded-xl border border-gray-100 overflow-hidden">
                                             <table class="min-w-full divide-y divide-gray-100">
                                                 <thead class="bg-gray-50">
@@ -586,7 +602,13 @@ onUnmounted(() => {
                                         <div class="mb-4">
                                             <h3 class="text-sm font-bold text-gray-800">Organizer List <span class="text-gray-400 font-normal">({{ detailData.total_panitia }} people)</span></h3>
                                         </div>
-                                        <div v-if="detailData.panitia.length === 0" class="py-8 text-center text-gray-400 text-sm">No organizer data.</div>
+                                        <div v-if="detailData.panitia.length === 0" class="py-8 text-center text-gray-400 text-sm">
+                                            <span v-if="detailData.booking.tipe_booking === 'early'" class="flex flex-col items-center gap-2">
+                                                <svg class="w-8 h-8 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                Menunggu User menyusulkan data Panitia
+                                            </span>
+                                            <span v-else>No organizer data.</span>
+                                        </div>
                                         <div v-else class="bg-white rounded-xl border border-gray-100 overflow-hidden">
                                             <table class="min-w-full divide-y divide-gray-100">
                                                 <thead class="bg-gray-50">
@@ -634,20 +656,22 @@ onUnmounted(() => {
                                         <div v-if="detailData.logs.length === 0" class="py-8 text-center text-gray-400 text-sm">No activity log for this booking yet.</div>
                                         <div v-else class="space-y-3">
                                             <div v-for="(log, i) in detailData.logs" :key="i"
-                                                 class="flex gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                                 class="flex gap-3 rounded-xl p-4 border"
+                                                 :class="log.action === 'User Updated Participants' ? 'bg-amber-50 border-amber-200 shadow-sm' : 'bg-gray-50 border-gray-100'">
                                                 <div class="flex-shrink-0 mt-0.5">
                                                     <span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
                                                           :class="{
                                                               'bg-green-100 text-green-700': log.action === 'approve',
                                                               'bg-red-100 text-red-700':    log.action === 'reject',
-                                                              'bg-blue-100 text-blue-700':  !['approve','reject'].includes(log.action),
+                                                              'bg-amber-100 text-amber-700': log.action === 'User Updated Participants',
+                                                              'bg-blue-100 text-blue-700':  !['approve','reject','User Updated Participants'].includes(log.action),
                                                           }">
-                                                        {{ log.action === 'approve' ? '✓' : log.action === 'reject' ? '✕' : '•' }}
+                                                        {{ log.action === 'approve' ? '✓' : log.action === 'reject' ? '✕' : (log.action === 'User Updated Participants' ? '⭐' : '•') }}
                                                     </span>
                                                 </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <p class="text-xs font-semibold text-gray-800">{{ log.message }}</p>
-                                                    <p class="text-[11px] text-gray-400 mt-1">by <span class="font-medium text-gray-600">{{ log.actor }}</span> · {{ log.created_at }}</p>
+                                                    <p class="text-xs font-semibold" :class="log.action === 'User Updated Participants' ? 'text-amber-900' : 'text-gray-800'">{{ log.message }}</p>
+                                                    <p class="text-[11px] mt-1" :class="log.action === 'User Updated Participants' ? 'text-amber-700/80' : 'text-gray-400'">by <span class="font-medium" :class="log.action === 'User Updated Participants' ? 'text-amber-800' : 'text-gray-600'">{{ log.actor }}</span> • {{ log.created_at }}</p>
                                                 </div>
                                             </div>
                                         </div>

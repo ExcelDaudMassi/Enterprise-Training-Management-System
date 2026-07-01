@@ -127,111 +127,148 @@ onUnmounted(() => {
                 </a>
             </div>
 
-            <!-- Booking Lists Table - Admin Style -->
-            <div v-else class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
-                <div class="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    <table class="min-w-full table-fixed divide-y divide-slate-100">
-                        <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
-                            <tr>
-                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[24%]">Event / PIC</th>
-                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Room</th>
-                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[16%]">Schedule</th>
-                                <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[10%]">Participants</th>
-                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Facilities</th>
-                                <th class="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[12%]">Status</th>
-                                <th class="px-5 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[14%]">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-slate-100">
-                            <tr v-for="b in bookings" :key="b.id" class="hover:bg-slate-50/50 transition-all duration-200 align-top group">
+            <!-- Booking Cards Grid -->
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
+                <div v-for="b in bookings" :key="b.id" class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col group relative">
+                    <div class="p-5 flex-1 flex flex-col">
+                        <!-- Header: Type & Status -->
+                        <div class="flex items-center justify-between gap-2 mb-4">
+                            <!-- Badge Tipe Booking -->
+                            <span v-if="b.tipe_booking === 'early'"
+                                class="inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider shrink-0">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                                Early
+                            </span>
+                            <span v-else
+                                class="inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200 uppercase tracking-wider shrink-0">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                                Regular
+                            </span>
+                            
+                            <!-- Status Badge -->
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold shadow-sm uppercase tracking-wider shrink-0"
+                                  :class="STATUS_META[b.status]?.class ?? 'bg-slate-100 text-slate-600 border border-slate-200'">
+                                {{ STATUS_META[b.status]?.label ?? b.status }}
+                            </span>
+                        </div>
 
-                                <!-- Acara / PIC -->
-                                <td class="px-5 py-4">
-                                    <div class="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-2">{{ b.nama_training }}</div>
-                                    <div class="text-xs text-slate-500 mt-1">
-                                        PIC: <span class="font-semibold text-slate-700">{{ b.pic }}</span>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        {{ b.created_at }}
-                                    </div>
-                                </td>
+                        <!-- Title & PIC -->
+                        <div class="mb-5">
+                            <h3 class="text-base font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-2 leading-tight mb-2" :title="b.nama_training">{{ b.nama_training }}</h3>
+                            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span class="font-medium text-slate-600 truncate">{{ b.pic }}</span>
+                                <span class="text-slate-300 mx-0.5">•</span>
+                                <span class="text-[10px] text-slate-400 truncate">{{ b.created_at }}</span>
+                            </div>
+                        </div>
 
-                                <!-- Ruangan -->
-                                <td class="px-5 py-4">
-                                    <div class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-lg border border-slate-200">
-                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                        {{ b.nama_ruang ?? 'Combined Room' }}
-                                    </div>
-                                    <div v-if="b.layout_preferensi" class="text-[11px] text-slate-400 capitalize mt-2 flex items-center gap-1">
-                                        Layout: <span class="font-medium text-slate-600">{{ b.layout_preferensi }}</span>
-                                    </div>
-                                </td>
+                        <!-- Detailed Info Grid -->
+                        <div class="grid grid-cols-2 gap-4 mb-5 p-4 bg-slate-50/50 rounded-xl border border-slate-100/60">
+                            <!-- Schedule -->
+                            <div class="col-span-2">
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Schedule
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <div class="font-bold text-slate-700 text-[11px] bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">{{ formatDate(b.tgl_mulai) }}</div>
+                                    <span class="text-slate-400 text-[10px] font-medium">to</span>
+                                    <div class="font-bold text-slate-700 text-[11px] bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">{{ formatDate(b.tgl_selesai) }}</div>
+                                </div>
+                                
+                                <!-- Countdown H-X -->
+                                <div v-if="b.tgl_mulai && diffDays(b.tgl_mulai) > 0"
+                                     class="mt-2.5 inline-flex items-center font-bold text-[10px] shadow-sm px-2 py-0.5 rounded border uppercase tracking-wider"
+                                     :class="diffDays(b.tgl_mulai) <= 14
+                                         ? 'text-red-700 bg-red-50 border-red-200'
+                                         : 'text-blue-700 bg-blue-50 border-blue-200'">
+                                    H - {{ diffDays(b.tgl_mulai) }}
+                                </div>
+                                <div v-else-if="b.tgl_mulai && diffDays(b.tgl_mulai) === 0"
+                                     class="mt-2.5 inline-flex items-center gap-1 text-[10px] bg-orange-50 text-orange-700 border border-orange-200 px-2 py-0.5 rounded font-bold animate-pulse uppercase tracking-wider shadow-sm">
+                                    Today!
+                                </div>
+                            </div>
 
-                                <!-- Jadwal -->
-                                <td class="px-5 py-4 text-xs text-slate-700">
-                                    <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block mb-1">{{ formatDate(b.tgl_mulai) }}</div>
-                                    <div class="text-slate-400 text-[10px] ml-2 mb-1">to</div>
-                                    <div class="font-bold text-slate-800 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md inline-block">{{ formatDate(b.tgl_selesai) }}</div>
-                                    <!-- Countdown H-X -->
-                                    <div v-if="b.tgl_mulai && diffDays(b.tgl_mulai) > 0"
-                                         class="mt-2 font-bold text-[11px] w-fit shadow-sm px-2 py-0.5 rounded-md"
-                                         :class="diffDays(b.tgl_mulai) <= 14
-                                             ? 'text-red-700 bg-red-50 border border-red-200'
-                                             : 'text-slate-600 bg-slate-100 border border-slate-200'">
-                                        H-{{ diffDays(b.tgl_mulai) }}
-                                    </div>
-                                    <div v-else-if="b.tgl_mulai && diffDays(b.tgl_mulai) === 0"
-                                         class="mt-2 inline-flex items-center gap-1 text-[11px] bg-orange-50 text-orange-700 border border-orange-100 px-2 py-0.5 rounded-md font-bold animate-pulse">
-                                        Today!
-                                    </div>
-                                </td>
+                            <!-- Location -->
+                            <div class="col-span-1">
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    Room
+                                </div>
+                                <div class="inline-flex items-center gap-1 bg-white text-slate-700 font-bold text-[11px] px-2 py-1 rounded-md border border-slate-200 shadow-sm w-full">
+                                    <span class="truncate">{{ b.nama_ruang ?? 'Combined Room' }}</span>
+                                </div>
+                                <div v-if="b.layout_preferensi" class="text-[10px] text-slate-500 capitalize mt-1.5 flex items-center gap-1 font-medium">
+                                    Layout: <span class="font-bold text-slate-600">{{ b.layout_preferensi }}</span>
+                                </div>
+                            </div>
 
-                                <!-- Peserta -->
-                                <td class="px-5 py-4 text-center">
-                                    <div class="inline-flex flex-col items-center bg-blue-50/50 border border-blue-100 px-3 py-1.5 rounded-xl">
-                                        <div class="text-lg font-black text-blue-700 leading-none">{{ b.jumlah_peserta }}</div>
-                                        <div class="text-[10px] font-bold text-blue-500 uppercase mt-0.5">Participants</div>
+                            <!-- Participants -->
+                            <div class="col-span-1">
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    Capacity
+                                </div>
+                                <!-- Early Booking: Belum diisi -->
+                                <template v-if="b.tipe_booking === 'early' && b.jumlah_peserta === 0">
+                                    <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 px-2 py-1 rounded-md">
+                                        <span class="text-sm font-black text-amber-600 leading-none">—</span>
+                                        <span class="text-[10px] font-bold text-amber-500 uppercase tracking-wider">TBA</span>
                                     </div>
-                                    <div class="text-[11px] font-semibold text-amber-600 mt-1.5 bg-amber-50 rounded-md py-0.5 border border-amber-100">+{{ b.jumlah_panitia }} Org</div>
-                                </td>
+                                </template>
+                                <!-- Regular / Early diisi -->
+                                <template v-else>
+                                    <div class="flex flex-col gap-1.5">
+                                        <div class="flex items-center justify-between bg-blue-50/70 border border-blue-100 px-2 py-1 rounded-md">
+                                            <span class="text-[9px] font-bold text-blue-600 uppercase tracking-wider">Peserta</span>
+                                            <span class="text-xs font-black text-blue-700">{{ b.jumlah_peserta }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between bg-amber-50/70 border border-amber-100 px-2 py-1 rounded-md">
+                                            <span class="text-[9px] font-bold text-amber-600 uppercase tracking-wider">Panitia</span>
+                                            <span class="text-xs font-black text-amber-700">{{ b.jumlah_panitia }}</span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
 
-                                <!-- Fasilitas -->
-                                <td class="px-5 py-4 text-xs text-slate-600 space-y-1.5">
-                                    <div v-if="b.is_hybrid" class="flex items-center gap-2 bg-purple-50 text-purple-700 font-semibold px-2 py-1 rounded-md border border-purple-100 w-fit">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0 animate-pulse"></span>Hybrid
-                                    </div>
-                                    <div v-if="b.is_flipchart" class="flex items-center gap-2 bg-orange-50 text-orange-700 font-semibold px-2 py-1 rounded-md border border-orange-100 w-fit">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
-                                    </div>
-                                    <div v-if="b.is_pena_mini_note" class="flex items-center gap-2 bg-teal-50 text-teal-700 font-semibold px-2 py-1 rounded-md border border-teal-100 w-fit">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0"></span>Pen & Mini Note
-                                    </div>
-                                    <div v-if="!b.is_hybrid && !b.is_flipchart && !b.is_pena_mini_note" class="text-slate-300 font-medium">—</div>
-                                </td>
+                        <!-- Facilities -->
+                        <div class="mt-auto">
+                            <div class="flex flex-wrap gap-1.5">
+                                <div v-if="b.is_hybrid" class="flex items-center gap-1.5 bg-purple-50 text-purple-700 font-bold px-2 py-0.5 rounded border border-purple-100 text-[9px] uppercase tracking-wider">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0 animate-pulse"></span>Hybrid
+                                </div>
+                                <div v-if="b.is_flipchart" class="flex items-center gap-1.5 bg-orange-50 text-orange-700 font-bold px-2 py-0.5 rounded border border-orange-100 text-[9px] uppercase tracking-wider">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0"></span>Flipchart
+                                </div>
+                                <div v-if="b.is_pena_mini_note" class="flex items-center gap-1.5 bg-teal-50 text-teal-700 font-bold px-2 py-0.5 rounded border border-teal-100 text-[9px] uppercase tracking-wider">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0"></span>Pen & Notes
+                                </div>
+                                <div v-if="!b.is_hybrid && !b.is_flipchart && !b.is_pena_mini_note" class="text-slate-400 text-[10px] font-medium italic">
+                                    No extra facilities requested.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                <!-- Status -->
-                                <td class="px-5 py-4 text-center">
-                                    <span class="px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm"
-                                          :class="STATUS_META[b.status]?.class ?? 'bg-slate-100 text-slate-600 border border-slate-200'">
-                                        {{ STATUS_META[b.status]?.label ?? b.status }}
-                                    </span>
-                                </td>
-
-                                <!-- Aksi -->
-                                <td class="px-5 py-4">
-                                    <div class="flex flex-col gap-2">
-                                        <a :href="`/user/booking/${b.id}/detail`"
-                                           class="group/btn flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 text-[11px] font-bold py-2 px-3 rounded-xl transition-all border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow">
-                                            <svg class="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-blue-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            View Details
-                                        </a>
-                                    </div>
-                                </td>
-
-                            </tr>
-                        </tbody>
-                    </table>
+                    <!-- Footer Actions -->
+                    <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-2 shrink-0">
+                        <a :href="`/user/booking/${b.id}/detail`"
+                           class="flex-1 group/btn flex items-center justify-center gap-1.5 bg-white hover:bg-blue-600 text-slate-700 hover:text-white text-[11px] font-bold py-2.5 px-3 rounded-lg transition-all border border-slate-200 hover:border-blue-600 shadow-sm hover:shadow">
+                            <svg class="w-4 h-4 text-slate-400 group-hover/btn:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            View Details
+                        </a>
+                        
+                        <!-- Tombol khusus Early Booking: input peserta -->
+                        <a v-if="b.tipe_booking === 'early' && b.jumlah_peserta === 0"
+                           :href="`/user/booking/${b.id}/detail?action=fill_participants`"
+                           class="flex-[0.8] group/btn flex items-center justify-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-[11px] font-bold py-2.5 px-3 rounded-lg transition-all shadow-sm hover:shadow animate-pulse border border-red-600 hover:border-red-700">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                            Isi Peserta!
+                        </a>
+                    </div>
                 </div>
             </div>
 

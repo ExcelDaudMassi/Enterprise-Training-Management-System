@@ -251,6 +251,19 @@ onUnmounted(() => {
 
                             <!-- Acara / PIC -->
                             <td class="px-5 py-4">
+                                <div class="flex items-center gap-2 flex-wrap mb-1">
+                                    <!-- Badge Tipe Booking -->
+                                    <span v-if="b.tipe_booking === 'early'"
+                                        class="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300 uppercase tracking-wide shrink-0">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                                        Early
+                                    </span>
+                                    <span v-else
+                                        class="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 uppercase tracking-wide shrink-0">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></span>
+                                        Regular
+                                    </span>
+                                </div>
                                 <div class="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors line-clamp-2">{{ b.nama_training }}</div>
                                 <div class="text-xs text-slate-500 mt-1">
                                     PIC: <span class="font-semibold text-slate-700">{{ b.pic }}</span>

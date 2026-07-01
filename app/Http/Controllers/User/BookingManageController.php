@@ -190,6 +190,20 @@ class BookingManageController extends Controller
             }
         }
 
+        $booking->load('ruangan');
+        $maxCapacity = $booking->gabung_ruang ? 60 : ($booking->ruangan->kapasitas_max ?? 0);
+        
+        $pesertaCount = collect($validated['peserta'] ?? [])->filter(fn($p) => !empty(trim($p['nama'] ?? '')))->count();
+        $panitiaCount = collect($validated['panitia'] ?? [])->filter(fn($p) => !empty(trim($p['nama'] ?? '')))->count();
+        $totalInput = $pesertaCount + $panitiaCount;
+
+        if ($maxCapacity > 0 && $totalInput > $maxCapacity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Total peserta dan panitia (' . $totalInput . ' orang) melebihi kapasitas maksimal ruangan (' . $maxCapacity . ' orang).',
+            ], 422);
+        }
+
         DB::transaction(function () use ($booking, $validated) {
             // Hapus peserta & panitia lama, ganti dengan yang baru
             BookingParticipant::where('booking_id', $booking->id)->delete();
@@ -233,12 +247,15 @@ class BookingManageController extends Controller
 
         $booking->load('participants');
 
+        $pesertaFinalCount = BookingParticipant::where('booking_id', $booking->id)->where('tipe', 'peserta')->count();
+        $panitiaFinalCount = BookingParticipant::where('booking_id', $booking->id)->where('tipe', 'panitia')->count();
+
         // Tambah log dan notifikasi ke admin bahwa peserta diupdate user
         \App\Models\BookingLog::create([
             'booking_id' => $booking->id,
             'user_id'    => Auth::id(),
             'action'     => 'User Updated Participants',
-            'message'    => 'User merubah data peserta/panitia secara mandiri.',
+            'message'    => "User menyusulkan / merubah data secara mandiri: $pesertaFinalCount Peserta dan $panitiaFinalCount Panitia.",
         ]);
 
         $admins = \App\Models\User::where('role', 'admin')->get();

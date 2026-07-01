@@ -217,6 +217,7 @@ class BookingApprovalController extends Controller
                 'tgl_selesai'       => $booking->tgl_selesai->format('d M Y'),
                 'status'            => $booking->status,
                 'fase'              => $booking->fase,
+                'tipe_booking'      => $booking->tipe_booking ?? 'reguler',
                 'pic'               => $booking->pic,
                 'no_hp_pic'         => $booking->no_hp_pic,
                 'gabung_ruang'      => $booking->gabung_ruang,
@@ -621,6 +622,10 @@ class BookingApprovalController extends Controller
             return back()->with('error', 'Booking tidak dapat di-finalisasi. Status saat ini: ' . $booking->status);
         }
 
+        if ($booking->participants()->count() === 0) {
+            return back()->with('error', 'Booking tidak dapat di-finalisasi karena belum ada data peserta (Data Kosong).');
+        }
+
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($booking) {
                 $booking->update([
@@ -664,6 +669,10 @@ class BookingApprovalController extends Controller
     {
         if (!$booking->canBeFinalized()) {
             return back()->with('error', 'Booking tidak dapat di-finalisasi. Status saat ini: ' . $booking->status);
+        }
+
+        if ($booking->participants()->count() === 0) {
+            return back()->with('error', 'Booking tidak dapat di-finalisasi karena belum ada data peserta (Data Kosong).');
         }
 
         $request->validate([
@@ -875,6 +884,7 @@ class BookingApprovalController extends Controller
             'proposed_tgl_mulai'      => $b->proposed_tgl_mulai?->toDateString(),
             'proposed_tgl_selesai'    => $b->proposed_tgl_selesai?->toDateString(),
             'status_perubahan'        => $b->status_perubahan,
+            'tipe_booking'            => $b->tipe_booking ?? 'reguler',
             'ruangan'                 => $b->displayRoomName(),
             'gabung_ruang'            => $b->gabung_ruang,
             'layout'                  => $b->layout_preferensi,

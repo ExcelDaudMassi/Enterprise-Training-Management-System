@@ -32,6 +32,9 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'ruangan_id',
+        'tipe_booking',
+        'estimasi_peserta',
+        'estimasi_panitia',
         'nama_training',
         'tgl_mulai',
         'tgl_selesai',
