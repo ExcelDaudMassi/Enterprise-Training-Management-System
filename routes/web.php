@@ -69,6 +69,8 @@ Route::middleware(['auth', 'user'])->group(function () {
          ->name('api.booking.request-date-change');
     Route::post('/api/booking/{booking}/update-participants', [BookingManageController::class, 'updateParticipants'])
          ->name('api.booking.update-participants');
+    Route::post('/api/booking/{booking}/update-participants-json', [BookingManageController::class, 'updateParticipants'])
+         ->name('api.booking.update-participants-json');
     Route::post('/api/booking/{booking}/add-participant', [BookingManageController::class, 'addParticipant'])
          ->name('api.booking.add-participant');
     Route::post('/api/booking/{booking}/preview-excel-participants', [BookingManageController::class, 'previewExcelParticipants'])

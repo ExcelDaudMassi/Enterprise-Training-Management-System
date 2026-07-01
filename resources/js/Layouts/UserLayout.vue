@@ -49,25 +49,25 @@ const isNotificationDropdownOpen = ref(false)
 const notificationRef = ref(null)
 const userNotifications = computed(() => page.props.userNotifications ?? [])
 
+const hasOpenedNotif = ref(false)
+
 function toggleNotification() {
     isNotificationDropdownOpen.value = !isNotificationDropdownOpen.value
     
-    // Jika dropdown dibuka dan ada notifikasi, otomatis tandai semua terbaca
-    if (isNotificationDropdownOpen.value && userNotifications.value.length > 0) {
-        router.post('/api/notifications/read-all', {}, {
-            preserveScroll: true,
-            preserveState: true,
-        })
+    // Jika dropdown dibuka, tandai sudah dilihat secara lokal dan background
+    if (isNotificationDropdownOpen.value) {
+        hasOpenedNotif.value = true
+        
+        if (userNotifications.value.length > 0) {
+            // Gunakan axios alih-alih router.post agar tidak memicu loading bar
+            // dan notifikasi tidak langsung menghilang dari layar.
+            axios.post('/api/notifications/read-all')
+        }
     }
 }
 
 function markAsRead(notificationId) {
-    router.post(`/api/notifications/${notificationId}/read`, {}, {
-        preserveScroll: true,
-        onSuccess: () => {
-            // Re-evaluasi otomatis dilakukan oleh Inertia
-        }
-    })
+    axios.post(`/api/notifications/${notificationId}/read`)
 }
 
 function handleClickOutside(e) {
@@ -377,7 +377,7 @@ provide('collapseDetailMenu', () => {
                             </svg>
                             <!-- Badge -->
                             <span 
-                                v-if="userNotifications.length > 0" 
+                                v-if="userNotifications.length > 0 && !hasOpenedNotif" 
                                 class="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none"
                             >{{ userNotifications.length > 9 ? '9+' : userNotifications.length }}</span>
                         </button>
@@ -397,7 +397,7 @@ provide('collapseDetailMenu', () => {
                             >
                                 <div class="px-5 py-3.5 border-b border-gray-100 bg-slate-50/80 flex items-center justify-between backdrop-blur-sm">
                                     <span class="text-[11px] font-bold text-gray-800 uppercase tracking-wider">Notifications</span>
-                                    <span class="text-[10px] text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full font-bold shadow-sm ring-1 ring-blue-700/10">{{ userNotifications.length }} New</span>
+                                    <span class="text-[10px] text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full font-bold shadow-sm ring-1 ring-blue-700/10">{{ hasOpenedNotif ? 0 : userNotifications.length }} New</span>
                                 </div>
                                 
                                 <div class="max-h-[360px] overflow-y-auto divide-y divide-gray-50 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full">

@@ -36,11 +36,11 @@ class BookingWizardController extends Controller
             abort(404, 'File template fisik tidak ditemukan di sistem.');
         }
 
-        return response()->download($filePath, 'Template_Peserta_Panitia.xlsx', [
+        return response()->download($filePath, 'Template_Peserta_Panitia_Clean.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Cache-Control' => 'post-check=0, pre-check=0',
             'Pragma' => 'no-cache',
-            'Expires' => '0',
         ]);
     }
 
@@ -97,7 +97,7 @@ class BookingWizardController extends Controller
                 $sheet      = $spreadsheet->getSheet($idx);
                 $highestRow = $sheet->getHighestRow();
 
-                for ($row = 5; $row <= $highestRow; $row++) {
+                for ($row = 4; $row <= $highestRow; $row++) {
                     $nama         = trim((string) $sheet->getCell("A" . $row)->getValue());
                     $nrp          = trim((string) $sheet->getCell("B" . $row)->getValue());
                     $jabatan      = trim((string) $sheet->getCell("C" . $row)->getValue());
@@ -179,7 +179,7 @@ class BookingWizardController extends Controller
             $sheet      = $spreadsheet->getActiveSheet();
             $highestRow = $sheet->getHighestRow();
 
-            for ($row = 5; $row <= $highestRow; $row++) {
+            for ($row = 4; $row <= $highestRow; $row++) {
                 $nama         = trim((string) $sheet->getCell("A" . $row)->getValue());
                 $nrp          = trim((string) $sheet->getCell("B" . $row)->getValue());
                 $jabatan      = trim((string) $sheet->getCell("C" . $row)->getValue());
@@ -283,15 +283,33 @@ class BookingWizardController extends Controller
         }
 
         $validated = $request->validate([
-            'jumlah_peserta' => 'required|integer|min:1',
-            'jumlah_panitia' => 'required|integer|min:0',
+            'tipe_booking'   => 'required|in:reguler,early',
+            'jumlah_peserta' => 'required_if:tipe_booking,reguler|integer|min:0',
+            'jumlah_panitia' => 'required_if:tipe_booking,reguler|integer|min:0',
         ]);
 
-        $totalOrang = $validated['jumlah_peserta'] + $validated['jumlah_panitia'];
+        $totalOrang = $validated['tipe_booking'] === 'early' 
+            ? 0 
+            : ($validated['jumlah_peserta'] + $validated['jumlah_panitia']);
 
         $eligibleRooms = collect();
 
-        if ($totalOrang <= 25) {
+        if ($totalOrang === 0) {
+            $eligibleRooms = Ruangan::all();
+            $ruang2 = Ruangan::where('nama_ruang', 'Ruang 2')->first();
+            $ruang3 = Ruangan::where('nama_ruang', 'Ruang 3')->first();
+
+            if ($ruang2 && $ruang3) {
+                $eligibleRooms->push((object) [
+                    'id'            => 'combined_2_3',
+                    'nama_ruang'    => 'Ruang Gabungan 2 + 3',
+                    'lokasi_gedung' => $ruang2->lokasi_gedung,
+                    'kapasitas_max' => 60,
+                    'is_combined'   => true,
+                    'room_ids'      => [$ruang2->id, $ruang3->id],
+                ]);
+            }
+        } elseif ($totalOrang <= 25) {
             $eligibleRooms = Ruangan::all();
         } elseif ($totalOrang <= 30) {
             $eligibleRooms = Ruangan::whereNotIn('nama_ruang', ['Ruang 5', 'Ruang 6'])->get();
@@ -466,14 +484,16 @@ class BookingWizardController extends Controller
     public function getAvailableRooms(Request $request)
     {
         $validated = $request->validate([
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-            'total_orang' => 'required|integer|min:1',
+            'start_date'   => 'required|date|after_or_equal:today',
+            'end_date'     => 'required|date|after_or_equal:start_date',
+            'total_orang'  => 'required|integer|min:0',
+            'tipe_booking' => 'required|in:reguler,early',
         ]);
 
-        $startDate  = $validated['start_date'];
-        $endDate    = $validated['end_date'];
-        $totalOrang = $validated['total_orang'];
+        $startDate   = $validated['start_date'];
+        $endDate     = $validated['end_date'];
+        $totalOrang  = $validated['total_orang'];
+        $tipeBooking = $validated['tipe_booking'];
 
         if ($totalOrang > 30) {
             $ruang2 = Ruangan::where('nama_ruang', 'Ruang 2')->first();
@@ -501,6 +521,47 @@ class BookingWizardController extends Controller
                     'is_available' => !$r2Conflict && !$r3Conflict,
                     'deskripsi'    => 'Dua ruangan yang dapat digabungkan (Ruang 2 + Ruang 3)',
                 ]],
+            ]);
+        }
+
+        if ($totalOrang === 0) {
+            // Early booking, show all single rooms, and combined room option
+            $eligibleRooms = Ruangan::all();
+            
+            $ruang2 = Ruangan::where('nama_ruang', 'Ruang 2')->first();
+            $ruang3 = Ruangan::where('nama_ruang', 'Ruang 3')->first();
+            
+            $rooms = $eligibleRooms->map(function (Ruangan $room) use ($startDate, $endDate) {
+                return [
+                    'id'           => $room->id,
+                    'nama_ruang'   => $room->nama_ruang,
+                    'lokasi_gedung'=> $room->lokasi_gedung,
+                    'kapasitas_max'=> $room->kapasitas_max,
+                    'is_combined'  => false,
+                    'room_ids'     => [$room->id],
+                    'is_available' => !$this->hasConflict($room->id, $startDate, $endDate),
+                    'deskripsi'    => null,
+                ];
+            })->toArray();
+
+            if ($ruang2 && $ruang3) {
+                $r2Conflict = $this->hasConflict($ruang2->id, $startDate, $endDate);
+                $r3Conflict = $this->hasConflict($ruang3->id, $startDate, $endDate);
+                $rooms[] = [
+                    'id'           => 'combined_2_3',
+                    'nama_ruang'   => 'Ruang Gabungan 2 + 3',
+                    'lokasi_gedung'=> $ruang2->lokasi_gedung,
+                    'kapasitas_max'=> 60,
+                    'is_combined'  => true,
+                    'room_ids'     => [$ruang2->id, $ruang3->id],
+                    'is_available' => !$r2Conflict && !$r3Conflict,
+                    'deskripsi'    => 'Dua ruangan yang dapat digabungkan (Ruang 2 + Ruang 3)',
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'rooms'   => $rooms,
             ]);
         }
 
@@ -581,11 +642,14 @@ class BookingWizardController extends Controller
         }
 
         $validated = $request->validate([
-            'ruangan_id' => 'required',
-            'tgl_mulai'  => 'required|date',
-            'tgl_selesai'=> 'required|date|after_or_equal:tgl_mulai',
-            'peserta'    => 'nullable|array',
-            'panitia'    => 'nullable|array',
+            'ruangan_id'       => 'required',
+            'tgl_mulai'        => 'required|date|after_or_equal:today',
+            'tgl_selesai'      => 'required|date|after_or_equal:tgl_mulai',
+            'tipe_booking'     => 'required|in:reguler,early',
+            'estimasi_peserta' => 'nullable|integer|min:0',
+            'estimasi_panitia' => 'nullable|integer|min:0',
+            'peserta'          => 'nullable|array',
+            'panitia'          => 'nullable|array',
         ]);
 
         $stage4Data = session('booking_step4');
@@ -601,8 +665,8 @@ class BookingWizardController extends Controller
             $isCombined = $roomId === 'combined_2_3';
 
             if ($isCombined) {
-                $ruang2 = Ruangan::where('nama_ruang', 'Ruang 2')->lockForUpdate()->first();
-                $ruang3 = Ruangan::where('nama_ruang', 'Ruang 3')->lockForUpdate()->first();
+                $ruang2 = Ruangan::where('nama_ruang', 'Ruang 2')->first();
+                $ruang3 = Ruangan::where('nama_ruang', 'Ruang 3')->first();
                 
                 if ($this->hasConflict($ruang2->id, $validated['tgl_mulai'], $validated['tgl_selesai']) || 
                     $this->hasConflict($ruang3->id, $validated['tgl_mulai'], $validated['tgl_selesai'])) {
@@ -610,7 +674,7 @@ class BookingWizardController extends Controller
                 }
                 $primaryRoomId = $ruang2->id; 
             } else {
-                $ruang = Ruangan::where('id', $roomId)->lockForUpdate()->first();
+                $ruang = Ruangan::where('id', $roomId)->first();
                 if (!$ruang || $this->hasConflict($ruang->id, $validated['tgl_mulai'], $validated['tgl_selesai'])) {
                     throw new \Exception('Maaf, ruangan baru saja dipesan oleh divisi lain beberapa detik yang lalu.');
                 }
@@ -621,6 +685,9 @@ class BookingWizardController extends Controller
             $booking = Booking::create([
                 'user_id'            => auth()->id(),
                 'ruangan_id'         => $primaryRoomId,
+                'tipe_booking'       => $validated['tipe_booking'],
+                'estimasi_peserta'   => $validated['tipe_booking'] === 'early' ? ($validated['estimasi_peserta'] ?? 0) : null,
+                'estimasi_panitia'   => $validated['tipe_booking'] === 'early' ? ($validated['estimasi_panitia'] ?? 0) : null,
                 'nama_training'      => $stage4Data['nama_training'],
                 'tgl_mulai'          => $validated['tgl_mulai'],
                 'tgl_selesai'        => $validated['tgl_selesai'],
@@ -638,7 +705,8 @@ class BookingWizardController extends Controller
                 'catatan_admin'      => null,
             ]);
 
-            // Save Participants
+            // Save Participants only if it's reguler booking
+            if ($validated['tipe_booking'] === 'reguler') {
             $participantsToInsert = [];
             foreach ($validated['peserta'] ?? [] as $p) {
                 if (empty(trim($p['nama'] ?? ''))) continue;
@@ -671,8 +739,9 @@ class BookingWizardController extends Controller
                 ];
             }
             
-            if (count($participantsToInsert) > 0) {
-                BookingParticipant::insert($participantsToInsert);
+                if (count($participantsToInsert) > 0) {
+                    BookingParticipant::insert($participantsToInsert);
+                }
             }
 
             DB::commit();
@@ -692,12 +761,12 @@ class BookingWizardController extends Controller
                 'booking_id' => $booking->id,
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             \Log::error('[Booking] Submit GAGAL: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
             ], 422);
         }
     }

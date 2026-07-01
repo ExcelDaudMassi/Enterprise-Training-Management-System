@@ -1,6 +1,6 @@
 <script setup>
 import UserLayout from '@/Layouts/UserLayout.vue'
-import { ref, inject } from 'vue'
+import { ref, computed, inject, onMounted } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 
 defineOptions({ layout: UserLayout })
@@ -41,38 +41,72 @@ function formatDate(d) {
     return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+const todayStr = computed(() => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
+})
+
 // ─── Modal & Action State ─────────────────────────────────────
 const showCancelModal = ref(false)
 const cancelLoading = ref(false)
 const cancelError = ref('')
 
-// Participant Modal — two tabs: 'add' | 'excel'
+// Participant Modal (Wizard Style: 2 Tables)
 const showParticipantModal = ref(false)
-const participantModalTab = ref('add')       // default to form tab
+const participantModalTab = ref('table')
 const participantLoading = ref(false)
 const participantError = ref('')
 const participantSuccess = ref('')
 
-// Form state for single-add tab
-const addForm = ref({
-    tipe:    'peserta',
-    nama:    '',
-    nrp:     '',
-    jabatan: '',
-    site:    '',
-    no_hp:   '',
-    gender:  '',
-})
+const wizardPeserta = ref([])
+const wizardPanitia = ref([])
+const wizardSaving  = ref(false)
+const wizardError   = ref('')
+const wizardSuccess = ref('')
 
-function resetAddForm() {
-    addForm.value = { tipe: 'peserta', nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: '' }
+function emptyRow() {
+    return { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
 }
 
-function openParticipantModal(tab = 'add') {
+function addPeserta() { wizardPeserta.value.push(emptyRow()) }
+function removePeserta(i) { if (wizardPeserta.value.length > 1) wizardPeserta.value.splice(i, 1) }
+
+function addPanitia() { wizardPanitia.value.push(emptyRow()) }
+function removePanitia(i) { if (wizardPanitia.value.length > 1) wizardPanitia.value.splice(i, 1) }
+
+const pesertaValid = computed(() =>
+    wizardPeserta.value.length > 0 &&
+    wizardPeserta.value.every(p => 
+        p.nama.trim() !== '' && p.nrp.trim() !== '' && p.jabatan.trim() !== '' && 
+        p.site.trim() !== '' && p.no_hp.trim() !== '' && /^[0-9+]+$/.test(p.no_hp.trim())
+    )
+)
+
+const panitiaValid = computed(() =>
+    wizardPanitia.value.length > 0 &&
+    wizardPanitia.value.every(p => 
+        p.nama.trim() !== '' && p.nrp.trim() !== '' &&
+        (p.no_hp.trim() === '' || /^[0-9+]+$/.test(p.no_hp.trim()))
+    )
+)
+
+const wizardParticipantsValid = computed(() => pesertaValid.value && panitiaValid.value)
+
+function openParticipantModal(tab = 'table') {
     participantModalTab.value = tab
-    participantError.value = ''
+    participantError.value  = ''
     participantSuccess.value = ''
-    resetAddForm()
+    wizardError.value = ''
+    wizardSuccess.value = ''
+
+    // Pre-populate tabel
+    const existing = props.booking.participants ?? []
+    const _peserta = existing.filter(p => p.tipe === 'peserta')
+    const _panitia = existing.filter(p => p.tipe === 'panitia')
+    
+    wizardPeserta.value = _peserta.length > 0 ? JSON.parse(JSON.stringify(_peserta)) : [emptyRow()]
+    wizardPanitia.value = _panitia.length > 0 ? JSON.parse(JSON.stringify(_panitia)) : [emptyRow()]
+
     showParticipantModal.value = true
 }
 
@@ -121,97 +155,116 @@ async function submitCancel() {
     }
 }
 
-// ── Add single participant (APPEND — tidak menghapus yang lama) ──
-async function addSingleParticipant() {
-    if (!addForm.value.nama.trim()) {
-        participantError.value = 'Nama peserta wajib diisi.'
+// ── Save all participants (replace logic) ──
+async function saveWizardParticipants() {
+    wizardError.value = ''
+    wizardSuccess.value = ''
+
+    const pesertaToSave = wizardPeserta.value.filter(p => p.nama.trim() !== '')
+    const panitiaToSave = wizardPanitia.value.filter(p => p.nama.trim() !== '')
+
+    if (pesertaToSave.length === 0 && panitiaToSave.length === 0) {
+        wizardError.value = 'Minimal harus ada 1 orang yang diisi.'
         return
     }
-    participantLoading.value = true
-    participantError.value = ''
-    participantSuccess.value = ''
+
+    wizardSaving.value = true
+
     try {
-        const payload = {
-            tipe:    addForm.value.tipe,
-            nama:    addForm.value.nama.trim(),
-            nrp:     addForm.value.nrp.trim() || null,
-            jabatan: addForm.value.jabatan.trim() || null,
-            site:    addForm.value.site.trim() || null,
-            no_hp:   addForm.value.no_hp.trim() || null,
-            gender:  addForm.value.gender || null,
-        }
-        await window.axios.post(`/api/booking/${props.booking.id}/add-participant`, payload)
-        participantSuccess.value = `${payload.tipe === 'peserta' ? 'Peserta' : 'Panitia'} "${payload.nama}" berhasil ditambahkan!`
-        resetAddForm()
-        // Reload hanya data booking (participants) tanpa full page reload
+        await window.axios.post(`/api/booking/${props.booking.id}/update-participants-json`, {
+            peserta: pesertaToSave,
+            panitia: panitiaToSave,
+        })
+        wizardSuccess.value = 'Berhasil menyimpan data peserta dan panitia!'
+        showParticipantModal.value = false
         router.reload({ only: ['booking'], preserveState: true, preserveScroll: true })
     } catch (err) {
         const errors = err.response?.data?.errors
         if (errors) {
-            participantError.value = Object.values(errors).flat().join(' ')
+            wizardError.value = Object.values(errors).flat().join(' ')
         } else {
-            participantError.value = err.response?.data?.message ?? 'Gagal menambahkan peserta.'
+            wizardError.value = err.response?.data?.message ?? 'Gagal menyimpan data peserta.'
         }
     } finally {
-        participantLoading.value = false
+        wizardSaving.value = false
     }
 }
 
-// ── Upload Excel Phase 1: Preview & deteksi duplikat ──
-const excelPreviewData  = ref(null)   // data dari endpoint preview
-const selectedExcelFile = ref(null)   // file object disimpan untuk fase konfirmasi
-
+// ── Upload Excel: Parse and populate tables ──
 async function handleExcelSelected(e) {
     const file = e.target.files[0]
     if (!file) return
 
+    if (!file.name.endsWith('.xlsx')) {
+        participantError.value = 'Format file harus berupa Excel asli (.xlsx)!'
+        return
+    }
+
     // Reset state
     e.target.value = ''
-    selectedExcelFile.value = file
-    excelPreviewData.value = null
     participantLoading.value = true
     participantError.value = ''
     participantSuccess.value = ''
+    wizardError.value = ''
+    wizardSuccess.value = ''
+
+    const fd = new FormData()
+    fd.append('file', file)
 
     try {
-        const fd = new FormData()
-        fd.append('file_peserta', file)
         const res = await window.axios.post(
-            `/api/booking/${props.booking.id}/preview-excel-participants`, fd
+            '/api/booking/validate-participants', fd, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
         )
-        excelPreviewData.value = res.data
+        if (res.data.success) {
+            let duplicateCount = 0;
+            let addedCount = 0;
+
+            const mergeData = (targetArray, sourceArray) => {
+                sourceArray.forEach(newItem => {
+                    const isDuplicate = targetArray.some(existingItem => 
+                        (existingItem.nama || '').trim().toLowerCase() === (newItem.nama || '').trim().toLowerCase() && 
+                        (existingItem.nrp || '').trim().toLowerCase() === (newItem.nrp || '').trim().toLowerCase()
+                    );
+                    
+                    if (!isDuplicate) {
+                        // Hilangkan row kosong pertama jika ada
+                        if (targetArray.length === 1 && !targetArray[0].nama && !targetArray[0].nrp) {
+                            targetArray.pop();
+                        }
+                        targetArray.push(newItem);
+                        addedCount++;
+                    } else {
+                        duplicateCount++;
+                    }
+                });
+            };
+
+            mergeData(wizardPeserta.value, res.data.peserta || []);
+            if (res.data.is_dual_sheet) {
+                mergeData(wizardPanitia.value, res.data.panitia || []);
+            }
+
+            if (addedCount > 0) {
+                participantSuccess.value = `✓ Berhasil menambahkan ${addedCount} data baru dari file Excel.`;
+            } else if (duplicateCount > 0) {
+                participantSuccess.value = `Tidak ada data baru yang ditambahkan.`;
+            } else {
+                participantSuccess.value = `File Excel kosong atau tidak valid.`;
+            }
+
+            if (duplicateCount > 0) {
+                participantError.value = `Peringatan: ${duplicateCount} data tidak ditambahkan karena sudah ada di tabel (Duplikat Nama & NRP).`;
+            }
+        }
     } catch (err) {
-        participantError.value = err.response?.data?.message ?? 'Gagal membaca file Excel.'
-        selectedExcelFile.value = null
+        participantError.value = err.response?.data?.error || 'Gagal membaca atau memvalidasi file Excel.'
     } finally {
         participantLoading.value = false
     }
-}
-
-// ── Upload Excel Phase 2: Konfirmasi → eksekusi replace ──
-async function confirmExcelReplace() {
-    if (!selectedExcelFile.value) return
-    participantLoading.value = true
-    participantError.value = ''
-    try {
-        const fd = new FormData()
-        fd.append('file_peserta', selectedExcelFile.value)
-        await window.axios.post(`/api/booking/${props.booking.id}/update-participants`, fd)
-        excelPreviewData.value = null
-        selectedExcelFile.value = null
-        showParticipantModal.value = false
-        router.reload({ only: ['booking'], preserveState: true, preserveScroll: true })
-    } catch (err) {
-        participantError.value = err.response?.data?.message ?? 'Gagal mengupload file Excel.'
-    } finally {
-        participantLoading.value = false
-    }
-}
-
-function cancelExcelPreview() {
-    excelPreviewData.value = null
-    selectedExcelFile.value = null
-    participantError.value = ''
 }
 
 
@@ -238,6 +291,13 @@ function getAvatarBg(id) {
     ]
     return colors[id % colors.length]
 }
+
+onMounted(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('action') === 'fill_participants') {
+        openParticipantModal()
+    }
+})
 </script>
 
 <template>
@@ -436,7 +496,7 @@ function getAvatarBg(id) {
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <button v-if="booking.can_update_participants"
-                                            @click="openParticipantModal('add')"
+                                            @click="openParticipantModal()"
                                             class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded transition select-none cursor-pointer">
                                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                         Add
@@ -486,7 +546,7 @@ function getAvatarBg(id) {
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <button v-if="booking.can_update_participants"
-                                            @click="() => { openParticipantModal('add'); addForm.tipe = 'panitia' }"
+                                            @click="openParticipantModal()"
                                             class="inline-flex items-center gap-1 text-[10px] font-bold text-violet-600 hover:text-violet-700 border border-violet-200 hover:border-violet-300 bg-violet-50 hover:bg-violet-100 px-2 py-0.5 rounded transition select-none cursor-pointer">
                                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                         Add
@@ -556,7 +616,7 @@ function getAvatarBg(id) {
 
                         <!-- Update Participants -->
                         <button v-if="booking.can_update_participants" 
-                                @click="openParticipantModal('add')" 
+                                @click="openParticipantModal()" 
                                 class="w-full inline-flex items-center justify-center gap-2 border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 py-2.5 px-4 rounded-md text-xs font-bold transition shadow-sm active:scale-[0.98] select-none cursor-pointer">
                             <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -640,333 +700,298 @@ function getAvatarBg(id) {
 
         <!-- ── MODAL: Konfirmasi Batalkan Booking ── -->
     <Teleport to="body">
-        <Transition 
-            enter-active-class="transition-all ease-out duration-300" 
-            enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0" 
-            enter-to-class="opacity-100 scale-100 translate-y-0" 
-            leave-active-class="transition-all ease-in duration-200" 
-            leave-from-class="opacity-100 scale-100 translate-y-0" 
-            leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
-            <div v-if="showCancelModal" class="fixed inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-xl border border-gray-250 shadow-xl w-full max-w-md p-6">
-                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-50 border border-red-200 rounded-full mb-4">
-                        <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                    </div>
-                    <h2 class="text-lg font-bold text-center text-gray-900 mb-2">Cancel Booking?</h2>
-                    <p class="text-sm text-center text-gray-600 mb-1">
-                        Are you sure you want to cancel the event booking:
-                        <strong class="text-gray-800 block mt-0.5">{{ booking.nama_training }}</strong>?
-                    </p>
-                    <p class="text-[11px] text-center text-red-500 mb-4">This action is permanent and the room will be released immediately.</p>
-                    
-                    <div v-if="cancelError" class="mb-4 text-xs text-red-600 bg-red-50 border border-red-150 rounded-sm p-3 font-semibold">
-                        {{ cancelError }}
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <button @click="showCancelModal = false"
-                                class="flex-1 px-4 py-2 border border-gray-300 rounded-md text-xs font-bold text-gray-700 hover:bg-gray-50 transition select-none cursor-pointer">
-                            Close
-                        </button>
-                        <button @click="submitCancel" :disabled="cancelLoading"
-                                class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-bold disabled:opacity-50 transition select-none cursor-pointer">
-                            {{ cancelLoading ? 'Cancelling...' : 'Yes, Cancel' }}
+        <Transition
+            enter-active-class="transition-all ease-out duration-300"
+            enter-from-class="opacity-0 translate-y-4"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition-all ease-in duration-200"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 translate-y-4">
+            <div v-if="showParticipantModal" class="fixed inset-0 z-50 flex flex-col bg-gray-50/95 backdrop-blur-sm">
+
+                <!-- Header Bar -->
+                <div class="bg-white border-b border-gray-200 shadow-sm shrink-0">
+                    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-bold text-gray-900">Daftar Peserta &amp; Panitia</h2>
+                                <p class="text-[11px] text-gray-500 mt-0.5">Kelola daftar peserta dan panitia untuk booking ini.</p>
+                            </div>
+                        </div>
+                        <button @click="showParticipantModal = false" :disabled="participantLoading || wizardSaving" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
                 </div>
-            </div>
-        </Transition>
-    </Teleport>
 
-        <!-- ── MODAL: Update / Tambah Peserta (2 Tab) ── -->
-    <Teleport to="body">
-        <Transition 
-            enter-active-class="transition-all ease-out duration-300" 
-            enter-from-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0" 
-            enter-to-class="opacity-100 scale-100 translate-y-0" 
-            leave-active-class="transition-all ease-in duration-200" 
-            leave-from-class="opacity-100 scale-100 translate-y-0" 
-            leave-to-class="opacity-0 scale-95 translate-y-4 sm:translate-y-0">
-            <div v-if="showParticipantModal" class="fixed inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-xl border border-gray-200 shadow-2xl w-full max-w-lg">
-
-                    <!-- Modal Header -->
-                    <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
-                        <div>
-                            <h2 class="text-base font-bold text-gray-900">Kelola Peserta</h2>
-                            <p class="text-[11px] text-gray-400 mt-0.5">{{ booking.nama_training }}</p>
-                        </div>
-                        <button @click="showParticipantModal = false" :disabled="participantLoading"
-                                class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
-
-                    <!-- Tab Switcher -->
-                    <div class="flex border-b border-gray-100 px-6">
-                        <button @click="participantModalTab = 'add'; participantError = ''; participantSuccess = ''; cancelExcelPreview()"
-                                class="py-2.5 px-4 text-xs font-bold border-b-2 transition-colors -mb-px cursor-pointer"
-                                :class="participantModalTab === 'add' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                Tambah Peserta
-                            </span>
-                        </button>
-                        <button @click="participantModalTab = 'excel'; participantError = ''; participantSuccess = ''; cancelExcelPreview()"
-                                class="py-2.5 px-4 text-xs font-bold border-b-2 transition-colors -mb-px cursor-pointer"
-                                :class="participantModalTab === 'excel' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-600'">
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
-                                Upload Excel
-                            </span>
-                        </button>
-                    </div>
-
-                    <!-- Tab Content -->
-                    <div class="p-6">
-
-                        <!-- ── TAB: Tambah Peserta (Form Manual) ── -->
-                        <div v-if="participantModalTab === 'add'" class="space-y-3">
-
-                            <!-- Tipe Toggle -->
-                            <div class="flex rounded-md border border-gray-200 overflow-hidden">
-                                <button @click="addForm.tipe = 'peserta'"
-                                        class="flex-1 py-2 text-xs font-bold transition cursor-pointer"
-                                        :class="addForm.tipe === 'peserta' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'">
-                                    Peserta
-                                </button>
-                                <button @click="addForm.tipe = 'panitia'"
-                                        class="flex-1 py-2 text-xs font-bold transition cursor-pointer"
-                                        :class="addForm.tipe === 'panitia' ? 'bg-violet-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'">
-                                    Panitia
+                <!-- Main Content Area -->
+                <div class="flex-1 overflow-y-auto p-6">
+                    <div class="max-w-7xl mx-auto space-y-6">
+                        
+                        <!-- Top Toolbar (Excel Import) -->
+                        <div class="flex items-center gap-4 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                            <div class="relative">
+                                <input type="file" accept=".xlsx" @change="handleExcelSelected" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" :disabled="participantLoading || wizardSaving" />
+                                <button type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold py-2 px-4 rounded-md transition flex items-center gap-2 shadow-sm relative z-0" :class="{'opacity-50': participantLoading || wizardSaving}">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                                    Impor Excel
                                 </button>
                             </div>
-
-                            <!-- Nama (required) -->
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">
-                                    Nama <span class="text-red-500">*</span>
-                                </label>
-                                <input v-model="addForm.nama" type="text" placeholder="Nama lengkap"
-                                       class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
-                            </div>
-
-                            <!-- Grid: NRP + Gender -->
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">NRP</label>
-                                    <input v-model="addForm.nrp" type="text" placeholder="Kosong = N/A"
-                                           class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Gender</label>
-                                    <select v-model="addForm.gender"
-                                            class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition bg-white">
-                                        <option value="">— Pilih —</option>
-                                        <option value="L">Laki-laki (L)</option>
-                                        <option value="P">Perempuan (P)</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Grid: Jabatan + Site -->
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Jabatan</label>
-                                    <input v-model="addForm.jabatan" type="text" placeholder="Jabatan / posisi"
-                                           class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Site</label>
-                                    <input v-model="addForm.site" type="text" placeholder="Lokasi / site"
-                                           class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
-                                </div>
-                            </div>
-
-                            <!-- No HP -->
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">No. HP</label>
-                                <input v-model="addForm.no_hp" type="text" placeholder="Nomor HP (opsional)"
-                                       class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
-                            </div>
-
-                            <!-- Loading -->
-                            <div v-if="participantLoading" class="flex items-center justify-center gap-2 text-xs text-blue-600 py-1 font-semibold">
-                                <span class="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
-                                Menyimpan data...
-                            </div>
-
-                            <!-- Error -->
-                            <div v-if="participantError" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md p-3 font-semibold">
-                                {{ participantError }}
-                            </div>
-
-                            <!-- Success (persistent until next action) -->
-                            <div v-if="participantSuccess" class="text-xs text-green-700 bg-green-50 border border-green-200 rounded-md p-3 font-semibold flex items-center gap-2">
-                                <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ participantSuccess }}
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="flex gap-2 pt-1">
-                                <button @click="showParticipantModal = false" :disabled="participantLoading"
-                                        class="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-md text-xs font-bold hover:bg-gray-50 transition cursor-pointer select-none">
-                                    Tutup
-                                </button>
-                                <button @click="addSingleParticipant" :disabled="participantLoading || !addForm.nama.trim()"
-                                        class="flex-1 py-2.5 rounded-md text-xs font-bold text-white transition shadow-sm cursor-pointer select-none disabled:opacity-50"
-                                        :class="addForm.tipe === 'peserta' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-violet-600 hover:bg-violet-700'">
-                                    {{ participantLoading ? 'Menyimpan...' : `+ Tambah ${addForm.tipe === 'peserta' ? 'Peserta' : 'Panitia'}` }}
-                                </button>
+                            <a href="/user/booking/download-template?v=2" download class="text-gray-600 hover:text-gray-800 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-[11px] font-bold py-2 px-4 rounded-md transition flex items-center gap-2 shadow-sm">
+                                <svg class="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                Template Excel
+                            </a>
+                            <div class="w-px h-6 bg-gray-200 mx-1"></div>
+                            <div class="flex items-center gap-3 text-xs font-bold text-gray-500">
+                                <span>Peserta: <span class="text-gray-900">{{ wizardPeserta.length }}</span></span>
+                                <span>Panitia: <span class="text-gray-900">{{ wizardPanitia.length }}</span></span>
+                                <span class="text-blue-600">Total: {{ wizardPeserta.length + wizardPanitia.length }}</span>
                             </div>
                         </div>
 
-                        <!-- ── TAB: Upload Excel (Replace All) ── -->
-                        <div v-if="participantModalTab === 'excel'" class="space-y-4">
+                        <!-- Pesan Sukses Excel -->
+                        <div v-if="participantSuccess" class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3 font-semibold mb-4 flex items-center gap-2">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                            {{ participantSuccess }}
+                        </div>
+                        <div v-if="participantError" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 font-semibold mb-4">{{ participantError }}</div>
 
-                            <!-- Phase 1: Pilih File (tampil selama belum ada preview) -->
-                            <template v-if="!excelPreviewData">
-                                <div class="p-3 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-800 font-semibold flex items-start gap-2">
-                                    <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-                                    <span>Upload Excel akan <strong>mengganti semua</strong> data peserta &amp; panitia yang ada. Sistem akan memeriksa duplikat sebelum mengganti.</span>
-                                </div>
-
-                                <div class="border-2 border-dashed border-gray-200 bg-gray-50/50 hover:bg-gray-50 p-6 text-center rounded-md transition cursor-pointer relative"
-                                     :class="participantLoading ? 'opacity-60 pointer-events-none' : ''">
-                                    <input type="file" accept=".xlsx"
-                                           @change="handleExcelSelected"
-                                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                    <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13.5l3 3m0 0l3-3m-3 3v-6m1.06-4.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                        <!-- Tabel Peserta -->
+                        <div class="rounded-sm overflow-hidden flex flex-col bg-white shadow-sm border border-gray-100">
+                            <div class="bg-gray-50 border-b border-gray-100 px-4 py-3 flex items-center justify-between shrink-0">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                                     </svg>
-                                    <p class="text-xs font-bold text-gray-600">{{ participantLoading ? 'Membaca file...' : 'Klik untuk pilih file XLSX' }}</p>
-                                    <p class="text-[9px] text-gray-400 mt-1">Maksimum 2MB · Format: .xlsx</p>
-                                </div>
-
-                                <!-- Loading spinner saat baca file -->
-                                <div v-if="participantLoading" class="flex items-center justify-center gap-2 text-xs text-blue-600 font-semibold">
-                                    <span class="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
-                                    Membaca & memverifikasi file...
-                                </div>
-                            </template>
-
-                            <!-- Phase 2: Konfirmasi Preview (tampil setelah preview berhasil) -->
-                            <template v-if="excelPreviewData">
-
-                                <!-- Badge format -->
-                                <div class="flex items-center gap-2 justify-center">
-                                    <span v-if="excelPreviewData.is_dual_sheet"
-                                          class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
-                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg>
-                                        Format Dual Sheet (Peserta + Panitia)
-                                    </span>
-                                    <span v-else class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
-                                        Format Single Sheet (Peserta saja)
+                                    <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Participant List</span>
+                                    <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-100">
+                                        {{ wizardPeserta.length }} People
                                     </span>
                                 </div>
-
-                                <!-- Stats Row -->
-                                <div v-if="excelPreviewData.is_dual_sheet" class="grid grid-cols-4 gap-2">
-                                    <div class="bg-blue-50 border border-blue-100 rounded-md p-2.5 text-center">
-                                        <p class="text-base font-bold text-blue-700">{{ excelPreviewData.total_excel }}</p>
-                                        <p class="text-[9px] text-blue-500 font-semibold mt-0.5">Total</p>
-                                    </div>
-                                    <div class="bg-sky-50 border border-sky-100 rounded-md p-2.5 text-center">
-                                        <p class="text-base font-bold text-sky-700">{{ excelPreviewData.total_peserta }}</p>
-                                        <p class="text-[9px] text-sky-500 font-semibold mt-0.5">Peserta</p>
-                                    </div>
-                                    <div class="bg-violet-50 border border-violet-100 rounded-md p-2.5 text-center">
-                                        <p class="text-base font-bold text-violet-700">{{ excelPreviewData.total_panitia }}</p>
-                                        <p class="text-[9px] text-violet-500 font-semibold mt-0.5">Panitia</p>
-                                    </div>
-                                    <div class="rounded-md p-2.5 text-center"
-                                         :class="excelPreviewData.total_duplikat > 0 ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'">
-                                        <p class="text-base font-bold" :class="excelPreviewData.total_duplikat > 0 ? 'text-orange-700' : 'text-green-700'">{{ excelPreviewData.total_duplikat }}</p>
-                                        <p class="text-[9px] font-semibold mt-0.5" :class="excelPreviewData.total_duplikat > 0 ? 'text-orange-500' : 'text-green-500'">Duplikat</p>
-                                    </div>
-                                </div>
-                                <div v-else class="grid grid-cols-3 gap-2">
-                                    <div class="bg-blue-50 border border-blue-100 rounded-md p-3 text-center">
-                                        <p class="text-lg font-bold text-blue-700">{{ excelPreviewData.total_excel }}</p>
-                                        <p class="text-[10px] text-blue-500 font-semibold mt-0.5">Dari Excel</p>
-                                    </div>
-                                    <div class="bg-gray-50 border border-gray-200 rounded-md p-3 text-center">
-                                        <p class="text-lg font-bold text-gray-700">{{ excelPreviewData.total_existing }}</p>
-                                        <p class="text-[10px] text-gray-500 font-semibold mt-0.5">Existing</p>
-                                    </div>
-                                    <div class="rounded-md p-3 text-center"
-                                         :class="excelPreviewData.total_duplikat > 0 ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'">
-                                        <p class="text-lg font-bold" :class="excelPreviewData.total_duplikat > 0 ? 'text-orange-700' : 'text-green-700'">{{ excelPreviewData.total_duplikat }}</p>
-                                        <p class="text-[10px] font-semibold mt-0.5" :class="excelPreviewData.total_duplikat > 0 ? 'text-orange-500' : 'text-green-500'">Duplikat</p>
-                                    </div>
-                                </div>
-
-
-                                <!-- Alert: Ada duplikat -->
-                                <div v-if="excelPreviewData.total_duplikat > 0" class="p-3 bg-orange-50 border border-orange-200 rounded-md">
-                                    <p class="text-xs font-bold text-orange-800 flex items-center gap-1.5 mb-2">
-                                        <svg class="w-4 h-4 text-orange-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
-                                        {{ excelPreviewData.total_duplikat }} peserta di Excel sudah terdaftar sebelumnya:
-                                    </p>
-                                    <ul class="space-y-1 max-h-28 overflow-y-auto">
-                                        <li v-for="dup in excelPreviewData.duplikat" :key="dup.nrp + dup.nama"
-                                            class="text-[11px] text-orange-700 bg-white/70 border border-orange-100 rounded px-2 py-1 flex items-center justify-between gap-2">
-                                            <span class="font-bold truncate">{{ dup.nama }}</span>
-                                            <span class="text-orange-500 text-[10px] shrink-0">{{ dup.alasan }}</span>
-                                        </li>
-                                    </ul>
-                                    <p class="text-[10px] text-orange-600 mt-2">Jika Anda lanjutkan, semua data lama (termasuk peserta di atas) akan <strong>diganti</strong> dengan data dari Excel.</p>
-                                </div>
-
-                                <!-- Alert: Tidak ada duplikat -->
-                                <div v-else class="p-3 bg-green-50 border border-green-200 rounded-md text-xs text-green-800 font-semibold flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                    Tidak ada data duplikat ditemukan. Aman untuk diganti.
-                                </div>
-
-                                <!-- Nama file -->
-                                <p class="text-[11px] text-gray-500 text-center truncate">
-                                    📄 {{ selectedExcelFile?.name }}
-                                </p>
-                            </template>
-
-                            <!-- Error -->
-                            <div v-if="participantError" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md p-3 font-semibold">
-                                {{ participantError }}
+                                <button @click="addPeserta"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold py-1.5 px-3 rounded-md transition flex items-center gap-1.5 shadow-sm select-none">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    Add Participant
+                                </button>
                             </div>
-
-                            <!-- Tombol aksi -->
-                            <div class="flex gap-2">
-                                <button @click="excelPreviewData ? cancelExcelPreview() : (showParticipantModal = false)"
-                                        :disabled="participantLoading"
-                                        class="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-md text-xs font-bold hover:bg-gray-50 transition cursor-pointer select-none disabled:opacity-50">
-                                    {{ excelPreviewData ? 'Ganti File' : 'Batal' }}
-                                </button>
-                                <button v-if="excelPreviewData"
-                                        @click="confirmExcelReplace"
-                                        :disabled="participantLoading"
-                                        class="flex-1 py-2.5 rounded-md text-xs font-bold text-white transition shadow-sm cursor-pointer select-none disabled:opacity-50"
-                                        :class="excelPreviewData.total_duplikat > 0 ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'">
-                                    <span v-if="participantLoading" class="flex items-center justify-center gap-1.5">
-                                        <span class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                        Mengganti...
-                                    </span>
-                                    <span v-else>
-                                        {{ excelPreviewData.total_duplikat > 0 ? '⚠ Ya, Tetap Ganti Semua' : '✓ Ganti Semua Data' }}
-                                    </span>
-                                </button>
+                            
+                            <div class="overflow-x-auto flex-1">
+                                <table class="w-full text-xs text-left border-collapse min-w-[650px]">
+                                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-3 w-12 text-center font-bold">#</th>
+                                            <th class="px-4 py-3 font-bold">Full Name<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">NRP<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Position<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Site<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Phone Number<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 w-40 text-center font-bold">Gender<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 w-12 text-center font-bold"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-50">
+                                        <tr v-for="(p, i) in wizardPeserta" :key="'peserta'+i" class="hover:bg-blue-50/30 transition-colors">
+                                            <td class="px-4 py-2.5 text-center text-gray-400 font-bold">{{ i + 1 }}</td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.nama" type="text" placeholder="Type full name..."
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.nrp" type="text" placeholder="Type NRP or 'N/A'..."
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.nrp.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.jabatan" type="text" placeholder="Position..."
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.jabatan.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.site" type="text" placeholder="Site..."
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.site.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.no_hp" type="text" placeholder="Example: 0812..."
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.no_hp.trim() === '' || !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <select v-model="p.gender"
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white min-w-[110px] appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.6em_auto] bg-[right_0.65rem_center] bg-no-repeat">
+                                                    <option value="L">Male</option>
+                                                    <option value="P">Female</option>
+                                                </select>
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <button @click="removePeserta(i)" :disabled="wizardPeserta.length === 1"
+                                                    class="text-gray-400 hover:text-red-655 disabled:opacity-30 disabled:cursor-not-allowed p-1.5 hover:bg-red-50 rounded-lg transition"
+                                                    title="Delete row">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9 9m6.24-3.5v-.75A2.25 2.25 0 0 0 14.25 2.25h-4.5A2.25 2.25 0 0 0 7.5 4.5v.75m3 3h4.5M5.625 6h12.75L17.25 18a2.25 2.25 0 0 1-2.25 2.25h-6A2.25 2.25 0 0 1 6.75 18L5.625 6Z" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="bg-gray-50/70 px-4 py-2.5 flex items-center justify-between shrink-0">
+                                <span class="text-[10px] text-gray-500 font-medium">
+                                    All fields marked with an asterisk (*) are required.
+                                </span>
+                                <div class="flex items-center gap-1 ml-auto">
+                                    <template v-if="!pesertaValid">
+                                        <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                        </svg>
+                                        <span class="text-[10px] font-bold text-red-600">There are empty fields</span>
+                                    </template>
+                                </div>
                             </div>
                         </div>
 
+                        <!-- Tabel Panitia -->
+                        <div class="rounded-sm overflow-hidden flex flex-col bg-white shadow-sm border border-gray-100">
+                            <div class="bg-gray-50 border-b border-gray-100 px-4 py-3 flex items-center justify-between shrink-0">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A11.978 11.978 0 0 1 12 20.25a11.98 11.98 0 0 1-3-1.013v-.109m6 0c0-.529-.029-1.049-.086-1.56M9 19.128v-.003c0-1.113.285-2.16.786-3.07M9 19.128v.109A12.042 12.042 0 0 1 5 18.25c-1.391-.772-2.5-1.954-3.125-3.376a4.125 4.125 0 0 1 7.533-2.493m0 0A3.125 3.125 0 1 1 12 9.75a3.125 3.125 0 0 1-2.593 3.031m4.5 4.52c0-.529-.029-1.049-.086-1.56m-4.5 1.56a12.188 12.188 0 0 1-3.97-1.56" />
+                                    </svg>
+                                    <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Organizer List</span>
+                                    <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100">
+                                        {{ wizardPanitia.length }} People
+                                    </span>
+                                </div>
+                                <button @click="addPanitia"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold py-1.5 px-3 rounded-md transition flex items-center gap-1.5 shadow-sm select-none">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    Add Organizer
+                                </button>
+                            </div>
+                            
+                            <div class="overflow-x-auto flex-1">
+                                <table class="w-full text-xs text-left border-collapse min-w-[650px]">
+                                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider border-b border-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-3 w-12 text-center font-bold">#</th>
+                                            <th class="px-4 py-3 font-bold">Full Name<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">NRP<span class="text-red-500">*</span></th>
+                                            <th class="px-4 py-3 font-bold">Position</th>
+                                            <th class="px-4 py-3 font-bold">Site</th>
+                                            <th class="px-4 py-3 font-bold">Phone Number</th>
+                                            <th class="px-4 py-3 w-40 text-center font-bold">Gender</th>
+                                            <th class="px-4 py-3 w-12 text-center font-bold"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-50">
+                                        <tr v-for="(p, i) in wizardPanitia" :key="'panitia'+i" class="hover:bg-amber-50/20 transition-colors">
+                                            <td class="px-4 py-2.5 text-center text-gray-400 font-bold">{{ i + 1 }}</td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.nama" type="text" placeholder="Full name..."
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.nama.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.nrp" type="text" placeholder="Type NRP or 'N/A'..."
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.nrp.trim() === '' ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.jabatan" type="text" placeholder="Position..."
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.site" type="text" placeholder="Site..."
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white" />
+                                            </td>
+                                            <td class="px-4 py-2.5">
+                                                <input v-model="p.no_hp" type="text" placeholder="Example: 0812..."
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                    :class="p.no_hp.trim() !== '' && !/^[0-9+]+$/.test(p.no_hp) ? 'border-red-300 bg-red-50/20' : ''" />
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <select v-model="p.gender"
+                                                    class="w-full text-xs border border-gray-200 rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white min-w-[110px] appearance-none pr-8 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.4c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:0.6em_auto] bg-[right_0.65rem_center] bg-no-repeat">
+                                                    <option value="L">Male</option>
+                                                    <option value="P">Female</option>
+                                                </select>
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <button @click="removePanitia(i)" :disabled="wizardPanitia.length === 1"
+                                                    class="text-gray-400 hover:text-red-655 disabled:opacity-30 disabled:cursor-not-allowed p-1.5 hover:bg-red-50 rounded-lg transition"
+                                                    title="Delete row">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9 9m6.24-3.5v-.75A2.25 2.25 0 0 0 14.25 2.25h-4.5A2.25 2.25 0 0 0 7.5 4.5v.75m3 3h4.5M5.625 6h12.75L17.25 18a2.25 2.25 0 0 1-2.25 2.25h-6A2.25 2.25 0 0 1 6.75 18L5.625 6Z" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="bg-gray-50/70 px-4 py-2.5 flex items-center justify-between shrink-0">
+                                <span class="text-[10px] text-gray-500 font-medium">
+                                    <strong>Name*</strong> and <strong>NRP*</strong> fields are required for all rows (NRP can be "N/A").
+                                </span>
+                                <div class="flex items-center gap-1 ml-auto">
+                                    <template v-if="!panitiaValid">
+                                        <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                        </svg>
+                                        <span class="text-[10px] font-bold text-red-600">There are names or NRPs not filled</span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Bottom Action Bar -->
+                <div class="bg-white border-t border-gray-200 shrink-0">
+                    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3 text-xs text-gray-500">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full shrink-0" :class="wizardParticipantsValid ? 'bg-green-500' : 'bg-yellow-400 animate-pulse'"></span>
+                                <span v-if="wizardParticipantsValid" class="text-green-700 font-semibold">Semua data siap disimpan</span>
+                                <span v-else class="text-gray-400">Lengkapi kolom yang ditandai merah</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div v-if="wizardError" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 font-semibold flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+                                {{ wizardError }}
+                            </div>
+                            <button @click="showParticipantModal = false" :disabled="wizardSaving"
+                                    class="border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-bold py-2.5 px-5 rounded-lg transition shadow-sm select-none disabled:opacity-50">
+                                Batal
+                            </button>
+                            <button @click="saveWizardParticipants" :disabled="wizardSaving || !wizardParticipantsValid"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-6 rounded-lg transition shadow-sm flex items-center gap-2 select-none disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span v-if="wizardSaving" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" /></svg>
+                                {{ wizardSaving ? 'Menyimpan...' : 'Simpan Semua' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </Transition>
     </Teleport>
-
         <!-- ── MODAL: Ubah Tanggal ── -->
     <Teleport to="body">
         <Transition 
@@ -990,12 +1015,12 @@ function getAvatarBg(id) {
                     <div class="space-y-3 mb-4">
                         <div>
                             <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">New Start Date</label>
-                            <input type="date" v-model="dateForm.proposed_tgl_mulai"
+                            <input type="date" v-model="dateForm.proposed_tgl_mulai" :min="todayStr"
                                    class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">New End Date</label>
-                            <input type="date" v-model="dateForm.proposed_tgl_selesai"
+                            <input type="date" v-model="dateForm.proposed_tgl_selesai" :min="dateForm.proposed_tgl_mulai || todayStr"
                                    class="w-full border border-gray-200 rounded-md px-3 py-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
                         </div>
                         <div>

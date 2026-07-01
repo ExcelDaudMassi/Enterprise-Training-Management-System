@@ -12,9 +12,10 @@ const props = defineProps({ auth: Object })
 // ============================================================
 // WIZARD GLOBAL STATE
 // ============================================================
-const currentStage = ref(1)
+const currentStage = ref(0)
 
 // Stage 1 (Excel Upload & Kapasitas)
+const tipeBooking         = ref('reguler') // 'reguler' atau 'early'
 const participants        = ref([
     { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
 ])
@@ -53,6 +54,18 @@ const panitiaValid = computed(() =>
         (p.no_hp.trim() === '' || /^[0-9+]+$/.test(p.no_hp.trim()))
     )
 )
+
+function addParticipant() {
+    participants.value.push({ nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' })
+}
+
+function removeParticipant(index) {
+    if (participants.value.length > 1) {
+        participants.value.splice(index, 1)
+    } else {
+        resetExcel()
+    }
+}
 
 // Stage 2 (Kalender)
 const blockedDates      = ref({})
@@ -105,6 +118,7 @@ const termsAccepted = ref(false)
 const stateToSave = computed(() => {
     return {
         currentStage: currentStage.value,
+        tipeBooking: tipeBooking.value,
         participants: participants.value,
         isManualInput: isManualInput.value,
         uploadedFileName: uploadedFileName.value,
@@ -251,6 +265,7 @@ onMounted(() => {
                         const data = JSON.parse(saved)
                         
                         if (data.currentStage !== undefined) currentStage.value = data.currentStage
+                        if (data.tipeBooking !== undefined) tipeBooking.value = data.tipeBooking
                         if (data.participants !== undefined) participants.value = data.participants
                         if (data.isManualInput !== undefined) isManualInput.value = data.isManualInput
                         if (data.uploadedFileName !== undefined) uploadedFileName.value = data.uploadedFileName
@@ -302,9 +317,12 @@ function clearSavedState() {
 // ============================================================
 const participantCount = computed(() => participants.value.length)
 
-const totalOrangComputed = computed(() =>
-    participantCount.value + panitiaCount.value
-)
+const totalOrangComputed = computed(() => {
+    if (tipeBooking.value === 'early') {
+        return 0
+    }
+    return participantCount.value + panitiaCount.value
+})
 
 const participantsValid = computed(() =>
     participants.value.length > 0 &&
@@ -319,12 +337,15 @@ const participantsValid = computed(() =>
     )
 )
 
-const isStage1Valid = computed(() =>
-    participantCount.value > 0 &&
-    participantsValid.value &&
-    panitiaCount.value > 0 &&
-    panitiaValid.value
-)
+const isStage1Valid = computed(() => {
+    if (tipeBooking.value === 'early') {
+        return true
+    }
+    return participantCount.value > 0 &&
+           participantsValid.value &&
+           panitiaCount.value > 0 &&
+           panitiaValid.value
+})
 
 const isRangeSelected = computed(() => startDate.value && endDate.value)
 
@@ -342,6 +363,7 @@ watch([startDate, endDate], async ([newStart, newEnd]) => {
                 start_date: newStart,
                 end_date: newEnd,
                 total_orang: totalOrang.value,
+                tipe_booking: tipeBooking.value,
             })
             if (res.data.success) {
                 availableRooms.value = res.data.rooms
@@ -389,13 +411,46 @@ async function handleExcelUpload(event) {
             }
         })
         if (res.data.success) {
-            participants.value        = res.data.peserta || []
+            let duplicateCount = 0;
+            let addedCount = 0;
+
+            const mergeData = (targetArray, sourceArray) => {
+                sourceArray.forEach(newItem => {
+                    const isDuplicate = targetArray.some(existingItem => 
+                        (existingItem.nama || '').trim().toLowerCase() === (newItem.nama || '').trim().toLowerCase() && 
+                        (existingItem.nrp || '').trim().toLowerCase() === (newItem.nrp || '').trim().toLowerCase()
+                    );
+                    
+                    if (!isDuplicate) {
+                        // Hilangkan row kosong pertama jika ada
+                        if (targetArray.length === 1 && !targetArray[0].nama && !targetArray[0].nrp) {
+                            targetArray.pop();
+                        }
+                        targetArray.push(newItem);
+                        addedCount++;
+                    } else {
+                        duplicateCount++;
+                    }
+                });
+            };
+
+            mergeData(participants.value, res.data.peserta || []);
             if (res.data.is_dual_sheet) {
-                panitiaList.value     = res.data.panitia || []
-                excelSuccessMessage.value = `✓ Format Dual-Sheet: ${res.data.total_peserta} peserta & ${res.data.total_panitia} panitia dari ${file.name}`
-            } else {
-                excelSuccessMessage.value = `✓ Berhasil memuat ${res.data.total_peserta} peserta dari ${file.name}`
+                mergeData(panitiaList.value, res.data.panitia || []);
             }
+            
+            if (addedCount > 0) {
+                excelSuccessMessage.value = `✓ Berhasil menambahkan ${addedCount} data baru dari ${file.name}.`;
+            } else if (duplicateCount > 0) {
+                excelSuccessMessage.value = `Tidak ada data baru yang ditambahkan dari ${file.name}.`;
+            } else {
+                excelSuccessMessage.value = `File Excel kosong atau tidak valid.`;
+            }
+
+            if (duplicateCount > 0) {
+                stage1Error.value = `Peringatan: ${duplicateCount} data tidak ditambahkan karena sudah ada di tabel (Duplikat Nama & NRP).`;
+            }
+            
             uploadedFileName.value    = file.name
             isManualInput.value       = false
         }
@@ -420,18 +475,6 @@ function startManualInput() {
     stage1Error.value      = ''
 }
 
-function addParticipant() {
-    participants.value.push({ nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' })
-}
-
-function removeParticipant(index) {
-    if (participants.value.length > 1) {
-        participants.value.splice(index, 1)
-    } else {
-        resetExcel()
-    }
-}
-
 function resetExcel() {
     participants.value        = [
         { nama: '', nrp: '', jabatan: '', site: '', no_hp: '', gender: 'L' }
@@ -445,16 +488,26 @@ function resetExcel() {
     isManualInput.value       = true
 }
 
+async function proceedFromStage0() {
+    if (tipeBooking.value === 'early') {
+        await checkEligibility()
+    } else {
+        currentStage.value = 1
+    }
+}
+
 async function checkEligibility() {
     if (!isStage1Valid.value) return
     stage1Error.value = ''
     isChecking.value  = true
 
     try {
-        const res = await axios.post('/api/booking/check-eligibility', {
-            jumlah_peserta: participantCount.value,
-            jumlah_panitia: panitiaCount.value,
-        })
+        const payload = tipeBooking.value === 'early' 
+            ? { jumlah_peserta: 0, jumlah_panitia: 0, tipe_booking: 'early' }
+            : { jumlah_peserta: participantCount.value, jumlah_panitia: panitiaCount.value, tipe_booking: 'reguler' }
+
+        const res = await axios.post('/api/booking/check-eligibility', payload)
+        
         if (res.data.success) {
             eligibleRooms.value = res.data.eligible_rooms
             activeYear.value    = res.data.booking_window.tahun
@@ -573,7 +626,9 @@ async function loadAvailability() {
 
     const roomIds = isCombined.value
         ? eligibleRooms.value[0].room_ids
-        : eligibleRooms.value.map(r => r.id)
+        : eligibleRooms.value
+            .map(r => r.id)
+            .filter(id => id !== 'combined_2_3') // Hindari error validasi integer di backend
 
     try {
         const res = await axios.post('/api/booking/get-availability', {
@@ -649,9 +704,10 @@ async function proceedToStage3() {
 
     try {
         const res = await axios.post('/api/booking/get-available-rooms', {
-            start_date:  startDate.value,
-            end_date:    endDate.value,
-            total_orang: totalOrang.value,
+            start_date:   startDate.value,
+            end_date:     endDate.value,
+            total_orang:  totalOrang.value,
+            tipe_booking: tipeBooking.value,
         })
         if (res.data.success) {
             availableRooms.value = res.data.rooms
@@ -731,13 +787,19 @@ async function submitFinal() {
     submitError.value = ''
 
     try {
-        const res = await axios.post('/api/booking/submit', {
+        const payload = {
             ruangan_id: selectedRoom.value.id,
             tgl_mulai: startDate.value,
             tgl_selesai: endDate.value,
-            peserta: participants.value,
-            panitia: panitiaList.value
-        })
+            tipe_booking: tipeBooking.value,
+        }
+
+        if (tipeBooking.value === 'reguler') {
+            payload.peserta = participants.value
+            payload.panitia = panitiaList.value
+        }
+
+        const res = await axios.post('/api/booking/submit', payload)
 
         if (res.data.success) {
             submitSuccess.value = true
@@ -772,7 +834,11 @@ async function submitFinal() {
 // NAVIGATION
 // ============================================================
 function backToStage1() {
-    currentStage.value   = 1
+    if (tipeBooking.value === 'early') {
+        currentStage.value = 0
+    } else {
+        currentStage.value = 1
+    }
     // Reset semua state downstream (stage 2, 3, 4)
     blockedDates.value   = {}
     startDate.value      = null
@@ -822,6 +888,7 @@ function formatDate(dateStr) {
 
 const getStageTitle = (stage) => {
     switch (stage) {
+        case 0: return 'Pilih Tipe Booking'
         case 1: return 'Daftar Peserta & Panitia'
         case 2: return 'Kalender Ketersediaan'
         case 3: return 'Pilih Ruangan'
@@ -833,6 +900,7 @@ const getStageTitle = (stage) => {
 
 const getStageSubtitle = (stage) => {
     switch (stage) {
+        case 0: return 'Tentukan jenis pemesanan yang ingin Anda buat sebelum melanjutkan.'
         case 1: return 'Lengkapi daftar peserta dan panitia pelatihan untuk mencari ruangan yang sesuai.'
         case 2: return 'Pilih rentang tanggal mulai dan berakhir pada kalender untuk melihat ketersediaan ruangan.'
         case 3: return 'Pilih salah satu ruangan yang tersedia untuk kapasitas dan rentang tanggal yang ditentukan.'
@@ -959,9 +1027,8 @@ const getLayoutDesc = (layout) => {
                                         </svg>
                                         <span>{{ isUploadingExcel ? 'Memproses...' : 'Impor Excel' }}</span>
                                     </label>
-                                    <a :href="`/user/booking/download-template?v=${Date.now()}`"
-                                        class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition inline-flex items-center gap-2 shadow-sm select-none">
-                                        <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <a href="/user/booking/download-template?v=2" download class="text-gray-600 hover:text-gray-800 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-[11px] font-bold py-2 px-4 rounded-md transition flex items-center gap-2 shadow-sm whitespace-nowrap select-none w-full sm:w-auto justify-center">
+                                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                                         </svg>
                                         Template Excel
@@ -1111,17 +1178,34 @@ const getLayoutDesc = (layout) => {
                         </div>
 
                         <!-- CTAs -->
-                        <button v-if="currentStage === 1" @click="checkEligibility" :disabled="!isStage1Valid || isChecking"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2 select-none">
-                            <span v-if="isChecking" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
-                            <svg v-else class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637z" />
-                            </svg>
-                            <span>{{ isChecking ? 'Memeriksa...' : 'Cari Ruangan' }}</span>
-                            <svg v-if="!isChecking" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                            </svg>
-                        </button>
+                        <template v-if="currentStage === 0">
+                            <div class="w-full"></div> <!-- spacer -->
+                            <button @click="proceedFromStage0" :disabled="isChecking"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-8 rounded-lg text-sm transition-all whitespace-nowrap shadow-md hover:shadow-lg disabled:opacity-50 flex items-center gap-2 select-none">
+                                <span v-if="isChecking" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
+                                <span>{{ isChecking ? 'Memproses...' : 'Mulai Booking' }}</span>
+                                <svg v-if="!isChecking" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                            </button>
+                        </template>
+
+                        <template v-else-if="currentStage === 1">
+                            <button @click="currentStage = 0"
+                                class="bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold py-2 px-3.5 rounded-md transition shadow-sm flex items-center gap-1.5 select-none">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                                Back
+                            </button>
+                            <button @click="checkEligibility" :disabled="!isStage1Valid || isChecking"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md text-xs transition disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap shadow-sm flex items-center gap-2 select-none">
+                                <span v-if="isChecking" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
+                                <svg v-else class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637z" />
+                                </svg>
+                                <span>{{ isChecking ? 'Memeriksa...' : 'Cari Ruangan' }}</span>
+                                <svg v-if="!isChecking" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                </svg>
+                            </button>
+                        </template>
 
                         <template v-else-if="currentStage === 2">
                             <button @click="backToStage1"
@@ -1186,11 +1270,44 @@ const getLayoutDesc = (layout) => {
                 <!-- Dynamic Stage Content Area -->
                 <div class="flex-grow">
 
-                    <!-- STAGE 1 -->
-                    <div v-if="currentStage === 1" class="space-y-6">
+                    <!-- STAGE 0: Pilih Tipe Booking -->
+                    <div v-if="currentStage === 0" class="space-y-6">
+                        <!-- Error Message -->
+                        <div v-if="stage1Error" class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm flex items-center gap-2 mb-4">
+                            <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            <span>{{ stage1Error }}</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                            <label class="relative flex cursor-pointer rounded-xl border bg-white p-8 shadow-sm focus:outline-none transition-all duration-200 hover:-translate-y-1 hover:shadow-md" :class="tipeBooking === 'reguler' ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50/20' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'">
+                                <input type="radio" name="tipe_booking" value="reguler" v-model="tipeBooking" class="sr-only" />
+                                <span class="flex flex-1 gap-4">
+                                    <span class="flex flex-col flex-1">
+                                        <span class="block text-xl font-bold text-gray-900 mb-2">Regular Booking</span>
+                                        <span class="mt-1 flex items-center text-sm text-gray-500 leading-relaxed">Unggah daftar nama peserta (Excel) atau input manual langsung pada sistem sebelum mengajukan pemesanan.</span>
+                                    </span>
+                                </span>
+                                <svg class="h-8 w-8 text-blue-600 shrink-0" :class="tipeBooking === 'reguler' ? 'opacity-100 scale-100' : 'opacity-0 scale-75'" style="transition: all 0.2s" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                </svg>
+                            </label>
 
-                    <!-- Tables -->
-                    <div class="flex flex-col gap-4 w-full">
+                            <label class="relative flex cursor-pointer rounded-xl border bg-white p-8 shadow-sm focus:outline-none transition-all duration-200 hover:-translate-y-1 hover:shadow-md" :class="tipeBooking === 'early' ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50/20' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'">
+                                <input type="radio" name="tipe_booking" value="early" v-model="tipeBooking" class="sr-only" />
+                                <span class="flex flex-1 gap-4">
+                                    <span class="flex flex-col flex-1">
+                                        <span class="block text-xl font-bold text-gray-900 mb-2">Early Booking</span>
+                                        <span class="mt-1 flex items-center text-sm text-gray-500 leading-relaxed">Amankan slot ruangan hanya dengan mengisi estimasi kuota peserta. Data peserta lengkap dapat menyusul H-7.</span>
+                                    </span>
+                                </span>
+                                <svg class="h-8 w-8 text-blue-600 shrink-0" :class="tipeBooking === 'early' ? 'opacity-100 scale-100' : 'opacity-0 scale-75'" style="transition: all 0.2s" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                </svg>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- STAGE 1 -->
+                    <div v-if="currentStage === 1 && tipeBooking === 'reguler'" class="space-y-6 flex flex-col gap-4 w-full">
 
                         <!-- List Peserta -->
                         <div class="rounded-sm overflow-hidden flex flex-col bg-white shadow-sm">
@@ -1401,9 +1518,7 @@ const getLayoutDesc = (layout) => {
                                 </div>
                             </div>
                         </div>
-
                     </div>
-                </div>
 
             <!-- STAGE 2 -->
             <div v-if="currentStage === 2" class="space-y-6">
@@ -1738,8 +1853,22 @@ const getLayoutDesc = (layout) => {
                         <div class="bg-gray-50 border border-gray-100 rounded-md p-4">
                             <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Setup</p>
                             <div class="space-y-1.5 text-xs">
-                                <div class="flex justify-between"><span class="text-gray-500">Total</span><span class="font-medium text-gray-800">{{ totalOrang }} ({{ participantCount }}P + {{ panitiaCount }}Org)</span></div>
-                                <div class="flex justify-between"><span class="text-gray-500">Layout</span><span class="font-medium text-gray-800 capitalize">{{ formStage4.layout_preferensi }}</span></div>
+                                <!-- Regular Booking: tampilkan total peserta + panitia -->
+                                <template v-if="tipeBooking === 'reguler'">
+                                    <div class="flex justify-between"><span class="text-gray-500">Total</span><span class="font-medium text-gray-800">{{ totalOrang }} ({{ participantCount }}P + {{ panitiaCount }}Org)</span></div>
+                                </template>
+                                <!-- Early Booking: tampilkan kapasitas ruangan -->
+                                <template v-else>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-500">Kapasitas Ruangan</span>
+                                        <span class="font-medium text-gray-800">Max {{ selectedRoom?.kapasitas_max || '-' }} Orang</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-500">Tipe Booking</span>
+                                        <span class="font-bold text-amber-600 bg-amber-50 px-1.5 rounded">Early Booking</span>
+                                    </div>
+                                </template>
+                                <div class="flex justify-between"><span class="text-gray-500">Layout</span><span class="font-medium text-gray-800 capitalize">{{ getLayoutLabel(formStage4.layout_preferensi) }}</span></div>
                                 <div class="flex justify-between"><span class="text-gray-500">Hybrid</span><span :class="formStage4.hybrid ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.hybrid ? 'Yes' : 'No' }}</span></div>
                                 <div class="flex justify-between"><span class="text-gray-500">Flipchart</span><span :class="formStage4.flipchart ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.flipchart ? 'Yes' : 'No' }}</span></div>
                                 <div class="flex justify-between"><span class="text-gray-500">Pen & Mini Note</span><span :class="formStage4.pena_mini_note ? 'text-green-600 font-medium' : 'text-gray-400'">{{ formStage4.pena_mini_note ? 'Yes' : 'No' }}</span></div>
@@ -1747,75 +1876,95 @@ const getLayoutDesc = (layout) => {
                         </div>
                     </div>
 
-                    <!-- Daftar Peserta — full width -->
-                    <div class="rounded-sm overflow-hidden border border-gray-100 bg-white">
-                        <div class="bg-gray-50 px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
-                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
-                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Participant List</span>
-                            <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-100">{{ participantCount }} people</span>
+                    <!-- Daftar Peserta & Panitia — Hanya tampil untuk Regular Booking -->
+                    <template v-if="tipeBooking === 'reguler'">
+                        <!-- Daftar Peserta -->
+                        <div class="rounded-sm overflow-hidden border border-gray-100 bg-white">
+                            <div class="bg-gray-50 px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
+                                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Participant List</span>
+                                <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-100">{{ participantCount }} people</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-gray-50 text-gray-500 font-semibold uppercase tracking-wider text-[10px] border-b border-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-2.5 w-10 text-center">#</th>
+                                            <th class="px-4 py-2.5">Full Name</th>
+                                            <th class="px-4 py-2.5">NRP</th>
+                                            <th class="px-4 py-2.5">Position</th>
+                                            <th class="px-4 py-2.5">Site</th>
+                                            <th class="px-4 py-2.5">Phone Number</th>
+                                            <th class="px-4 py-2.5">Gender</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-50">
+                                        <tr v-for="(p, i) in participants" :key="i" class="hover:bg-blue-50/20 transition-colors">
+                                            <td class="px-4 py-2.5 text-center text-gray-400">{{ i + 1 }}</td>
+                                            <td class="px-4 py-2.5 font-medium text-gray-800">{{ p.nama }}</td>
+                                            <td class="px-4 py-2.5 font-mono text-gray-600">{{ p.nrp || 'N/A' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.jabatan || '-' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.site || '-' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500 capitalize">{{ p.gender || '-' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs text-left">
-                                <thead class="bg-gray-50 text-gray-500 font-semibold uppercase tracking-wider text-[10px] border-b border-gray-100">
-                                    <tr>
-                                        <th class="px-4 py-2.5 w-10 text-center">#</th>
-                                        <th class="px-4 py-2.5">Full Name</th>
-                                        <th class="px-4 py-2.5">NRP</th>
-                                        <th class="px-4 py-2.5">Position</th>
-                                        <th class="px-4 py-2.5">Site</th>
-                                        <th class="px-4 py-2.5">Phone Number</th>
-                                        <th class="px-4 py-2.5">Gender</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-50">
-                                    <tr v-for="(p, i) in participants" :key="i" class="hover:bg-blue-50/20 transition-colors">
-                                        <td class="px-4 py-2.5 text-center text-gray-400">{{ i + 1 }}</td>
-                                        <td class="px-4 py-2.5 font-medium text-gray-800">{{ p.nama }}</td>
-                                        <td class="px-4 py-2.5 font-mono text-gray-600">{{ p.nrp || 'N/A' }}</td>
-                                        <td class="px-4 py-2.5 text-gray-500">{{ p.jabatan || '-' }}</td>
-                                        <td class="px-4 py-2.5 text-gray-500">{{ p.site || '-' }}</td>
-                                        <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
-                                        <td class="px-4 py-2.5 text-gray-500 capitalize">{{ p.gender || '-' }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
 
-                    <!-- Daftar Panitia — full width -->
-                    <div class="rounded-sm overflow-hidden border border-gray-100 bg-white">
-                        <div class="bg-gray-50 px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
-                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
-                            <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Organizer List</span>
-                            <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100">{{ panitiaCount }} people</span>
+                        <!-- Daftar Panitia -->
+                        <div class="rounded-sm overflow-hidden border border-gray-100 bg-white">
+                            <div class="bg-gray-50 px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
+                                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Organizer List</span>
+                                <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100">{{ panitiaCount }} people</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-gray-50 text-gray-500 font-semibold uppercase tracking-wider text-[10px] border-b border-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-2.5 w-10 text-center">#</th>
+                                            <th class="px-4 py-2.5">Full Name</th>
+                                            <th class="px-4 py-2.5">NRP</th>
+                                            <th class="px-4 py-2.5">Position</th>
+                                            <th class="px-4 py-2.5">Site</th>
+                                            <th class="px-4 py-2.5">Phone Number</th>
+                                            <th class="px-4 py-2.5">Gender</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-50">
+                                        <tr v-for="(p, i) in panitiaList" :key="i" class="hover:bg-amber-50/20 transition-colors">
+                                            <td class="px-4 py-2.5 text-center text-gray-400">{{ i + 1 }}</td>
+                                            <td class="px-4 py-2.5 font-medium text-gray-800">{{ p.nama }}</td>
+                                            <td class="px-4 py-2.5 font-mono text-gray-600">{{ p.nrp || 'N/A' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.jabatan || '-' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.site || '-' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500 capitalize">{{ p.gender || '-' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs text-left">
-                                <thead class="bg-gray-50 text-gray-500 font-semibold uppercase tracking-wider text-[10px] border-b border-gray-100">
-                                    <tr>
-                                        <th class="px-4 py-2.5 w-10 text-center">#</th>
-                                        <th class="px-4 py-2.5">Full Name</th>
-                                        <th class="px-4 py-2.5">NRP</th>
-                                        <th class="px-4 py-2.5">Position</th>
-                                        <th class="px-4 py-2.5">Site</th>
-                                        <th class="px-4 py-2.5">Phone Number</th>
-                                        <th class="px-4 py-2.5">Gender</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-50">
-                                    <tr v-for="(p, i) in panitiaList" :key="i" class="hover:bg-amber-50/20 transition-colors">
-                                        <td class="px-4 py-2.5 text-center text-gray-400">{{ i + 1 }}</td>
-                                        <td class="px-4 py-2.5 font-medium text-gray-800">{{ p.nama }}</td>
-                                        <td class="px-4 py-2.5 font-mono text-gray-600">{{ p.nrp || 'N/A' }}</td>
-                                        <td class="px-4 py-2.5 text-gray-500">{{ p.jabatan || '-' }}</td>
-                                        <td class="px-4 py-2.5 text-gray-500">{{ p.site || '-' }}</td>
-                                        <td class="px-4 py-2.5 text-gray-500">{{ p.no_hp || '-' }}</td>
-                                        <td class="px-4 py-2.5 text-gray-500 capitalize">{{ p.gender || '-' }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    </template>
+
+                    <!-- Early Booking: Notifikasi peserta menyusul -->
+                    <template v-else>
+                        <div class="rounded-xl border border-amber-200 bg-amber-50 p-5 flex items-start gap-4">
+                            <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-amber-800 mb-1">Daftar Peserta Menyusul (Early Booking)</p>
+                                <p class="text-xs text-amber-700 leading-relaxed">
+                                    Pemesanan ini menggunakan jalur <strong>Early Booking</strong>. Daftar peserta dan panitia tidak diperlukan saat ini — Anda dapat menambahkannya langsung melalui halaman <strong>Dashboard</strong> setelah pemesanan ini disetujui oleh Admin, paling lambat <strong>H-7 sebelum tanggal acara</strong>.
+                                </p>
+                            </div>
                         </div>
-                    </div>
+                    </template>
 
                 </div>
 
